@@ -1,0 +1,26 @@
+{% extends 'metrix/_layouts' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% requireAdmin %}
+
+{% set crumbs = [
+    { label: 'Metrix' | t('metrix'), url: url('metrix') },
+    { label: 'Settings' | t('app'), url: url('metrix/settings') },
+] %}
+
+{% set navItems = {
+    general: { label: 'General Settings' | t('metrix'), url: url('metrix/settings') },
+} %}
+
+{% set title = 'Settings' | t('metrix') %}
+{% set docTitle = navItems[selectedNavItem].label ~ ' - ' ~ title %}
+
+{% block sidebar %}
+    {% include '_includes/nav' with {
+        label: title,
+        items: navItems,
+        selectedItem: selectedNavItem,
+    } only %}
+{% endblock %}

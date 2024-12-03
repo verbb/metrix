@@ -1,0 +1,16 @@
+{% extends '_layouts/cp' %}
+
+{% set crumbs = [
+    { label: craft.metrix.getPluginName() | t('metrix'), url: url('metrix') },
+    { label: 'Dashboard' | t('metrix'), url: url('metrix') }
+] %}
+
+{% set title = 'Dashboard' | t('metrix') %}
+{% set selectedSubnavItem = 'dashboard' %}
+{% set showHeader = false %}
+
+{% block main %}
+
+<div class="metrix-ui metrix-dashboard"></div>
+
+{% endblock %}

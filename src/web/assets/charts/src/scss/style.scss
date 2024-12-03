@@ -1,0 +1,68 @@
+// ==========================================================================
+
+// Metrix for Craft CMS
+// Author: Verbb - https://verbb.io/
+
+// ==========================================================================
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.fade-enter {
+    opacity: 0;
+}
+
+.fade-enter-active {
+    opacity: 1;
+    transition: opacity 100ms ease-in;
+}
+
+.pane {
+    padding: 10px !important;
+}
+
+.width-picker {
+    display: flex;
+
+    .width-picker-column {
+        background-image: none;
+        border: 1px solid theme('colors.slate.300');
+        box-sizing: border-box;
+        display: inline-block;
+        height: 13px;
+        margin-bottom: 1px;
+        margin-left: 0;
+        margin-top: 1px;
+        width: 7px;
+
+        &:not(:first-child) {
+            border-left: none;
+        }
+    }
+
+    .width-picker-column:first-child {
+        width: 8px;
+    }
+
+    .width-picker-column.active {
+        border: 1px solid theme('colors.slate.500');
+        height: 15px;
+        margin-bottom: 0;
+        margin-top: 0;
+
+        &:not(:first-child) {
+            border-left: none;
+        }
+    }
+
+    .rounded-left {
+        border-top-left-radius: 3px;
+        border-bottom-left-radius: 3px;
+    }
+
+    .rounded-right {
+        border-top-right-radius: 3px;
+        border-bottom-right-radius: 3px;
+    }
+}

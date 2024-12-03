@@ -1,0 +1,14 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% include 'metrix/sources/_oauth' %}
+
+{{ forms.booleanMenuField({
+    label: 'Proxy Redirect URI' | t('metrix'),
+    instructions: 'Whether to proxy the redirect URI through Verbb‘s servers. This should **only** be used for local testing. See [docs](https://verbb.io/craft-plugins/metrix/docs/feature-tour/providers#local-testing-proxy) for more.' | t('metrix') | md,
+    name: 'proxyRedirect',
+    includeEnvVars: true,
+    value: source.proxyRedirect ?? false,
+    warning: macros.configWarning("sources.#{source.handle}.proxyRedirect", 'metrix'),
+    errors: source.getErrors('proxyRedirect'),
+}) }}

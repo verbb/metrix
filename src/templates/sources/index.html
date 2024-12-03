@@ -1,0 +1,81 @@
+{% extends 'metrix/_layouts' %}
+
+{% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') -%}
+
+{% set crumbs = [
+    { label: craft.metrix.getPluginName() | t('metrix'), url: url('metrix') },
+    { label: 'Sources' | t('metrix'), url: url('metrix/sources') }
+] %}
+
+{% set title = 'Sources' | t('metrix') %}
+{% set selectedSubnavItem = 'sources' %}
+
+{% block actionButton %}
+    <a class="btn submit add icon" href="{{ url('metrix/sources/new') }}">{{ 'New source' | t('metrix') }}</a>
+{% endblock %}
+
+{% block blockContent %}
+
+<div id="sources-vue-admin-table"></div>
+
+{% endblock %}
+
+{% set tableData = [] %}
+
+{% for source in sources %}
+    {% set tableData = tableData | merge([{
+        id: source.id,
+        title: source.name | t('site'),
+        url: url('metrix/sources/' ~ source.handle),
+        handle: source.handle,
+        enabled: source.enabled,
+        connected: source.connected,
+        provider: { name: source.providerName | t('site') | e, icon: source.icon, color: source.primaryColor },
+    }]) %}
+{% endfor %}
+
+{% js %}
+    var columns = [
+        { name: '__slot:title', title: Craft.t('app', 'Name') },
+        { name: '__slot:handle', title: Craft.t('app', 'Handle') },
+        { name: 'enabled', title: Craft.t('app', 'Status'), callback: function(value) {
+            if (value) {
+                return '<span class="status on"></span>' + Craft.t('metrix', 'Enabled');
+            } else {
+                return '<span class="status"></span>' + Craft.t('metrix', 'Disabled');
+            }
+        } },
+        { name: 'connected', title: Craft.t('app', 'Connected'), callback: function(value) {
+            if (value) {
+                return '<span class="status on"></span>' + Craft.t('metrix', 'Connected');
+            } else {
+                return '<span class="status"></span>' + Craft.t('metrix', 'Disconnected');
+            }
+        } },
+        { name: 'provider', title: Craft.t('app', 'Provider'), callback: function(provider) {
+            let $icon = '';
+
+            if (!provider) {
+                return '';
+            }
+
+            if (provider.icon) {
+                $icon = '<span class="sf-provider-icon">' + provider.icon + '</span>';
+            }
+
+            return '<div class="sf-provider" style="--bg-color: ' + provider.color + '">' +
+                $icon +
+                '<span class="sf-provider-label">' + provider.name + '</span>' +
+            '</div>';
+        } },
+    ];
+
+    new Craft.VueAdminTable({
+        columns: columns,
+        container: '#sources-vue-admin-table',
+        reorderAction: 'metrix/sources/reorder',
+        deleteAction: 'metrix/sources/delete',
+        emptyMessage: Craft.t('metrix', 'No sources exist yet.'),
+        tableData: {{ tableData | json_encode | raw }},
+    });
+{% endjs %}
