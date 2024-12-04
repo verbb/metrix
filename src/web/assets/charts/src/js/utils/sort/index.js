@@ -1,6 +1,5 @@
 import * as number from './number';
 import * as string from './string';
-import * as date from './date';
 
 const sorters = {
     integer: number.sortNumbers,

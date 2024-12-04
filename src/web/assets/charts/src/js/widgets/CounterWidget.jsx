@@ -1,4 +1,4 @@
-import { useRef, useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 
 import { TbNumber123 } from 'react-icons/tb';
 
@@ -9,8 +9,6 @@ import {
 } from '@utils';
 
 export const CounterWidget = (props) => {
-    const { widget } = props;
-
     const fetchData = useCallback((payload) => {
         return api.get('widget-data', { data: 'counter-widget-data', ...payload });
     }, []);

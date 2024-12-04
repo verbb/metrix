@@ -5,8 +5,6 @@ import { Dialog } from '@components/ui/Dialog';
 import { Button } from '@components/ui/Button';
 import { WidgetSettings } from '@components/widget/WidgetSettings';
 
-import { cn } from '@utils';
-
 export function WidgetNew() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 

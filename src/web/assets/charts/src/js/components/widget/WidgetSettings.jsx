@@ -9,14 +9,12 @@ import {
     DialogFooter,
 } from '@components/ui/Dialog';
 
-import LoadingSpinner from '@components/LoadingSpinner';
 import { Button } from '@components/ui/Button';
 import { DynamicForm } from '@components/forms/DynamicForm';
 
 import useWidgetStore from '@hooks/useWidgetStore';
 import useWidgetSettingsStore from '@hooks/useWidgetSettingsStore';
 
-import { cn } from '@utils';
 import { preloadWidget } from '@utils/widgets';
 
 export function WidgetSettings({

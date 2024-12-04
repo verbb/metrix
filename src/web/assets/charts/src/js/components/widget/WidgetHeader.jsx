@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { Cog8ToothIcon, EllipsisVerticalIcon } from '@heroicons/react/24/solid';
-import { X } from 'lucide-react';
+import { EllipsisVerticalIcon } from '@heroicons/react/24/solid';
 
 import {
     Select,

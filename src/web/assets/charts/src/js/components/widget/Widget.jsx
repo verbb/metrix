@@ -5,7 +5,7 @@ import { WidgetHeader } from '@components/widget/WidgetHeader';
 import { WidgetLoading } from '@components/widget/WidgetLoading';
 import { WidgetError } from '@components/widget/WidgetError';
 
-import { api, cn } from '@utils';
+import { cn } from '@utils';
 
 export function Widget({
     widget,

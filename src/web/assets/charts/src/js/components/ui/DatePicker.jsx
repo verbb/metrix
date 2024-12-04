@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import { useState } from 'react';
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
 
@@ -25,13 +25,13 @@ export function DatePickerDemo() {
                         // Width and alignment
                         'mc-w-[280px] mc-justify-start mc-text-left mc-font-normal',
                         // Placeholder styling
-                        !date && 'mc-text-slate-500'
+                        !date && 'mc-text-slate-500',
                     )}
                 >
                     <CalendarIcon
                         className={cn(
                             // Icon size and margin
-                            'mc-mr-2 mc-h-4 mc-w-4'
+                            'mc-mr-2 mc-h-4 mc-w-4',
                         )}
                     />
                     {date ? (
@@ -44,7 +44,7 @@ export function DatePickerDemo() {
             <PopoverContent
                 className={cn(
                     // Popover width and padding
-                    'mc-w-auto mc-p-0'
+                    'mc-w-auto mc-p-0',
                 )}
             >
                 <Calendar

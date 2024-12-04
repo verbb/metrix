@@ -1,4 +1,4 @@
-import {forwardRef} from 'react';
+import { forwardRef } from 'react';
 
 import { cn } from '@utils';
 
@@ -18,7 +18,7 @@ const Textarea = forwardRef(({ className, ...props }, ref) => {
                 'disabled:mc-cursor-not-allowed disabled:mc-opacity-50',
                 // Media queries
                 'md:mc-text-sm',
-                className
+                className,
             )}
             ref={ref}
             {...props}
