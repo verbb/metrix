@@ -8,7 +8,7 @@ import { ChartTooltip } from '@components/charts/ChartTooltip';
 import { WidgetLarge } from '@components/widgets/WidgetLarge';
 
 import {
-    api, cn, format, chartFormat, theme, chartColors, hexToRgba,
+    api, format, chartFormat, theme, chartColors,
 } from '@utils';
 
 export const BarWidget = (props) => {

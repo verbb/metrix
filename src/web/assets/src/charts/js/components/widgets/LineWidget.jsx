@@ -8,7 +8,7 @@ import { ChartTooltip } from '@components/charts/ChartTooltip';
 import { WidgetLarge } from '@components/widgets/WidgetLarge';
 
 import {
-    api, cn, format, chartFormat, chartColors, hexToRgba,
+    api, format, chartFormat, chartColors, hexToRgba,
 } from '@utils';
 
 export const LineWidget = (props) => {

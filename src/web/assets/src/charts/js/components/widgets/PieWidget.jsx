@@ -9,7 +9,7 @@ import { ChartLegend } from '@components/charts/ChartLegend';
 import { WidgetLarge } from '@components/widgets/WidgetLarge';
 
 import {
-    api, cn, chartFormat, chartColors,
+    api, chartFormat, chartColors,
 } from '@utils';
 
 export const PieWidget = (props) => {
