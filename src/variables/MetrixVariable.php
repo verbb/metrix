@@ -3,6 +3,7 @@ namespace verbb\metrix\variables;
 
 use verbb\metrix\Metrix;
 use verbb\metrix\base\SourceInterface;
+use verbb\metrix\helpers\Plugin;
 
 class MetrixVariable
 {
@@ -17,6 +18,11 @@ class MetrixVariable
     public function getPluginName(): string
     {
         return Metrix::$plugin->getPluginName();
+    }
+
+    public function registerAsset(string $path): void
+    {
+        Plugin::registerAsset($path);
     }
 
     public function getAllSources(): array

@@ -1,0 +1,40 @@
+{
+  "_chartjs-BzvTYjqM.js": {
+    "file": "assets/chartjs-BzvTYjqM.js",
+    "name": "chartjs"
+  },
+  "_dndkit-D6zVuobm.js": {
+    "file": "assets/dndkit-D6zVuobm.js",
+    "name": "dndkit",
+    "imports": [
+      "_react-DX0GdSc1.js"
+    ]
+  },
+  "_react-DX0GdSc1.js": {
+    "file": "assets/react-DX0GdSc1.js",
+    "name": "react"
+  },
+  "src/charts/js/metrix-charts.js": {
+    "file": "assets/metrix-charts-BkAzBvmA.js",
+    "name": "metrix-charts",
+    "src": "src/charts/js/metrix-charts.js",
+    "isEntry": true,
+    "imports": [
+      "_react-DX0GdSc1.js",
+      "_dndkit-D6zVuobm.js",
+      "_chartjs-BzvTYjqM.js"
+    ],
+    "css": [
+      "assets/metrix-charts-1MAZVpKG.css"
+    ]
+  },
+  "src/cp/js/metrix-cp.js": {
+    "file": "assets/metrix-cp-DFDsKkwW.js",
+    "name": "metrix-cp",
+    "src": "src/cp/js/metrix-cp.js",
+    "isEntry": true,
+    "css": [
+      "assets/metrix-cp-a5yeb22Z.css"
+    ]
+  }
+}

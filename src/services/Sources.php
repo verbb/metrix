@@ -298,6 +298,7 @@ class Sources extends Component
                 'type',
                 'settings',
                 'sortOrder',
+                'cache',
                 'dateCreated',
                 'dateUpdated',
                 'uid',

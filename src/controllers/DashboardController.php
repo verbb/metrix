@@ -1,298 +1,254 @@
 <?php
 namespace verbb\metrix\controllers;
 
-use Craft;
-// use craft\base\WidgetInterface;
-// use craft\helpers\App;
-// use craft\helpers\ArrayHelper;
-// use craft\helpers\Component;
-// use craft\helpers\FileHelper;
-use craft\helpers\Json;
-// use craft\helpers\StringHelper;
-// use craft\models\CraftSupport;
-// use craft\web\assets\dashboard\DashboardAsset;
-use craft\web\Controller;
-// use craft\web\UploadedFile;
-// use GuzzleHttp\RequestOptions;
-// use Symfony\Component\Yaml\Yaml;
-// use Throwable;
-// use yii\base\Exception;
-// use yii\web\BadRequestHttpException;
-use yii\web\Response;
-// use ZipArchive;
-
-
+use verbb\metrix\Metrix;
+use verbb\metrix\base\Widget;
+use verbb\metrix\helpers\Options;
 use verbb\metrix\helpers\Plugin;
+use verbb\metrix\helpers\Schema;
+use verbb\metrix\models\View;
+use verbb\metrix\widgets;
 
+use Craft;
+use craft\helpers\ArrayHelper;
+use craft\helpers\Json;
+use craft\web\Controller;
+
+use yii\web\Response;
 
 class DashboardController extends Controller
 {
-    // public function beforeAction($action): bool
-    // {
-    //     if (!parent::beforeAction($action)) {
-    //         return false;
-    //     }
+    // Public Methods
+    // =========================================================================
 
-    //     $this->requireCpRequest();
+    public function beforeAction($action): bool
+    {
+        if (!parent::beforeAction($action)) {
+            return false;
+        }
 
-    //     return true;
-    // }
+        $this->requireCpRequest();
+
+        return true;
+    }
 
     public function actionIndex(): Response
     {
+        $settings = Metrix::$plugin->getSettings();
+
         $view = Craft::$app->getView();
 
-        Plugin::registerAsset('charts/src/js/metrix.js');
+        Plugin::registerAsset('src/charts/js/metrix-charts.js');
 
-        $view->registerJs('new Craft.Metrix.Dashboard(' . Json::encode([]) . ');');
+        $periodOptions = Options::getGroupedPeriodOptions();
+        $viewOptions = Options::getViewOptions();
+        $widgetTypeOptions = Options::getEnabledWidgetTypeSchemaOptions();
+        $newWidget = Widget::getNewWigetConfig();
+        $sources = Options::getSourceOptions();
+        $presets = Options::getPresetOptions();
+        $widgets = Metrix::$plugin->getWidgets()->getWidgetsForView(($viewOptions[0]['value'] ?? null));
 
-        return $this->renderTemplate('metrix/dashboard', [
-            // 'settings' => $settings,
-        ]);
+        $data = [
+            'widgets' => $widgets,
+            'widgetSettings' => $widgetTypeOptions,
+            'realtimeInterval' => $settings->getRealtimeInterval(),
+            'newWidget' => $newWidget,
+            'sources' => $sources,
+            'presets' => $presets,
+            'periodOptions' => $periodOptions,
+            'viewOptions' => $viewOptions,
+        ];
+
+        $view->registerJs('new Craft.Metrix.Dashboard(' . Json::encode($data) . ');');
+
+        return $this->renderTemplate('metrix/dashboard');
     }
 
-    // public function actionIndex(): Response
-    // {
-    //     $dashboardService = Craft::$app->getDashboard();
-    //     $view = $this->getView();
+    public function actionWidgets(): Response
+    {
+        $this->requireAcceptsJson();
 
-    //     // Assemble the list of available widget types
-    //     $widgetTypes = $dashboardService->getAllWidgetTypes();
-    //     $widgetTypeInfo = [];
+        $viewHandle = $this->request->getParam('view');
+        $presetHandle = $this->request->getParam('preset');
 
-    //     foreach ($widgetTypes as $widgetType) {
-    //         /** @var string|WidgetInterface $widgetType */
-    //         /** @phpstan-var class-string<WidgetInterface>|WidgetInterface $widgetType */
-    //         if (!$widgetType::isSelectable()) {
-    //             continue;
-    //         }
+        if (!$viewHandle) {
+            return $this->asFailure(Craft::t('metrix', 'Provide a valid view.'));
+        }
 
-    //         $view->startJsBuffer();
-    //         $widget = $dashboardService->createWidget($widgetType);
-    //         $settingsHtml = $view->namespaceInputs(function() use ($widget) {
-    //             return (string)$widget->getSettingsHtml();
-    //         }, '__NAMESPACE__');
-    //         $settingsJs = (string)$view->clearJsBuffer(false);
+        $view = Metrix::$plugin->getViews()->getViewByHandle($viewHandle);
 
-    //         $class = get_class($widget);
-    //         $widgetTypeInfo[$class] = [
-    //             'iconSvg' => $this->_getWidgetIconSvg($widget),
-    //             'name' => $widget::displayName(),
-    //             'maxColspan' => $widget::maxColspan(),
-    //             'settingsHtml' => $settingsHtml,
-    //             'settingsJs' => $settingsJs,
-    //             'selectable' => true,
-    //         ];
-    //     }
+        if (!$view) {
+            return $this->asFailure(Craft::t('metrix', 'Unable to find view.'));
+        }
 
-    //     // Sort them by name
-    //     ArrayHelper::multisort($widgetTypeInfo, 'name');
+        // Load up any presets
+        if ($presetHandle) {
+            $preset = Metrix::$plugin->getPresets()->getPresetByHandle($presetHandle);
 
-    //     $variables = [];
+            if (!$preset) {
+                return $this->asFailure(Craft::t('metrix', 'Unable to find preset.'));
+            }
 
-    //     // Assemble the list of existing widgets
-    //     $variables['widgets'] = [];
-    //     $widgets = $dashboardService->getAllWidgets();
-    //     $allWidgetJs = '';
+            // Presets often have no source set, because they can be saved at the project config level before
+            // any sources exist. But when converting to widgets, they must have a source.
+            $firstSource = Metrix::$plugin->getSources()->getAllConfiguredSources()[0] ?? null;
 
-    //     foreach ($widgets as $widget) {
-    //         $view->startJsBuffer();
-    //         $info = $this->_getWidgetInfo($widget);
-    //         $widgetJs = $view->clearJsBuffer(false);
+            if (!$firstSource) {
+                return $this->asFailure(Craft::t('metrix', 'You must have at least one source enabled.'));
+            }
 
-    //         if ($info === false) {
-    //             continue;
-    //         }
+            foreach ($preset->getWidgets() as $widget) {
+                $widget->setView($view);
 
-    //         // If this widget type didn't come back in our getAllWidgetTypes() call, add it now
-    //         if (!isset($widgetTypeInfo[$info['type']])) {
-    //             $widgetTypeInfo[$info['type']] = [
-    //                 'iconSvg' => $this->_getWidgetIconSvg($widget),
-    //                 'name' => $widget::displayName(),
-    //                 'maxColspan' => $widget::maxColspan(),
-    //                 'selectable' => false,
-    //             ];
-    //         }
+                // Set a default source, if not already set
+                if (!$widget->getSource()) {
+                    $widget->setSource($firstSource);
+                }
 
-    //         $variables['widgets'][] = $info;
+                if (!Metrix::$plugin->getWidgets()->saveWidget($widget)) {
+                    return $this->asFailure(Craft::t('metrix', 'Unable to save widget.'));
+                }
+            }
+        }
 
-    //         $allWidgetJs .= 'new Craft.Widget("#widget' . $widget->id . '", ' .
-    //             Json::encode($info['settingsHtml']) . ', ' .
-    //             '() => {' . $info['settingsJs'] . '},' .
-    //             Json::encode($info['settings']) .
-    //             ");\n";
+        $widgets = Metrix::$plugin->getWidgets()->getWidgetsForView($viewHandle);
 
-    //         if (!empty($widgetJs)) {
-    //             // Allow any widget JS to execute *after* we've created the Craft.Widget instance
-    //             $allWidgetJs .= $widgetJs . "\n";
-    //         }
-    //     }
+        return $this->asJson($widgets);
+    }
 
-    //     // Include all the JS and CSS stuff
-    //     $view->registerAssetBundle(DashboardAsset::class);
-    //     $view->registerJsWithVars(
-    //         fn($widgetTypeInfo) => "window.dashboard = new Craft.Dashboard($widgetTypeInfo)",
-    //         [$widgetTypeInfo]
-    //     );
-    //     $view->registerJs($allWidgetJs);
+    public function actionPropertyOptions(): Response
+    {
+        $this->requireAcceptsJson();
 
-    //     $variables['widgetTypes'] = $widgetTypeInfo;
+        $sourceHandle = $this->request->getParam('source');
+        $property = $this->request->getParam('property');
 
-    //     return $this->renderTemplate('dashboard/_index.twig', $variables);
-    // }
+        if (!$sourceHandle) {
+            return $this->asFailure(Craft::t('metrix', 'Provide a valid source.'));
+        }
 
-    // public function actionCreateWidget(): Response
-    // {
-    //     $this->requirePostRequest();
-    //     $this->requireAcceptsJson();
+        $source = Metrix::$plugin->getSources()->getSourceByHandle($sourceHandle);
 
-    //     $dashboardService = Craft::$app->getDashboard();
+        if (!$source) {
+            return $this->asFailure(Craft::t('metrix', 'Unable to find source.'));
+        }
 
-    //     $type = $this->request->getRequiredBodyParam('type');
-    //     $settings = $this->request->getBodyParam('settings');
+        if ($property === 'dimensions') {
+            $data = $source->getAvailableDimensions();
+        }
 
-    //     if (!$settings) {
-    //         $settingsNamespace = $this->request->getBodyParam('settingsNamespace');
-    //         if ($settingsNamespace) {
-    //             $settings = $this->request->getBodyParam($settingsNamespace);
-    //         }
-    //     }
+        if ($property === 'metrics') {
+            $data = $source->getAvailableMetrics();
+        }
 
-    //     $widget = $dashboardService->createWidget([
-    //         'type' => $type,
-    //         'settings' => $settings,
-    //     ]);
+        return $this->asJson($data);
+    }
 
-    //     return $this->_saveAndReturnWidget($widget);
-    // }
+    public function actionWidgetData(): Response
+    {
+        $this->requireAcceptsJson();
 
-    // public function actionSaveWidgetSettings(): Response
-    // {
-    //     $this->requirePostRequest();
-    //     $this->requireAcceptsJson();
+        $id = $this->request->getParam('id');
 
-    //     $dashboardService = Craft::$app->getDashboard();
-    //     $widgetId = $this->request->getRequiredBodyParam('widgetId');
+        $widget = Metrix::$plugin->getWidgets()->getWidgetById($id);
 
-    //     // Get the existing widget
-    //     $widget = $dashboardService->getWidgetById($widgetId);
+        return $this->asJson($widget->getWidgetData());
+    }
 
-    //     if (!$widget) {
-    //         throw new BadRequestHttpException();
-    //     }
+    public function actionSaveWidget(): Response
+    {
+        $this->requirePostRequest();
+        $this->requireAcceptsJson();
 
-    //     // Create a new widget model with the new settings
-    //     $settings = $this->request->getBodyParam('widget' . $widget->id . '-settings');
+        $id = $this->request->getParam('id');
+        $widgetData = $this->request->getParam('widget', []) ?? [];
+        $type = ArrayHelper::remove($widgetData, 'type');
 
-    //     $widget = $dashboardService->createWidget([
-    //         'id' => $widget->id,
-    //         'dateCreated' => $widget->dateCreated,
-    //         'dateUpdated' => $widget->dateUpdated,
-    //         'colspan' => $widget->colspan,
-    //         'type' => get_class($widget),
-    //         'settings' => $settings,
-    //     ]);
+        if ($id) {
+            $widget = Metrix::$plugin->getWidgets()->getWidgetById($id);
 
-    //     return $this->_saveAndReturnWidget($widget);
-    // }
+            if (!$widget) {
+                return $this->asFailure(Craft::t('metrix', 'Unable to find widget {id}.', ['id' => $id]));
+            }
 
-    // public function actionDeleteUserWidget(): Response
-    // {
-    //     $this->requirePostRequest();
-    //     $this->requireAcceptsJson();
+            // If we're changing the type of an existing widget, set things up
+            if ($type && $widget::class !== $type) {
+                $currentWidget = $widget;
 
-    //     $widgetId = Json::decode($this->request->getRequiredBodyParam('id'));
-    //     Craft::$app->getDashboard()->deleteWidgetById($widgetId);
+                $widget = new $type;
+                $widget->setAttributes($currentWidget->getAttributes(), false);
+            }
+        } else {
+            $widget = new $type;
+        }
 
-    //     return $this->asSuccess();
-    // }
+        // Replace some handles with classes
+        if ($sourceHandle = ArrayHelper::remove($widgetData, 'source')) {
+            $source = Metrix::$plugin->getSources()->getSourceByHandle($sourceHandle);
 
-    // public function actionChangeWidgetColspan(): Response
-    // {
-    //     $this->requirePostRequest();
-    //     $this->requireAcceptsJson();
+            $widget->setSource($source);
+        }
 
-    //     $widgetId = $this->request->getRequiredBodyParam('id');
-    //     $colspan = $this->request->getRequiredBodyParam('colspan');
+        if ($viewHandle = ArrayHelper::remove($widgetData, 'view')) {
+            $view = Metrix::$plugin->getViews()->getViewByHandle($viewHandle);
 
-    //     Craft::$app->getDashboard()->changeWidgetColspan($widgetId, $colspan);
+            $widget->setView($view);
+        }
 
-    //     return $this->asSuccess();
-    // }
+        $widget->setAttributes($widgetData);
 
-    // public function actionReorderUserWidgets(): Response
-    // {
-    //     $this->requirePostRequest();
-    //     $this->requireAcceptsJson();
+        if (!Metrix::$plugin->getWidgets()->saveWidget($widget)) {
+            return $this->asFailure(Craft::t('metrix', 'Unable to save widget {errors}.', ['errors' => Json::encode($widget->getErrors())]));
+        }
 
-    //     $widgetIds = Json::decode($this->request->getRequiredBodyParam('ids'));
-    //     Craft::$app->getDashboard()->reorderWidgets($widgetIds);
+        return $this->asJson($widget->getFrontEndData());
+    }
 
-    //     return $this->asSuccess();
-    // }
+    public function actionSaveWidgetOrder(): Response
+    {
+        $this->requirePostRequest();
+        $this->requireAcceptsJson();
 
+        $widgetIds = $this->request->getRequiredBodyParam('ids');
+        Metrix::$plugin->getWidgets()->reorderWidgets($widgetIds);
 
-    // private function _getWidgetInfo(WidgetInterface $widget): array|false
-    // {
-    //     $view = $this->getView();
+        return $this->asSuccess();
+    }
 
-    //     // Get the body HTML
-    //     $widgetBodyHtml = $widget->getBodyHtml();
+    public function actionDeleteWidget(): Response
+    {
+        $this->requirePostRequest();
+        $this->requireAcceptsJson();
 
-    //     if ($widgetBodyHtml === null) {
-    //         return false;
-    //     }
+        $widgetId = $this->request->getRequiredBodyParam('id');
 
-    //     // Get the settings HTML + JS
-    //     $view->startJsBuffer();
-    //     $settingsHtml = $view->namespaceInputs(function() use ($widget) {
-    //         return (string)$widget->getSettingsHtml();
-    //     }, "widget$widget->id-settings");
-    //     $settingsJs = $view->clearJsBuffer(false);
+        Metrix::$plugin->getWidgets()->deleteWidgetById($widgetId);
 
-    //     // Get the colspan (limited to the widget type's max allowed colspan)
-    //     $colspan = ($widget->colspan ?: 1);
+        return $this->asSuccess();
+    }    
 
-    //     if (($maxColspan = $widget::maxColspan()) && $colspan > $maxColspan) {
-    //         $colspan = $maxColspan;
-    //     }
+    public function actionDuplicateWidget(): Response
+    {
+        $this->requirePostRequest();
+        $this->requireAcceptsJson();
 
-    //     return [
-    //         'id' => $widget->id,
-    //         'type' => get_class($widget),
-    //         'colspan' => $colspan,
-    //         'title' => $widget->getTitle(),
-    //         'subtitle' => $widget->getSubtitle(),
-    //         'name' => $widget->displayName(),
-    //         'bodyHtml' => $widgetBodyHtml,
-    //         'settingsHtml' => $settingsHtml,
-    //         'settingsJs' => (string)$settingsJs,
-    //         'settings' => $widget->getSettings(),
-    //     ];
-    // }
+        $widgetId = $this->request->getRequiredBodyParam('id');
 
-    // private function _getWidgetIconSvg(WidgetInterface $widget): string
-    // {
-    //     return Component::iconSvg($widget::icon(), $widget::displayName());
-    // }
+        $originalWidget = Metrix::$plugin->getWidgets()->getWidgetById($widgetId);
 
-    // private function _saveAndReturnWidget(WidgetInterface $widget): Response
-    // {
-    //     $dashboardService = Craft::$app->getDashboard();
+        if (!$originalWidget) {
+            return $this->asFailure(Craft::t('metrix', 'Widget not found.'));
+        }
 
-    //     if (!$dashboardService->saveWidget($widget)) {
-    //         return $this->asFailure(data: [
-    //             'errors' => $widget->getFirstErrors(),
-    //         ]);
-    //     }
+        $duplicatedWidget = clone $originalWidget;
+        $duplicatedWidget->id = null;
+        $duplicatedWidget->uid = null;
+        $duplicatedWidget->sortOrder = null;
 
-    //     $info = $this->_getWidgetInfo($widget);
-    //     $view = $this->getView();
+        if (!Metrix::$plugin->getWidgets()->saveWidget($duplicatedWidget)) {
+            return $this->asFailure(Craft::t('metrix', 'Failed to duplicate widget.'));
+        }
 
-    //     return $this->asSuccess(data: [
-    //         'info' => $info,
-    //         'headHtml' => $view->getHeadHtml(),
-    //         'bodyHtml' => $view->getBodyHtml(),
-    //     ]);
-    // }
+        return $this->asJson($duplicatedWidget->getFrontEndData());
+    }
 }

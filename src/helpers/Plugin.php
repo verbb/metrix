@@ -2,7 +2,7 @@
 namespace verbb\metrix\helpers;
 
 use verbb\metrix\Metrix;
-use verbb\metrix\web\assets\charts\MetrixAsset;
+use verbb\metrix\assetbundles\MetrixAsset;
 
 class Plugin
 {

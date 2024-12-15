@@ -3,17 +3,44 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% requireAdmin %}
+
+{% set crumbs = [
+    { label: craft.metrix.getPluginName() | t('metrix'), url: url('metrix') },
+    { label: 'Settings' | t('app'), url: url('metrix/settings') },
+] %}
+
 {% set fullPageForm = true %}
 {% set selectedNavItem = 'general' %}
+{% set selectedSubnavItem = 'settings' %}
 
 {% block blockContent %}
 
-<input type="hidden" name="action" value="plugins/save-plugin-settings">
-<input type="hidden" name="pluginHandle" value="metrix">
+<input type="hidden" name="action" value="metrix/settings/save-settings">
 
 {% namespace 'settings' %}
 
+{{ forms.textField({
+    first: true,
+    label: 'Plugin Name' | t('app'),
+    instructions: 'Plugin name for the end user.' | t('metrix'),
+    id: 'pluginName',
+    name: 'pluginName',
+    value: settings.pluginName,
+    autofocus: true,
+    errors: settings.getErrors('pluginName'),
+    warning: macros.configWarning('pluginName', 'metrix'),
+}) }}
 
+{{ forms.lightswitchField({
+    label: 'Enable CP Section' | t('metrix'),
+    instructions: 'Whether to enable Metrix in the main sidebar navigation.' | t('metrix'),
+    id: 'hasCpSection',
+    name: 'hasCpSection',
+    on: settings.hasCpSection,
+    errors: settings.getErrors('hasCpSection'),
+    warning: macros.configWarning('hasCpSection', 'metrix'),
+}) }}
 
 {% endnamespace %}
 

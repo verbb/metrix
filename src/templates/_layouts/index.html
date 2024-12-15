@@ -1,6 +1,6 @@
 {% extends parentLayout ?? '_layouts/cp' %}
 
-{% do view.registerAssetBundle('verbb\\metrix\\assetbundles\\MetrixAsset') %}
+{% do craft.metrix.registerAsset('src/cp/js/metrix-cp.js') %}
 
 {% if title is not defined %}
     {% set title = 'Metrix' | t('metrix') %}

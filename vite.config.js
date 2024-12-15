@@ -20,16 +20,22 @@ export default ({ command }) => defineConfig({
     base: command === 'serve' ? '' : '/dist/',
 
     build: {
-        outDir: 'charts/dist',
+        outDir: './dist',
         emptyOutDir: true,
         manifest: 'manifest.json',
         sourcemap: true,
         rollupOptions: {
             input: {
-                'metrix': '/charts/src/js/metrix.js',
+                'metrix-cp': path.resolve('./src/web/assets/src/cp/js/metrix-cp.js'),
+                'metrix-charts': path.resolve('./src/web/assets/src/charts/js/metrix-charts.js'),
             },
             output: {
                 sourcemapExcludeSources: true,
+                manualChunks: {
+                    chartjs: ['chart.js'],
+                    react: ['react', 'react-dom'],
+                    dndkit: ['@dnd-kit/core', '@dnd-kit/sortable'],
+                },
             },
         },
     },
@@ -50,7 +56,7 @@ export default ({ command }) => defineConfig({
             cache: false,
             fix: true,
             include: './src/web/assets/**/*.{js,jsx}',
-            exclude: './src/web/assets/charts/src/js/vendor/**/*.{js,jsx}',
+            exclude: './src/web/assets/src/charts/js/vendor/**/*.{js,jsx}',
         }),
 
         // React support
@@ -80,7 +86,13 @@ export default ({ command }) => defineConfig({
                 // This prevents style bleed both to and from Craft
                 prefixer({
                     prefix: '.metrix-ui',
-                    exclude: [],
+                    transform: function (prefix, selector, prefixedSelector, filePath, rule) {
+                        if (filePath.includes('assets/src/cp/')) {
+                            return selector;
+                        }
+
+                        return prefixedSelector;
+                    }
                 }),
 
                 autoprefixer,
@@ -102,12 +114,13 @@ export default ({ command }) => defineConfig({
             'tailwind.config.js': path.resolve('tailwind.config.js'),
 
             // Allow shortcuts in JS, CSS and Twig for ease of development.
-            '@': path.resolve('./src/web/assets/charts/src'),
-            '@utils': path.resolve('./src/web/assets/charts/src/js/utils'),
-            '@components': path.resolve('./src/web/assets/charts/src/js/components'),
-            '@formatters': path.resolve('./src/web/assets/charts/src/js/utils/formatters'),
-            '@hooks': path.resolve('./src/web/assets/charts/src/js/hooks'),
-            '@widgets': path.resolve('./src/web/assets/charts/src/js/widgets'),
+            '@cp': path.resolve('./src/web/assets/src/cp'),
+
+            '@charts': path.resolve('./src/web/assets/src/charts'),
+            '@utils': path.resolve('./src/web/assets/src/charts/js/utils'),
+            '@components': path.resolve('./src/web/assets/src/charts/js/components'),
+            '@formatters': path.resolve('./src/web/assets/src/charts/js/utils/formatters'),
+            '@hooks': path.resolve('./src/web/assets/src/charts/js/hooks'),
         },
     },
 
@@ -116,6 +129,9 @@ export default ({ command }) => defineConfig({
         include: [
             'lodash-es',
             'tailwind.config.js',
+            'chart.js', 
+            'react', 
+            'react-dom',
         ],
     },
 });

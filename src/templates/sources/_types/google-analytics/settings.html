@@ -1,5 +1,6 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
+{% import 'metrix/_macros' as customForms %}
 
 {% include 'metrix/sources/_oauth' %}
 
@@ -11,4 +12,18 @@
     value: source.proxyRedirect ?? false,
     warning: macros.configWarning("sources.#{source.handle}.proxyRedirect", 'metrix'),
     errors: source.getErrors('proxyRedirect'),
+}) }}
+
+{{ customForms.providerSettingsField(source, {
+    label: '{name} Account' | t('metrix', { name: source.providerName }),
+    instructions: 'The {name} Account to pull data from.' | t('metrix', { name: source.providerName }),
+    name: 'accountId',
+    required: true,
+}) }}
+
+{{ customForms.providerSettingsField(source, {
+    label: '{name} Property' | t('metrix', { name: source.providerName }),
+    instructions: 'The {name} Property to pull data from. Ensure you pick an Account first.' | t('metrix', { name: source.providerName }),
+    name: 'propertyId',
+    required: true,
 }) }}

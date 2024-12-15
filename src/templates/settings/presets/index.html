@@ -1,0 +1,66 @@
+{% extends 'metrix/_layouts/settings' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') -%}
+
+{% requireAdmin %}
+
+{% set crumbs = [
+    { label: craft.metrix.getPluginName() | t('metrix'), url: url('metrix') },
+    { label: 'Settings' | t('app'), url: url('metrix/settings') },
+] %}
+
+{% set fullPageForm = true %}
+{% set selectedNavItem = 'presets' %}
+{% set selectedSubnavItem = 'settings' %}
+
+{% block actionButton %}
+    <a href="{{ url('metrix/settings/presets/new') }}" class="btn submit add icon">{{ 'New Preset' | t('metrix') }}</a>
+{% endblock %}
+
+{% block content %}
+    <div id="presets-vue-admin-table"></div>
+{% endblock %}
+
+{% set tableData = [] %}
+
+{% for preset in presets %}
+    {% set tableData = tableData | merge([{
+        id: preset.id,
+        title: preset.name | t('metrix'),
+        handle: preset.handle,
+        url: preset.cpEditUrl,
+        enabled: preset.enabled,
+    }]) %}
+{% endfor %}
+
+{% js %}
+
+var columns = [
+    { name: '__slot:title', title: Craft.t('app', 'Name') },
+    { name: '__slot:handle', title: Craft.t('app', 'Handle') },
+    { name: 'enabled', title: Craft.t('metrix', 'Enabled'), callback: function(value) {
+            if (value) {
+                return '<span class="status on"></span>' + Craft.t('metrix', 'Enabled');
+            } else {
+                return '<span class="status"></span>' + Craft.t('metrix', 'Disabled');
+            }
+        }
+    },
+];
+
+new Craft.VueAdminTable({
+    columns: columns,
+    container: '#presets-vue-admin-table',
+    emptyMessage: Craft.t('metrix', 'No icon sets exist yet.'),
+    tableData: {{ tableData | json_encode | raw }},
+
+    {% if craft.app.config.general.allowAdminChanges %}
+        deleteAction: 'metrix/presets/delete',
+        reorderAction: '{{ presets | length > 1 ? 'metrix/presets/reorder' : ''}}',
+    {% endif %}
+});
+
+{% endjs %}

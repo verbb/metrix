@@ -1,0 +1,48 @@
+{% extends 'metrix/_layouts' %}
+
+{% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') -%}
+
+{% set crumbs = [
+    { label: craft.metrix.getPluginName() | t('metrix'), url: url('metrix') },
+    { label: 'View' | t('metrix'), url: url('metrix/views') }
+] %}
+
+{% set title = 'View' | t('metrix') %}
+{% set selectedSubnavItem = 'views' %}
+
+{% block actionButton %}
+    <a class="btn submit add icon" href="{{ url('metrix/views/new') }}">{{ 'New view' | t('metrix') }}</a>
+{% endblock %}
+
+{% block blockContent %}
+
+<div id="views-vue-admin-table"></div>
+
+{% endblock %}
+
+{% set tableData = [] %}
+
+{% for view in views %}
+    {% set tableData = tableData | merge([{
+        id: view.id,
+        title: view.name | t('site'),
+        url: url('metrix/views/' ~ view.handle),
+        handle: view.handle,
+    }]) %}
+{% endfor %}
+
+{% js %}
+    var columns = [
+        { name: '__slot:title', title: Craft.t('app', 'Name') },
+        { name: '__slot:handle', title: Craft.t('app', 'Handle') },
+    ];
+
+    new Craft.VueAdminTable({
+        columns: columns,
+        container: '#views-vue-admin-table',
+        reorderAction: 'metrix/views/reorder',
+        deleteAction: 'metrix/views/delete',
+        emptyMessage: Craft.t('metrix', 'No views exist yet.'),
+        tableData: {{ tableData | json_encode | raw }},
+    });
+{% endjs %}

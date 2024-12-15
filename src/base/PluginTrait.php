@@ -2,9 +2,13 @@
 namespace verbb\metrix\base;
 
 use verbb\metrix\Metrix;
+use verbb\metrix\assetbundles\MetrixAsset;
+use verbb\metrix\services\Periods;
+use verbb\metrix\services\Presets;
 use verbb\metrix\services\Service;
 use verbb\metrix\services\Sources;
-use verbb\metrix\web\assets\charts\MetrixAsset;
+use verbb\metrix\services\Views;
+use verbb\metrix\services\Widgets;
 
 use Craft;
 
@@ -48,6 +52,16 @@ trait PluginTrait
     // Public Methods
     // =========================================================================
 
+    public function getPeriods(): Periods
+    {
+        return $this->get('periods');
+    }
+
+    public function getPresets(): Presets
+    {
+        return $this->get('presets');
+    }
+
     public function getService(): Service
     {
         return $this->get('service');
@@ -58,9 +72,19 @@ trait PluginTrait
         return $this->get('sources');
     }
 
+    public function getViews(): Views
+    {
+        return $this->get('views');
+    }
+
     public function getVite(): VitePluginService
     {
         return $this->get('vite');
+    }
+
+    public function getWidgets(): Widgets
+    {
+        return $this->get('widgets');
     }
 
 
@@ -70,8 +94,11 @@ trait PluginTrait
     private function _setPluginComponents(): void
     {
         $this->setComponents([
+            'periods' => Periods::class,
+            'presets' => Presets::class,
             'service' => Service::class,
             'sources' => Sources::class,
+            'views' => Views::class,
             'vite' => [
                 'class' => VitePluginService::class,
                 'assetClass' => MetrixAsset::class,
@@ -83,6 +110,7 @@ trait PluginTrait
                 'checkDevServer' => true,
                 'includeReactRefreshShim' => true,
             ],
+            'widgets' => Widgets::class,
         ]);
         
         Auth::registerModule();

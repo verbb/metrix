@@ -141,6 +141,7 @@ class SourcesController extends Controller
 
         $sourcesService = Metrix::$plugin->getSources();
 
+        $sourceData = $this->request->getBodyParam('sourceData');
         $sourceHandle = $this->request->getRequiredBodyParam('source');
         $setting = $this->request->getRequiredBodyParam('setting');
 
@@ -149,6 +150,9 @@ class SourcesController extends Controller
         if (!$source) {
             throw new BadRequestHttpException("Invalid source: $sourceHandle");
         }
+
+        // Set any data provided by this call to the source
+        $source->setAttributes($sourceData, false);
 
         return $this->asJson($source->getSourceSettings($setting, false));
     }

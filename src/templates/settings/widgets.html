@@ -1,0 +1,140 @@
+{% extends 'metrix/_layouts/settings' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% requireAdmin %}
+
+{% set crumbs = [
+    { label: craft.metrix.getPluginName() | t('metrix'), url: url('metrix') },
+    { label: 'Settings' | t('app'), url: url('metrix/settings') },
+] %}
+
+{% set fullPageForm = true %}
+{% set selectedNavItem = 'widgets' %}
+{% set selectedSubnavItem = 'settings' %}
+
+{% block blockContent %}
+
+<input type="hidden" name="action" value="metrix/settings/save-settings">
+
+{% namespace 'settings' %}
+
+<h2 class="first">{{ 'Widgets' | t('metrix') }}</h2>
+
+{{ forms.lightswitchField({
+    label: 'Enable Cache' | t('metrix'),
+    instructions: 'Whether to cache API requests.' | t('metrix'),
+    id: 'enableCache',
+    name: 'enableCache',
+    toggle: '#cache-duration',
+    on: settings.enableCache,
+    errors: settings.getErrors('enableCache'),
+    warning: macros.configWarning('enableCache', 'metrix'),
+}) }}
+
+<div id="cache-duration" class="{{ not settings.enableCache ? 'hidden' }}">
+    {{ forms.textField({
+        label: 'Cache Duration' | t('metrix'),
+        instructions: 'Set the cache duration. Accepts a [Date Interval]({url}) or a number of seconds.' | t('metrix', { url: 'https://www.php.net/manual/en/dateinterval.construct.php' }),
+        id: 'cacheDuration',
+        name: 'cacheDuration',
+        value: settings.cacheDuration,
+        errors: settings.getErrors('cacheDuration'),
+        warning: macros.configWarning('cacheDuration', 'metrix'),
+    }) }}
+</div>
+
+{{ forms.textField({
+    label: 'Real-time Refresh Interval' | t('metrix'),
+    instructions: 'Set the number of seconds between requests for real-time data.' | t('metrix'),
+    id: 'realtimeInterval',
+    name: 'realtimeInterval',
+    value: settings.realtimeInterval,
+    errors: settings.getErrors('realtimeInterval'),
+    warning: macros.configWarning('realtimeInterval', 'metrix'),
+}) }}
+
+<h2>{{ 'Widget Defaults' | t('metrix') }}</h2>
+
+{{ forms.selectField({
+    label: 'Default Widget Type' | t('metrix'),
+    instructions: 'Select the type of widget selected by default when creating a new one.' | t('metrix'),
+    id: 'defaultWidgetConfig-type',
+    name: 'defaultWidgetConfig[type]',
+    value: settings.defaultWidgetConfig.type,
+    options: settings.getWidgetTypeOptions(),
+    errors: settings.getErrors('defaultWidgetConfig.type'),
+    warning: macros.configWarning('defaultWidgetConfig.type', 'metrix'),
+}) }}
+
+{{ forms.selectField({
+    label: 'Default Widget Period' | t('metrix'),
+    instructions: 'Select the type of widget selected by default when creating a new one.' | t('metrix'),
+    id: 'defaultWidgetConfig-period',
+    name: 'defaultWidgetConfig[period]',
+    value: settings.defaultWidgetConfig.period,
+    options: settings.getWidgetPeriodOptions(),
+    errors: settings.getErrors('defaultWidgetConfig.period'),
+    warning: macros.configWarning('defaultWidgetConfig.period', 'metrix'),
+}) }}
+
+{{ forms.selectField({
+    label: 'Default Widget Width' | t('metrix'),
+    instructions: 'Select the type of widget selected by default when creating a new one.' | t('metrix'),
+    id: 'defaultWidgetConfig-width',
+    name: 'defaultWidgetConfig[width]',
+    value: settings.defaultWidgetConfig.width,
+    options: settings.getWidgetWidthOptions(),
+    errors: settings.getErrors('defaultWidgetConfig.width'),
+    warning: macros.configWarning('defaultWidgetConfig.width', 'metrix'),
+}) }}
+
+<h2>{{ 'Widget Types' | t('metrix') }}</h2>
+
+{{ forms.checkboxSelectField({
+    label: 'Enabled Widget Types' | t('metrix'),
+    instructions: 'Select the types of widgets available to be created.' | t('metrix'),
+    id: 'enabledWidgetTypes',
+    name: 'enabledWidgetTypes',
+    showAllOption: true,
+    values: settings.enabledWidgetTypes,
+    options: settings.getWidgetTypeOptions(),
+    errors: settings.getErrors('enabledWidgetTypes'),
+    warning: macros.configWarning('enabledWidgetTypes', 'metrix'),
+}) }}
+
+<h2>{{ 'Periods' | t('metrix') }}</h2>
+
+{{ forms.editableTableField({
+    label: 'Enabled Periods' | t('metrix'),
+    instructions: 'Select the types of periods available for widgets.' | t('metrix'),
+    id: 'periodSettings',
+    name: 'periodSettings',
+    cols: {
+        id: {
+            type: 'singleline',
+            class: 'hidden',
+        },
+        type: {
+            type: 'heading',
+            heading: 'Period' | t('app'),
+        },
+        enabled: {
+            type: 'lightswitch',
+            heading: 'Enabled' | t('metrix'),
+            thin: true,
+        }
+    } | filter,
+    rows: settings.getPeriodSettingsRows(),
+    fullWidth: true,
+    allowAdd: false,
+    allowDelete: false,
+    allowReorder: true,
+    errors: settings.getErrors('periodSettings'),
+    warning: macros.configWarning('periodSettings', 'metrix'),
+}) }}
+
+{% endnamespace %}
+
+{% endblock %}

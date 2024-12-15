@@ -1,7 +1,7 @@
 import tailwindcssAnimate from 'tailwindcss-animate';
 import tailwindcssForms from '@tailwindcss/forms';
 
-import { chartColors } from './src/web/assets/charts/src/js/utils/chart-colors';
+import { chartColors } from './src/web/assets/src/charts/js/utils/chart-colors';
 
 export default {
     // Prefix classes so Craft's don't interfere, and vice versa
@@ -10,7 +10,7 @@ export default {
     content: [
         // Scan the files in these directories for what _not_ to purge
         './src/templates/**/*.{twig,html}',
-        './src/web/assets/charts/src/**/*.{js,jsx}',
+        './src/web/assets/src/charts/**/*.{js,jsx}',
     ],
 
     theme: {

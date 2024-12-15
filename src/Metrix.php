@@ -2,22 +2,20 @@
 namespace verbb\metrix;
 
 use verbb\metrix\base\PluginTrait;
-use verbb\metrix\gql\interfaces\MetrixInterface;
-use verbb\metrix\gql\queries\MetrixQuery;
+use verbb\metrix\helpers\ProjectConfigHelper;
 use verbb\metrix\models\Settings;
+use verbb\metrix\services\Presets;
 use verbb\metrix\variables\MetrixVariable;
 
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin;
+use craft\events\RebuildConfigEvent;
 use craft\events\RegisterComponentTypesEvent;
-use craft\events\RegisterGqlQueriesEvent;
-use craft\events\RegisterGqlSchemaComponentsEvent;
-use craft\events\RegisterGqlTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
 use craft\helpers\UrlHelper;
-use craft\services\Gql;
+use craft\services\ProjectConfig;
 use craft\services\UserPermissions;
 use craft\services\Utilities;
 use craft\web\UrlManager;
@@ -53,7 +51,7 @@ class Metrix extends Plugin
         $this->_setPluginComponents();
         $this->_setLogging();
         $this->_registerVariables();
-        $this->_registerGraphQl();
+        $this->_registerProjectConfigEventListeners();
 
         if (Craft::$app->getRequest()->getIsCpRequest()) {
             $this->_registerCpRoutes();
@@ -100,6 +98,13 @@ class Metrix extends Plugin
             ];
         }
 
+        if (Craft::$app->getUser()->checkPermission('metrix-views')) {
+            $nav['subnav']['views'] = [
+                'label' => Craft::t('metrix', 'Views'),
+                'url' => 'metrix/views',
+            ];
+        }
+
         if (Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
             $nav['subnav']['settings'] = [
                 'label' => Craft::t('metrix', 'Settings'),
@@ -131,7 +136,15 @@ class Metrix extends Plugin
             $event->rules['metrix/sources'] = 'metrix/sources/index';
             $event->rules['metrix/sources/new'] = 'metrix/sources/edit';
             $event->rules['metrix/sources/<handle:{handle}>'] = 'metrix/sources/edit';
-            $event->rules['metrix/settings'] = 'metrix/plugin/settings';
+            $event->rules['metrix/views'] = 'metrix/views';
+            $event->rules['metrix/views/new'] = 'metrix/views/edit';
+            $event->rules['metrix/views/<handle:{handle}>'] = 'metrix/views/edit';
+            $event->rules['metrix/settings'] = 'metrix/settings/index';
+            $event->rules['metrix/settings/general'] = 'metrix/settings/index';
+            $event->rules['metrix/settings/widgets'] = 'metrix/settings/widgets';
+            $event->rules['metrix/settings/presets'] = 'metrix/presets/index';
+            $event->rules['metrix/settings/presets/new'] = 'metrix/presets/edit';
+            $event->rules['metrix/settings/presets/edit/<presetId:\d+>'] = 'metrix/presets/edit';
 
             if (Craft::$app->getConfig()->getGeneral()->headlessMode || !Craft::$app->getConfig()->getGeneral()->cpTrigger) {
                 $event->rules['metrix/auth/callback'] = 'metrix/auth/callback';
@@ -156,34 +169,37 @@ class Metrix extends Plugin
     private function _registerPermissions(): void
     {
         Event::on(UserPermissions::class, UserPermissions::EVENT_REGISTER_PERMISSIONS, function(RegisterUserPermissionsEvent $event) {
+            $viewPermissions = [];
+
+            foreach ($this->getViews()->getAllViews() as $view) {
+                $suffix = ':' . $view->uid;
+                $viewPermissions['metrix-dashboard' . $suffix] = ['label' => Craft::t('metrix', 'View “{type}” widgets', ['type' => $view->name])];
+            }
+
             $event->permissions[] = [
                 'heading' => Craft::t('metrix', 'Metrix'),
                 'permissions' => [
-                    'metrix-dashboard' => ['label' => Craft::t('metrix', 'Dashboard')],
+                    'metrix-dashboard' => ['label' => Craft::t('metrix', 'Dashboard'), 'nested' => $viewPermissions],
                     'metrix-sources' => ['label' => Craft::t('metrix', 'Sources')],
+                    'metrix-views' => ['label' => Craft::t('metrix', 'Views')],
                 ],
             ];
         });
     }
 
-    private function _registerGraphQl(): void
+    private function _registerProjectConfigEventListeners(): void
     {
-        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_TYPES, function(RegisterGqlTypesEvent $event) {
-            $event->types[] = SocialFeedsInterface::class;
-        });
+        $projectConfigService = Craft::$app->getProjectConfig();
 
-        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_QUERIES, function(RegisterGqlQueriesEvent $event) {
-            $queries = SocialFeedsQuery::getQueries();
-                    
-            foreach ($queries as $key => $value) {
-                $event->queries[$key] = $value;
-            }
-        });
+        $presetsService = $this->getPresets();
 
-        Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_SCHEMA_COMPONENTS, function (RegisterGqlSchemaComponentsEvent $event) {  
-            $label = Craft::t('metrix', 'Metrix');
+        $projectConfigService
+            ->onAdd(Presets::CONFIG_PRESETS_KEY . '.{uid}', [$presetsService, 'handleChangedPreset'])
+            ->onUpdate(Presets::CONFIG_PRESETS_KEY . '.{uid}', [$presetsService, 'handleChangedPreset'])
+            ->onRemove(Presets::CONFIG_PRESETS_KEY . '.{uid}', [$presetsService, 'handleDeletedPreset']);
 
-            $event->queries[$label]['socialFeeds.all:read'] = ['label' => Craft::t('metrix', 'Query Metrix')];
+        Event::on(ProjectConfig::class, ProjectConfig::EVENT_REBUILD, function(RebuildConfigEvent $event) {
+            $event->config['metrix'] = ProjectConfigHelper::rebuildProjectConfig();
         });
     }
 }

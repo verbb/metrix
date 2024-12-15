@@ -54,6 +54,8 @@ class AuthController extends Controller
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
             ]);
+            
+            Metrix::error($e);
 
             return $this->asFailure(Craft::t('metrix', 'Unable to authorize connect “{source}”.', ['source' => $sourceHandle]));
         }
@@ -103,6 +105,7 @@ class AuthController extends Controller
             ]);
 
             Metrix::error($error);
+            Metrix::error($e);
 
             // Show the error detail in the CP
             Craft::$app->getSession()->setFlash('metrix:callback-error', $error);
