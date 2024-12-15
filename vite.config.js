@@ -26,8 +26,10 @@ export default ({ command }) => defineConfig({
         sourcemap: true,
         rollupOptions: {
             input: {
-                'metrix-cp': path.resolve('./src/web/assets/src/cp/js/metrix-cp.js'),
-                'metrix-charts': path.resolve('./src/web/assets/src/charts/js/metrix-charts.js'),
+                'metrix-cp': path.resolve('./src/web/assets/src/apps/cp/metrix-cp.js'),
+                'metrix-dashboard': path.resolve('./src/web/assets/src/apps/dashboard/metrix-dashboard.js'),
+                'metrix-presets': path.resolve('./src/web/assets/src/apps/presets/metrix-presets.js'),
+                'metrix-sources': path.resolve('./src/web/assets/src/apps/sources/metrix-sources.js'),
             },
             output: {
                 sourcemapExcludeSources: true,
@@ -55,8 +57,7 @@ export default ({ command }) => defineConfig({
         EslintPlugin({
             cache: false,
             fix: true,
-            include: './src/web/assets/**/*.{js,jsx}',
-            exclude: './src/web/assets/src/charts/js/vendor/**/*.{js,jsx}',
+            include: './src/web/assets/src/**/*.{js,jsx}',
         }),
 
         // React support
@@ -87,7 +88,7 @@ export default ({ command }) => defineConfig({
                 prefixer({
                     prefix: '.metrix-ui',
                     transform: function (prefix, selector, prefixedSelector, filePath, rule) {
-                        if (filePath.includes('assets/src/cp/')) {
+                        if (filePath.includes('assets/src/apps/cp/')) {
                             return selector;
                         }
 
@@ -113,14 +114,15 @@ export default ({ command }) => defineConfig({
             // Reference Tailwind config so we can use in components
             'tailwind.config.js': path.resolve('tailwind.config.js'),
 
-            // Allow shortcuts in JS, CSS and Twig for ease of development.
-            '@cp': path.resolve('./src/web/assets/src/cp'),
+            '@shared': path.resolve('./src/web/assets/src/shared'),
+            '@components': path.resolve('./src/web/assets/src/shared/components'),
+            '@utils': path.resolve('./src/web/assets/src/shared/utils'),
 
-            '@charts': path.resolve('./src/web/assets/src/charts'),
-            '@utils': path.resolve('./src/web/assets/src/charts/js/utils'),
-            '@components': path.resolve('./src/web/assets/src/charts/js/components'),
-            '@formatters': path.resolve('./src/web/assets/src/charts/js/utils/formatters'),
-            '@hooks': path.resolve('./src/web/assets/src/charts/js/hooks'),
+            // Allow shortcuts in JS, CSS and Twig for ease of development.
+            '@cp': path.resolve('./src/web/assets/src/apps/cp'),
+            '@dashboard': path.resolve('./src/web/assets/src/apps/dashboard'),
+            '@presets': path.resolve('./src/web/assets/src/apps/presets'),
+            '@sources': path.resolve('./src/web/assets/src/apps/sources'),
         },
     },
 

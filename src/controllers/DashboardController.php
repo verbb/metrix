@@ -38,7 +38,7 @@ class DashboardController extends Controller
 
         $view = Craft::$app->getView();
 
-        Plugin::registerAsset('src/charts/js/metrix-charts.js');
+        Plugin::registerAsset('src/apps/dashboard/metrix-dashboard.js');
 
         $periodOptions = Options::getGroupedPeriodOptions();
         $viewOptions = Options::getViewOptions();
