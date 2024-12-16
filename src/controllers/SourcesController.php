@@ -3,6 +3,7 @@ namespace verbb\metrix\controllers;
 
 use verbb\metrix\Metrix;
 use verbb\metrix\base\SourceInterface;
+use verbb\metrix\helpers\Plugin;
 
 use Craft;
 use craft\helpers\ArrayHelper;
@@ -12,6 +13,8 @@ use craft\web\Controller;
 use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
+
+use Exception;
 
 class SourcesController extends Controller
 {
@@ -70,6 +73,9 @@ class SourcesController extends Controller
         } else {
             $title = Craft::t('metrix', 'Create a new source');
         }
+
+        Plugin::registerAsset('src/apps/sources/metrix-sources.js');
+        $this->view->registerJs('new Craft.Metrix.SourceConnect(' . Json::encode([]) . ');');
 
         return $this->renderTemplate('metrix/sources/_edit', [
             'title' => $title,
@@ -155,5 +161,33 @@ class SourcesController extends Controller
         $source->setAttributes($sourceData, false);
 
         return $this->asJson($source->getSourceSettings($setting, false));
+    }
+
+    public function actionCheckConnection(): Response
+    {
+        $this->requirePostRequest();
+
+        $request = $this->request;
+        $type = $request->getParam('type');
+        $sourceId = $request->getParam('sourceId');
+
+        if (!$sourceId) {
+            return $this->asFailure(Craft::t('metrix', 'Unknown source: “{id}”', ['id' => $sourceId]));
+        }
+
+        $source = Metrix::$plugin->getSources()->getSourceById($sourceId);
+
+        if (!$source::supportsConnection()) {
+            return $this->asFailure(Craft::t('metrix', '“{id}” does not support connection.', ['id' => $sourceId]));
+        }
+
+        try {
+            // Check to see if it's valid. Exceptions help to provide errors nicely
+            return $this->asJson([
+                'success' => $source->checkConnection(false),
+            ]);
+        } catch (Exception $e) {
+            return $this->asFailure($e->getMessage());
+        }
     }
 }

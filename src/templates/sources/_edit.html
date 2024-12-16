@@ -119,37 +119,44 @@
         on: source.enabled,
     }) }}
 
-    <div class="field lightswitch-field">
-        {% if source.isConfigured %}
-            <div class="heading">
-                <span class="status on"></span>{{ 'Provider Configured' | t('metrix') }}
+    {% if source.supportsOAuthConnection() %}
+        <div class="field lightswitch-field">
+            {% if source.isConfigured() %}
+                <div class="heading">
+                    <span class="status on"></span>{{ 'Provider Configured' | t('metrix') }}
+                </div>
+            {% else %}
+                <div class="heading">
+                    <span class="status"></span><span class="light">{{ 'Provider not configured' | t('metrix') }}</span>
+                </div>
+            {% endif %}
+        </div>
+
+        {% if source.isConnected() %}
+            <div class="field lightswitch-field sf-connect">
+                <div class="heading">
+                    <span class="status on"></span>{{ 'Connected' | t('metrix') }}
+                </div>
+
+                <div class="input ltr">
+                    <a class="btn small formsubmit" data-action="metrix/auth/disconnect" data-param="source" data-value="{{ source.handle }}" data-redirect="{{ saveShortcutRedirect | hash }}">{{ 'Disconnect' | t('metrix') }}</a>
+                </div>
             </div>
         {% else %}
-            <div class="heading">
-                <span class="status"></span><span class="light">{{ 'Provider not configured' | t('metrix') }}</span>
+            <div class="field lightswitch-field sf-connect">
+                <div class="heading">
+                    <span class="status"></span><span class="light">{{ 'Not Connected' | t('metrix') }}</span>
+                </div>
+
+                <div class="input ltr">
+                    <a class="btn small formsubmit" data-action="metrix/auth/connect" data-param="source" data-value="{{ source.handle }}" data-redirect="{{ 'metrix/sources/' ~ source.handle | hash }}">{{ 'Connect' | t('metrix') }}</a>
+                </div>
             </div>
         {% endif %}
-    </div>
-
-    {% if source.isConnected %}
-        <div class="field lightswitch-field sf-connect">
-            <div class="heading">
-                <span class="status on"></span>{{ 'Connected' | t('metrix') }}
-            </div>
-
-            <div class="input ltr">
-                <a class="btn small formsubmit" data-action="metrix/auth/disconnect" data-param="source" data-value="{{ source.handle }}" data-redirect="{{ saveShortcutRedirect | hash }}">{{ 'Disconnect' | t('metrix') }}</a>
-            </div>
-        </div>
-    {% else %}
-        <div class="field lightswitch-field sf-connect">
-            <div class="heading">
-                <span class="status"></span><span class="light">{{ 'Not Connected' | t('metrix') }}</span>
-            </div>
-
-            <div class="input ltr">
-                <a class="btn small formsubmit" data-action="metrix/auth/connect" data-param="source" data-value="{{ source.handle }}" data-redirect="{{ 'metrix/sources/' ~ source.handle | hash }}">{{ 'Connect' | t('metrix') }}</a>
-            </div>
+    {% elseif source.supportsConnection() %}
+        <div class="field lightswitch-field metrix-ui metrix-integration-connect">
+            <div class="heading"></div>
+            <div class="input ltr"></div>
         </div>
     {% endif %}
 </div>

@@ -11,11 +11,26 @@ use verbb\auth\models\Token;
 
 abstract class OAuthSource extends Source implements OAuthProviderInterface
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function supportsOAuthConnection(): bool
+    {
+        return true;
+    }
+
+
     // Traits
     // =========================================================================
 
     use OAuthProviderTrait;
     
+
+    // Abstract Methods
+    // =========================================================================
+
+    abstract public static function getOAuthProviderClass(): string;
+
 
     // Public Methods
     // =========================================================================

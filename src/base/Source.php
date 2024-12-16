@@ -22,6 +22,16 @@ abstract class Source extends SavableComponent implements SourceInterface
     // Static Methods
     // =========================================================================
 
+    public static function supportsOAuthConnection(): bool
+    {
+        return false;
+    }
+
+    public static function supportsConnection(): bool
+    {
+        return false;
+    }
+
     public static function apiError($source, $exception, $throwError = true): void
     {
         $messageText = $exception->getMessage();
@@ -59,11 +69,6 @@ abstract class Source extends SavableComponent implements SourceInterface
     public array $authorizationOptions = [];
     public array $scopes = [];
 
-
-    // Abstract Methods
-    // =========================================================================
-
-    abstract public static function getOAuthProviderClass(): string;
 
     // Public Methods
     // =========================================================================
@@ -122,6 +127,10 @@ abstract class Source extends SavableComponent implements SourceInterface
 
         return Craft::$app->getView()->renderTemplate('metrix/sources/_types/' . $handle . '/settings', [
             'source' => $this,
+            'fieldVariables' => [
+                'plugin' => 'metrix',
+                'name' => $this::displayName(),
+            ],
         ]);
     }
 
