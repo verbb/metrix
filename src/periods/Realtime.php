@@ -45,9 +45,21 @@ class Realtime extends Period
         return static::INTERVAL_MINUTE;
     }
 
-    public static function formatPlotDimension(string $dimension): string
+    public static function generatePlotDimensions(): array
     {
-        return (new DateTime())->format('Y-m-d H:i') . ":$dimension:00";
+        $start = new DateTime('today 00:00:00');
+        $end = new DateTime('tomorrow 01:00:00');
+
+        $interval = new DateInterval('PT1H');
+        $period = new DatePeriod($start, $interval, $end);
+
+        $dimensions = [];
+
+        foreach ($period as $time) {
+            $dimensions[] = $time->format('Y-m-d H:00:00');
+        }
+
+        return $dimensions;
     }
 
     public static function getChartMetadata(): array

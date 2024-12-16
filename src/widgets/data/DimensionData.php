@@ -10,7 +10,7 @@ class DimensionData extends WidgetData
 
     protected function formatData(array $rawData): array
     {
-        $rows = array_map(null, array_keys($rawData), array_values($rawData));
+        $rows = array_map(fn($key, $value) => [$key, (int)$value], array_keys($rawData), array_values($rawData));
 
         return [
             'cols' => [

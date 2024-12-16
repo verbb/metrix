@@ -280,6 +280,8 @@ class GoogleAnalytics extends OAuthSource
         if ($intervalDimension === Period::INTERVAL_MONTH) {
             return 'yearMonth';
         }
+
+        return 'date';
     }
 
     private function _formatDimension(WidgetDataInterface $widgetData, ?string $dimension): string

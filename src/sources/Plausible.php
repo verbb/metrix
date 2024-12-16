@@ -199,5 +199,7 @@ class Plausible extends CredentialsSource
         if ($intervalDimension === Period::INTERVAL_MONTH) {
             return 'time:month';
         }
+
+        return 'time:day';
     }
 }
