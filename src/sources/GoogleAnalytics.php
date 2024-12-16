@@ -3,6 +3,7 @@ namespace verbb\metrix\sources;
 
 use verbb\metrix\Metrix;
 use verbb\metrix\base\OAuthSource;
+use verbb\metrix\base\Period;
 use verbb\metrix\base\WidgetDataInterface;
 
 use Craft;
@@ -181,8 +182,8 @@ class GoogleAnalytics extends OAuthSource
 
     public function fetchData(WidgetDataInterface $widgetData): array
     {
+        $intervalDimension = $this->_getIntervalDimension($widgetData);
         $dateRange = $widgetData->period::getCurrentDateRange();
-        $intervalDimension = $widgetData->period::getIntervalDimension();
 
         // Check for "All Time" and set a wide date range
         if ($widgetData->period === 'verbb\\metrix\\periods\\AllTime') {
@@ -212,12 +213,20 @@ class GoogleAnalytics extends OAuthSource
             'json' => $payload,
         ]);
 
-        $rawData = $response['rows'] ?? [];
+        $results = $response['rows'] ?? [];
 
-        return array_map(fn($row) => [
-            'metric' => $row['metricValues'][0]['value'] ?? 0,
-            'dimension' => $row['dimensionValues'][0]['value'] ?? null,
-        ], $rawData);
+        $data = [];
+
+        foreach ($results as $result) {
+            $metric = $result['metricValues'][0]['value'] ?? null;
+            $dimension = $this->_formatDimension($widgetData, $result['dimensionValues'][0]['value'] ?? null);
+
+            if ($dimension) {
+                $data[$dimension] = $metric;
+            }
+        }
+
+        return $data;
     }
 
 
@@ -254,5 +263,51 @@ class GoogleAnalytics extends OAuthSource
         }
 
         return $defaultStartDate;
+    }
+
+    private function _getIntervalDimension(WidgetDataInterface $widgetData): string
+    {
+        $intervalDimension = $widgetData->period::getIntervalDimension();
+
+        if ($intervalDimension === Period::INTERVAL_HOUR) {
+            return 'dateHour';
+        }
+
+        if ($intervalDimension === Period::INTERVAL_DAY) {
+            return 'date';
+        }
+
+        if ($intervalDimension === Period::INTERVAL_MONTH) {
+            return 'yearMonth';
+        }
+    }
+
+    private function _formatDimension(WidgetDataInterface $widgetData, ?string $dimension): string
+    {
+        if ($dimension === null) {
+            return '';
+        }
+
+        // For plot data, ensure we format the date correctly
+        $intervalDimension = $widgetData->period::getIntervalDimension();
+
+        if (!$widgetData->widget::supportsDimensions() || empty($widgetData->dimension)) {
+            if ($intervalDimension === Period::INTERVAL_HOUR) {
+                // dimension is in YYYYMMDDHH format -> return YYYY-MM-DD HH:MM:SS
+                return substr($dimension, 0, 4) . '-' . substr($dimension, 4, 2) . '-' . substr($dimension, 6, 2) . ' ' . substr($dimension, 8, 2) . ':00:00';
+            }
+
+            if ($intervalDimension === Period::INTERVAL_DAY) {
+                // dimension is in YYYYMMDD format -> return YYYY-MM-DD
+                return substr($dimension, 0, 4) . '-' . substr($dimension, 4, 2) . '-' . substr($dimension, 6, 2);
+            }
+
+            if ($intervalDimension === Period::INTERVAL_MONTH) {
+                // dimension is in YYYYMM format -> return YYYY-MM-DD
+                return substr($dimension, 0, 4) . '-' . substr($dimension, 4, 2) . '-01';
+            }
+        }
+
+        return $dimension;
     }
 }
