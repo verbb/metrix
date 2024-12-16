@@ -100,25 +100,50 @@ abstract class Widget extends SavableComponent implements WidgetInterface
         $this->viewId = $view->id;
     }
 
-    public function getFrontEndData(): array
+    public function getPeriodLabel(): ?string
     {
-        // Get labels for the front-end
-        if ($source = $this->getSource()) {
-            $metricLabel = $this->_getValueForLabel($source->getAvailableMetrics(), $this->metric);
-            $dimensionLabel = $this->_getValueForLabel($source->getAvailableDimensions(), $this->dimension);
+        if ($this->period) {
+            return $this->_getValueForLabel(Options::getPeriodOptions(), $this->period);
         }
 
+        return null;
+    }
+
+    public function getMetricLabel(): ?string
+    {
+        if ($source = $this->getSource()) {
+            if ($this->metric) {
+                return $this->_getValueForLabel($source->getAvailableMetrics(), $this->metric);
+            }
+        }
+
+        return null;
+    }
+
+    public function getDimensionLabel(): ?string
+    {
+        if ($source = $this->getSource()) {
+            if ($this->dimension) {
+                return $this->_getValueForLabel($source->getAvailableDimensions(), $this->dimension);;
+            }
+        }
+
+        return null;
+    }
+
+    public function getFrontEndData(): array
+    {
         return [
             'id' => $this->id,
             'source' => $this->getSource()?->handle,
             'view' => $this->getView()?->handle,
             'type' => get_class($this),
             'period' => $this->period,
-            'periodLabel' => $this->_getValueForLabel(Options::getPeriodOptions(), $this->period),
+            'periodLabel' => $this->getPeriodLabel(),
             'metric' => $this->metric,
-            'metricLabel' => $metricLabel ?? null,
+            'metricLabel' => $this->getMetricLabel(),
             'dimension' => $this->dimension,
-            'dimensionLabel' => $dimensionLabel ?? null,
+            'dimensionLabel' => $this->getDimensionLabel(),
             'width' => (string)$this->width,
         ];
     }

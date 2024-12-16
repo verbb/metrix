@@ -6,6 +6,8 @@ use verbb\metrix\base\Period;
 use Craft;
 
 use DateTime;
+use DateInterval;
+use DatePeriod;
 
 class LastYear extends Period
 {
@@ -46,21 +48,24 @@ class LastYear extends Period
 
     public static function getIntervalDimension(): string
     {
-        return 'month';
+        return static::INTERVAL_MONTH;
     }
 
-    public static function formatPlotDimension(string $dimension): string
+    public static function generatePlotDimensions(): array
     {
-        if (strlen($dimension) === 2) {
-            $year = date('Y');
-            return "$year-$dimension-01 00:00:00";
+        $start = new DateTime('first day of January last year 00:00:00');
+        $end = new DateTime('first day of January this year 00:00:00');
+
+        $interval = new DateInterval('P1M');
+        $period = new DatePeriod($start, $interval, $end);
+
+        $dimensions = [];
+
+        foreach ($period as $time) {
+            $dimensions[] = $time->format('Y-m-d');
         }
 
-        if (strlen($dimension) === 6) {
-            return substr($dimension, 0, 4) . '-' . substr($dimension, 4, 2) . '-01 00:00:00';
-        }
-
-        return '(not set)';
+        return $dimensions;
     }
 
     public static function getChartMetadata(): array

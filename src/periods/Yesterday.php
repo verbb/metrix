@@ -6,6 +6,8 @@ use verbb\metrix\base\Period;
 use Craft;
 
 use DateTime;
+use DateInterval;
+use DatePeriod;
 
 class Yesterday extends Period
 {
@@ -46,14 +48,24 @@ class Yesterday extends Period
 
     public static function getIntervalDimension(): string
     {
-        return 'hour';
+        return static::INTERVAL_HOUR;
     }
 
-    public static function formatPlotDimension(string $dimension): string
+    public static function generatePlotDimensions(): array
     {
-        $date = new DateTime('yesterday');
-        
-        return $date->format('Y-m-d') . ' ' . str_pad($dimension, 2, '0', STR_PAD_LEFT) . ':00:00';
+        $start = new DateTime('yesterday 00:00:00');
+        $end = new DateTime('today 01:00:00');
+
+        $interval = new DateInterval('PT1H');
+        $period = new DatePeriod($start, $interval, $end);
+
+        $dimensions = [];
+
+        foreach ($period as $time) {
+            $dimensions[] = $time->format('Y-m-d H:00:00');
+        }
+
+        return $dimensions;
     }
 
     public static function getChartMetadata(): array

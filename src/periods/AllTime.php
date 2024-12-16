@@ -6,6 +6,8 @@ use verbb\metrix\base\Period;
 use Craft;
 
 use DateTime;
+use DateInterval;
+use DatePeriod;
 
 class AllTime extends Period
 {
@@ -34,7 +36,7 @@ class AllTime extends Period
 
     public static function getIntervalDimension(): string
     {
-        return 'month';
+        return static::INTERVAL_MONTH;
     }
 
     public static function formatPlotDimension(string $dimension): string

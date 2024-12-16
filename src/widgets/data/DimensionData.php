@@ -10,17 +10,12 @@ class DimensionData extends WidgetData
 
     protected function formatData(array $rawData): array
     {
-        $rows = array_map(function ($row) {
-            return [
-                $row['dimension'] ?? '(not set)',
-                (int)($row['metric'] ?? 0),
-            ];
-        }, $rawData);
+        $rows = array_map(null, array_keys($rawData), array_values($rawData));
 
         return [
             'cols' => [
-                ['type' => 'string', 'label' => ucfirst($this->dimension), 'id' => $this->dimension],
-                ['type' => 'integer', 'labelFormat' => 'numberShort', 'label' => ucfirst($this->metric), 'id' => $this->metric],
+                ['type' => 'string', 'label' => $this->widget->getDimensionLabel(), 'id' => $this->dimension],
+                ['type' => 'integer', 'labelFormat' => 'numberShort', 'label' => $this->widget->getMetricLabel(), 'id' => $this->metric],
             ],
             'rows' => $rows,
         ];

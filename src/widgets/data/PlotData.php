@@ -5,6 +5,8 @@ use verbb\metrix\base\WidgetData;
 
 use Craft;
 
+use DateTime;
+
 class PlotData extends WidgetData
 {
     // Protected Methods
@@ -12,23 +14,26 @@ class PlotData extends WidgetData
 
     protected function formatData(array $rawData): array
     {
-        $rows = array_map(function ($row) {
-            $dimension = $row['dimension'] ?? null;
+        $rows = [];
 
-            // Use the period's method to format the dimension value
-            $dimension = $this->period::formatPlotDimension($dimension);
+        $now = new DateTime();
 
-            return [
+        // Generate all possible dimensions for the current period
+        foreach ($this->period::generatePlotDimensions() as $dimension) {
+            $defaultValue = new DateTime($dimension) < $now ? 0 : null;
+
+            $rows[] = [
                 $dimension,
-                (int)($row['metric'] ?? 0),
+                $rawData[$dimension] ?? $defaultValue,
             ];
-        }, $rawData);
+        }
 
-        // Just in case it's not in the correct order, sort
+        // Sort rows just in case
         usort($rows, function ($a, $b) {
             return strcmp($a[0], $b[0]);
         });
 
+        // Chart metadata from the period
         $chartMetadata = $this->period::getChartMetadata();
 
         return [
@@ -44,7 +49,7 @@ class PlotData extends WidgetData
                     'type' => 'integer',
                     'labelFormat' => 'numberShort',
                     'tooltipFormat' => 'numberLong',
-                    'label' => ucfirst($this->metric),
+                    'label' => $this->widget->getMetricLabel(),
                     'id' => $this->metric,
                 ],
             ],

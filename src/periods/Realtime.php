@@ -6,6 +6,8 @@ use verbb\metrix\base\Period;
 use Craft;
 
 use DateTime;
+use DateInterval;
+use DatePeriod;
 
 class Realtime extends Period
 {
@@ -40,7 +42,7 @@ class Realtime extends Period
 
     public static function getIntervalDimension(): string
     {
-        return 'minute';
+        return static::INTERVAL_MINUTE;
     }
 
     public static function formatPlotDimension(string $dimension): string

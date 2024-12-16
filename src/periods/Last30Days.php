@@ -6,6 +6,8 @@ use verbb\metrix\base\Period;
 use Craft;
 
 use DateTime;
+use DateInterval;
+use DatePeriod;
 
 class Last30Days extends Period
 {
@@ -46,12 +48,24 @@ class Last30Days extends Period
 
     public static function getIntervalDimension(): string
     {
-        return 'date';
+        return static::INTERVAL_DAY;
     }
 
-    public static function formatPlotDimension(string $dimension): string
+    public static function generatePlotDimensions(): array
     {
-        return substr($dimension, 0, 4) . '-' . substr($dimension, 4, 2) . '-' . substr($dimension, 6, 2) . ' 00:00:00';
+        $start = new DateTime('-30 days 00:00:00');
+        $end = new DateTime('tomorrow 00:00:00');
+
+        $interval = new DateInterval('P1D');
+        $period = new DatePeriod($start, $interval, $end);
+
+        $dimensions = [];
+
+        foreach ($period as $time) {
+            $dimensions[] = $time->format('Y-m-d');
+        }
+
+        return $dimensions;
     }
 
     public static function getChartMetadata(): array

@@ -13,11 +13,7 @@ class CounterData extends WidgetData
 
     protected function formatData(array $rawData): array
     {
-        $total = 0;
-
-        foreach ($rawData as $data) {
-            $total += (int)($data['metric'] ?? 0);
-        }
+        $total = array_sum($rawData);
 
         // Check if the period supports previous data
         if ($this->period::previousDisplayName()) {
@@ -58,11 +54,7 @@ class CounterData extends WidgetData
             'dimension' => $this->dimension,
         ]));
 
-        $previousValue = 0;
-
-        foreach ($previousData as $data) {
-            $previousValue += (float)($data['metric'] ?? 0);
-        }
+        $previousValue = array_sum($previousData);
 
         if (!$previousValue) {
             return 0.0;

@@ -64,7 +64,7 @@ export function Widget({
             {error && <WidgetError error={error} />}
 
             <FadeIn show={!loading && !error}>
-                {chartData ? renderContent(chartData) : <WidgetEmpty />}
+                {chartData && chartData.rows ? renderContent(chartData) : <WidgetEmpty />}
             </FadeIn>
         </div>
     );

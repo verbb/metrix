@@ -28,12 +28,13 @@ class WidgetData extends Model implements WidgetDataInterface
         $cacheDuration = Metrix::$plugin->getSettings()->getCacheDuration();
         $cacheKey = $this->_getCacheKey();
 
-        // Attempt to retrieve cached data
-        return Craft::$app->getCache()->getOrSet($cacheKey, function() {
-            $rawData = $this->source->fetchData($this);
-
-            return $this->formatData($rawData);
+        // Retrieve raw API data from the cache
+        $rawData = Craft::$app->getCache()->getOrSet($cacheKey, function() {
+            return $this->source->fetchData($this);
         }, $cacheDuration);
+
+        // Always apply `formatData` to the cached raw data
+        return $this->formatData($rawData);
     }
 
     public function clearCache(): void
@@ -66,7 +67,7 @@ class WidgetData extends Model implements WidgetDataInterface
             $this->dimension,
             $this->period,
         ];
-
+        
         return implode('.', $cacheKey);
     }
     
