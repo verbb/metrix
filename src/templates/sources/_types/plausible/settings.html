@@ -1,0 +1,25 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+{% import 'metrix/_macros' as customForms %}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'API Key' | t('metrix'),
+    instructions: 'Enter your {name} {label} here.' | t('metrix'),
+    name: 'apiKey',
+    required: true,
+    suggestEnvVars: true,
+    value: source.apiKey,
+    warning: macros.configWarning('apiKey', 'metrix'),
+    errors: source.getErrors('apiKey'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Site ID' | t('metrix'),
+    instructions: 'Enter your {name} {label} here.' | t('metrix'),
+    name: 'siteId',
+    required: true,
+    suggestEnvVars: true,
+    value: source.siteId,
+    warning: macros.configWarning('siteId', 'metrix'),
+    errors: source.getErrors('siteId'),
+}) }}
