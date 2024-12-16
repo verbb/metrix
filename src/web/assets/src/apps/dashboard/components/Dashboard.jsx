@@ -9,7 +9,14 @@ import { DashboardEmptyState } from '@dashboard/components/DashboardEmptyState';
 import useAppStore from '@dashboard/hooks/useAppStore';
 import useWidgetStore from '@dashboard/hooks/useWidgetStore';
 
-import { cn, api, getErrorMessage } from '@utils';
+import {
+    cn,
+    api,
+    getErrorMessage,
+    getQueryParam,
+    setQueryParam,
+} from '@utils';
+
 import { preloadWidgets } from '@utils/widgets';
 
 export const Dashboard = () => {
@@ -28,11 +35,20 @@ export const Dashboard = () => {
     const [loadingPresets, setLoadingPresets] = useState(false);
     const [errorPresets, setErrorPresets] = useState(null);
 
+    // Load currentView from query string on initial mount
     useEffect(() => {
-        if (viewOptions.length > 0 && !currentView) {
-            setCurrentView(viewOptions[0]?.value);
+        const viewFromQuery = getQueryParam('view');
+        const defaultView = viewOptions[0]?.value;
+
+        if (viewOptions.length > 0) {
+            const initialView = viewFromQuery || defaultView;
+            setCurrentView(initialView);
+
+            if (viewFromQuery !== initialView) {
+                setQueryParam('view', initialView);
+            }
         }
-    }, [viewOptions, currentView, setCurrentView]);
+    }, [viewOptions, setCurrentView]);
 
     const handleLoadPresets = async(preset) => {
         setLoadingPresets(true);
@@ -57,6 +73,9 @@ export const Dashboard = () => {
 
     const handleViewChange = async(view) => {
         setCurrentView(view);
+
+        // Update query string
+        setQueryParam('view', view);
 
         clearWidgets();
         setLoading(true);

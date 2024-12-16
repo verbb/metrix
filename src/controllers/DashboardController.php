@@ -46,7 +46,9 @@ class DashboardController extends Controller
         $newWidget = Widget::getNewWigetConfig();
         $sources = Options::getSourceOptions();
         $presets = Options::getPresetOptions();
-        $widgets = Metrix::$plugin->getWidgets()->getWidgetsForView(($viewOptions[0]['value'] ?? null));
+
+        $currentView = $this->request->getParam('view') ?? $viewOptions[0]['value'] ?? null;
+        $widgets = Metrix::$plugin->getWidgets()->getWidgetsForView($currentView);
 
         $data = [
             'widgets' => $widgets,

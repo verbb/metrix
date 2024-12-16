@@ -43,6 +43,16 @@ abstract class CredentialsSource extends Source
         return true;
     }
 
+    public function isConfigured(): bool
+    {
+        return true;
+    }
+
+    public function isConnected(): bool
+    {
+        return $this->getSettingCache('connection') === self::CONNECT_SUCCESS;
+    }
+
     public function checkConnection(bool $useCache = true): bool
     {
         if ($useCache && $status = $this->getSettingCache('connection')) {
