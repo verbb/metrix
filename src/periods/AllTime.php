@@ -2,6 +2,7 @@
 namespace verbb\metrix\periods;
 
 use verbb\metrix\base\Period;
+use verbb\metrix\base\WidgetData;
 
 use Craft;
 
@@ -39,9 +40,23 @@ class AllTime extends Period
         return static::INTERVAL_MONTH;
     }
 
-    public static function formatPlotDimension(string $dimension): string
+    public static function generatePlotDimensions(WidgetData $widgetData, array $rawData): array
     {
-        return substr($dimension, 0, 4) . '-' . substr($dimension, 4, 2) . '-01 00:00:00';
+        $firstDate = array_keys($rawData)[0] ?? '2015-01-01';
+
+        $start = new DateTime($firstDate . ' 00:00:00');
+        $end = new DateTime();
+
+        $interval = new DateInterval('P1M');
+        $period = new DatePeriod($start, $interval, $end);
+
+        $dimensions = [];
+
+        foreach ($period as $time) {
+            $dimensions[] = $time->format('Y-m-d');
+        }
+
+        return $dimensions;
     }
 
     public static function getChartMetadata(): array
