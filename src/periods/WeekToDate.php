@@ -2,6 +2,7 @@
 namespace verbb\metrix\periods;
 
 use verbb\metrix\base\Period;
+use verbb\metrix\base\WidgetData;
 
 use Craft;
 
@@ -51,7 +52,7 @@ class WeekToDate extends Period
         return static::INTERVAL_DAY;
     }
 
-    public static function generatePlotDimensions(): array
+    public static function generatePlotDimensions(WidgetData $widgetData, array $rawData): array
     {
         $start = new DateTime('monday this week 00:00:00');
         $end = new DateTime('monday next week 00:00:00');

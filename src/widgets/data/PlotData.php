@@ -19,7 +19,7 @@ class PlotData extends WidgetData
         $now = new DateTime();
 
         // Generate all possible dimensions for the current period
-        foreach ($this->period::generatePlotDimensions() as $dimension) {
+        foreach ($this->period::generatePlotDimensions($this, $rawData) as $dimension) {
             $defaultValue = new DateTime($dimension) < $now ? 0 : null;
 
             $rows[] = [

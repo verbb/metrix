@@ -2,6 +2,7 @@
 namespace verbb\metrix\periods;
 
 use verbb\metrix\base\Period;
+use verbb\metrix\base\WidgetData;
 
 use Craft;
 
@@ -51,7 +52,7 @@ class Today extends Period
         return static::INTERVAL_HOUR;
     }
 
-    public static function generatePlotDimensions(): array
+    public static function generatePlotDimensions(WidgetData $widgetData, array $rawData): array
     {
         $start = new DateTime('today 00:00:00');
         $end = new DateTime('tomorrow 01:00:00');
