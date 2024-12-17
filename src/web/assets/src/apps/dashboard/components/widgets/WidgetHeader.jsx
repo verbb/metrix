@@ -30,6 +30,7 @@ import { WidgetSettings } from '@dashboard/components/widgets/WidgetSettings';
 import { WidthPicker } from '@components/WidthPicker';
 
 import useWidgetStore from '@dashboard/hooks/useWidgetStore';
+import useWidgetSettingsStore from '@dashboard/hooks/useWidgetSettingsStore';
 import useAppStore from '@dashboard/hooks/useAppStore';
 
 import { cn, api } from '@utils';
@@ -44,6 +45,9 @@ export function WidgetHeader({ widget }) {
 
     const [isOpen, setIsOpen] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+    const { getSettingsByType } = useWidgetSettingsStore();
+    const schema = getSettingsByType(widget.data.type, widget.data.source);
 
     const handleWidthChange = (widget, newWidth) => {
         updateWidget(widget, { width: newWidth }, false);
@@ -69,6 +73,11 @@ export function WidgetHeader({ widget }) {
         }
     };
 
+    // Check if "period" exists in the schema
+    const hasPeriodField = schema?.some((field) => {
+        return field.name === 'period';
+    });
+
     return (
         <div className="mc-flex mc-flex-row mc-items-center mc-relative mc-z-[10]">
             <div className="mc-font-bold mc-text-slate-600 mc-truncate mc-mr-4">
@@ -77,53 +86,55 @@ export function WidgetHeader({ widget }) {
             </div>
 
             <div className="mc-flex mc-flex-row mc-items-center mc-flex-shrink-0 mc-gap-1 mc-ml-auto">
-                <Select
-                    value={widget.data.period}
-                    onValueChange={(newPeriod) => {
-                        return handlePeriodChange(widget, newPeriod);
-                    }}
-                >
-                    <SelectTrigger
-                        className={cn(
-                            'mc-px-2 mc-py-1 mc-gap-1 mc-text-xs',
-                            'mc-border mc-bg-white',
-                            'hover:mc-shadow-none focus:mc-shadow-none',
-                        )}
-                        iconClassName={cn(
-                            'mc-ml-1',
-                        )}
+                {hasPeriodField && (
+                    <Select
+                        value={widget.data.period}
+                        onValueChange={(newPeriod) => {
+                            return handlePeriodChange(widget, newPeriod);
+                        }}
                     >
-                        <SelectValue />
-                    </SelectTrigger>
+                        <SelectTrigger
+                            className={cn(
+                                'mc-px-2 mc-py-1 mc-gap-1 mc-text-xs',
+                                'mc-border mc-bg-white',
+                                'hover:mc-shadow-none focus:mc-shadow-none',
+                            )}
+                            iconClassName={cn(
+                                'mc-ml-1',
+                            )}
+                        >
+                            <SelectValue />
+                        </SelectTrigger>
 
-                    <SelectContent
-                        className={cn(
-                            'mc-border mc-bg-white',
-                        )}
-                    >
-                        {periodOptions.map((periodOptionGroup, groupIndex) => {
-                            return (
-                                <div key={`group-${groupIndex}`}>
-                                    {periodOptionGroup.map((option) => {
-                                        return (
-                                            <SelectItem
-                                                className="focus:mc-bg-slate-100"
-                                                key={option.value}
-                                                value={option.value}
-                                            >
-                                                {option.label}
-                                            </SelectItem>
-                                        );
-                                    })}
+                        <SelectContent
+                            className={cn(
+                                'mc-border mc-bg-white',
+                            )}
+                        >
+                            {periodOptions.map((periodOptionGroup, groupIndex) => {
+                                return (
+                                    <div key={`group-${groupIndex}`}>
+                                        {periodOptionGroup.map((option) => {
+                                            return (
+                                                <SelectItem
+                                                    className="focus:mc-bg-slate-100"
+                                                    key={option.value}
+                                                    value={option.value}
+                                                >
+                                                    {option.label}
+                                                </SelectItem>
+                                            );
+                                        })}
 
-                                    {groupIndex < periodOptions.length - 1 && (
-                                        <SelectSeparator />
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </SelectContent>
-                </Select>
+                                        {groupIndex < periodOptions.length - 1 && (
+                                            <SelectSeparator />
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </SelectContent>
+                    </Select>
+                )}
 
                 <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
                     <DropdownMenuTrigger

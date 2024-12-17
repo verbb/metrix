@@ -7,6 +7,7 @@ import { WidgetLoading } from '@dashboard/components/widgets/WidgetLoading';
 import { WidgetError } from '@dashboard/components/widgets/WidgetError';
 import { WidgetEmpty } from '@dashboard/components/widgets/WidgetEmpty';
 
+import useAppStore from '@dashboard/hooks/useAppStore';
 import useWidgetStore from '@dashboard/hooks/useWidgetStore';
 
 import { api, cn } from '@utils';
@@ -17,6 +18,7 @@ export function Widget({
     renderContent,
     className,
 }) {
+    const { realtimeInterval } = useAppStore();
     const { fetchWidgetData } = useWidgetStore();
 
     const {
@@ -40,7 +42,7 @@ export function Widget({
 
     // Special-handling for realtime widgets
     useEffect(() => {
-        if (data.period !== 'verbb\\metrix\\periods\\Realtime') {
+        if (data.type !== 'verbb\\metrix\\widgets\\Realtime') {
             return;
         }
 
@@ -51,10 +53,10 @@ export function Widget({
                     afterFetchData(responseData);
                 }
             });
-        }, 10000);
+        }, realtimeInterval);
 
         return () => { return clearInterval(interval); };
-    }, [__id, data.period, waitForData, fetchWidgetData, afterFetchData]);
+    }, [__id, data.period, waitForData, fetchWidgetData, afterFetchData, realtimeInterval]);
 
     return (
         <div className={cn('pane mc-group mc-flex mc-flex-col', className)}>

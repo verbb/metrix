@@ -46,7 +46,6 @@ class Periods extends Component
         $periodTypes = [
             periodTypes\Today::class,
             periodTypes\Yesterday::class,
-            periodTypes\Realtime::class,
 
             periodTypes\Last7Days::class,
             periodTypes\WeekToDate::class,
@@ -83,7 +82,6 @@ class Periods extends Component
         $groupedPeriods[] = array_filter([
             ArrayHelper::remove($periodTypes, periodTypes\Today::class),
             ArrayHelper::remove($periodTypes, periodTypes\Yesterday::class),
-            ArrayHelper::remove($periodTypes, periodTypes\Realtime::class),
         ]);
 
         $groupedPeriods[] = array_filter([

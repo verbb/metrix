@@ -68,6 +68,16 @@ class GoogleAnalytics extends OAuthSource
         return ProviderHelper::getIcon('google');
     }
 
+    public function getAccountId(): ?string
+    {
+        return App::parseEnv($this->accountId);
+    }
+
+    public function getPropertyId(): ?string
+    {
+        return App::parseEnv($this->propertyId);
+    }
+
     public function getProxyRedirect(): ?bool
     {
         return App::parseBooleanEnv($this->proxyRedirect);
@@ -133,7 +143,7 @@ class GoogleAnalytics extends OAuthSource
 
                 $response = $this->request('GET', 'https://analyticsadmin.googleapis.com/v1beta/properties', [
                     'query' => [
-                        'filter' => 'parent:' . $this->accountId,
+                        'filter' => 'parent:' . $this->getAccountId(),
                     ],
                 ]);
 
@@ -209,12 +219,11 @@ class GoogleAnalytics extends OAuthSource
             $payload['dimensions'] = [['name' => $intervalDimension]];
         }
 
-        $response = $this->request('POST', 'https://analyticsdata.googleapis.com/v1beta/' . $this->propertyId . ':runReport', [
+        $response = $this->request('POST', 'https://analyticsdata.googleapis.com/v1beta/' . $this->getPropertyId() . ':runReport', [
             'json' => $payload,
         ]);
 
         $results = $response['rows'] ?? [];
-
         $data = [];
 
         foreach ($results as $result) {
@@ -229,18 +238,36 @@ class GoogleAnalytics extends OAuthSource
         return $data;
     }
 
+    public function fetchRealtimeData(WidgetDataInterface $widgetData): array
+    {
+        $payload = [
+            'metrics' => [['name' => 'activeUsers']],
+            'limit' => 100,
+        ];
+
+        $response = $this->request('POST', 'https://analyticsdata.googleapis.com/v1beta/' . $this->getPropertyId() . ':runRealtimeReport', [
+            'json' => $payload,
+        ]);
+
+        $results = $response['rows'] ?? [];
+
+        return [
+            Craft::t('metrix', 'Active users') => $results[0]['metricValues'][0]['value'] ?? null,
+        ];
+    }
+
 
     // Private Methods
     // =========================================================================
 
     private function _getPropertyMetadata(): array
     {
-        $cacheKey = 'metrix.googleAnalytics.metadata.' . $this->propertyId;
+        $cacheKey = 'metrix.googleAnalytics.metadata.' . $this->getPropertyId();
 
         // Cache for 24 hours
         return Craft::$app->getCache()->getOrSet($cacheKey, function() {
             try {
-                $response = $this->request('GET', 'https://analyticsdata.googleapis.com/v1beta/' . $this->propertyId . '/metadata');
+                $response = $this->request('GET', 'https://analyticsdata.googleapis.com/v1beta/' . $this->getPropertyId() . '/metadata');
 
                 return $response;
             } catch (Throwable $e) {
@@ -256,7 +283,7 @@ class GoogleAnalytics extends OAuthSource
         $defaultStartDate = '2005-01-01'; // Google Analytics earliest possible start date
 
         try {
-            $response = $this->request('GET', 'https://analyticsadmin.googleapis.com/v1beta/' . $this->propertyId);
+            $response = $this->request('GET', 'https://analyticsadmin.googleapis.com/v1beta/' . $this->getPropertyId());
 
             return $response['createTime'] ? (new DateTime($response['createTime']))->format('Y-m-d') : $defaultStartDate;
         } catch (Throwable $e) {

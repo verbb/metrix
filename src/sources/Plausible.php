@@ -149,6 +149,19 @@ class Plausible extends CredentialsSource
         return $data;
     }
 
+    public function fetchRealtimeData(WidgetDataInterface $widgetData): array
+    {
+        $response = $this->request('GET', 'https://plausible.io/api/v1/stats/realtime/visitors', [
+            'query' => [
+                'site_id' => $this->getSiteId(),
+            ],
+        ]);
+
+        return [
+            Craft::t('metrix', 'Active users') => $response,
+        ];
+    }
+
     public function fetchConnection(): bool
     {
         try {

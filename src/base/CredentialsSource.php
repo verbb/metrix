@@ -70,7 +70,7 @@ abstract class CredentialsSource extends Source
         return $success;
     }
 
-    public function request(string $method, string $url, array $options = []): array
+    public function request(string $method, string $url, array $options = []): mixed
     {
         try {
             $client = $this->getClient();

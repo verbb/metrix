@@ -28,9 +28,14 @@ class WidgetData extends Model implements WidgetDataInterface
         $cacheDuration = Metrix::$plugin->getSettings()->getCacheDuration();
         $cacheKey = $this->_getCacheKey();
 
+        // Some widgets can define not to be cachable (realtime)
+        if ($this->widget && !$this->widget::supportsCache()) {
+            $cacheDuration = 1;
+        }
+
         // Retrieve raw API data from the cache
         $rawData = Craft::$app->getCache()->getOrSet($cacheKey, function() {
-            return $this->source->fetchData($this);
+            return $this->widget->fetchData($this);
         }, $cacheDuration);
 
         // Always apply `formatData` to the cached raw data

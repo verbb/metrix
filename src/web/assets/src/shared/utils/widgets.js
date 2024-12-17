@@ -2,6 +2,7 @@ import { BarWidget } from '@dashboard/components/widgets/BarWidget';
 import { CounterWidget } from '@dashboard/components/widgets/CounterWidget';
 import { LineWidget } from '@dashboard/components/widgets/LineWidget';
 import { PieWidget } from '@dashboard/components/widgets/PieWidget';
+import { RealtimeWidget } from '@dashboard/components/widgets/RealtimeWidget';
 import { TableWidget } from '@dashboard/components/widgets/TableWidget';
 
 const typeToComponentMap = {
@@ -9,6 +10,7 @@ const typeToComponentMap = {
     'verbb\\metrix\\widgets\\Counter': CounterWidget,
     'verbb\\metrix\\widgets\\Bar': BarWidget,
     'verbb\\metrix\\widgets\\Pie': PieWidget,
+    'verbb\\metrix\\widgets\\Realtime': RealtimeWidget,
     'verbb\\metrix\\widgets\\Table': TableWidget,
 };
 

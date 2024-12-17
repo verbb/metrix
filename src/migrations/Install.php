@@ -181,9 +181,7 @@ class Install extends Migration
                 'width' => '2',
             ],
             [
-                'type' => 'verbb\\metrix\\widgets\\Counter',
-                'period' => 'verbb\\metrix\\periods\\Realtime',
-                'metric' => 'activeUsers',
+                'type' => 'verbb\\metrix\\widgets\\Realtime',
                 'width' => '1',
             ],
             [

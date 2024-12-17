@@ -51,6 +51,7 @@ class Widgets extends Component
             widgetTypes\Counter::class,
             widgetTypes\Line::class,
             widgetTypes\Pie::class,
+            widgetTypes\Realtime::class,
             widgetTypes\Table::class,
         ];
 

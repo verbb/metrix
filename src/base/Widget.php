@@ -20,6 +20,11 @@ abstract class Widget extends SavableComponent implements WidgetInterface
         return false;
     }
 
+    public static function supportsCache(): bool
+    {
+        return true;
+    }
+
     public static function getNewWigetConfig(): array
     {
         return Metrix::$plugin->getSettings()->getNewWidgetConfig();
@@ -171,6 +176,11 @@ abstract class Widget extends SavableComponent implements WidgetInterface
         }
 
         return [];
+    }
+
+    public function fetchData(WidgetDataInterface $widgetData): array
+    {
+        return $this->getSource()->fetchData($widgetData);
     }
 
 
