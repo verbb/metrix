@@ -48,6 +48,7 @@ class Sources extends Component
         $sourceTypes = [
             sourceTypes\GoogleAnalytics::class,
             sourceTypes\Fathom::class,
+            sourceTypes\Matomo::class,
             sourceTypes\Plausible::class,
         ];
 
