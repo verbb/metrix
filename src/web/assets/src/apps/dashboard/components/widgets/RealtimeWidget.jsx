@@ -16,8 +16,6 @@ export const RealtimeWidget = (props) => {
         const chartColFormat = chartFormat(chartCol, 'label');
         const chartData = data.rows[0][0];
 
-        console.log(data);
-
         return (
             <div className="mc-h-full mc-flex mc-flex-col mc-space-y-2 mc-items-center mc-justify-center">
                 <div className="mc-text-slate-600 mc-text-5xl mc-font-bold">{format(chartData, chartColFormat)}</div>

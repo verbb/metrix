@@ -48,12 +48,7 @@ class GoogleAnalytics extends OAuthSource
     {
         $rules = parent::defineRules();
 
-        $rules[] = [
-            ['accountId', 'propertyId'], 'required', 'when' => function($model) {
-                return $model->enabled && $model->isConnected();
-            },
-        ];
-
+        $rules[] = [['accountId', 'propertyId'], 'required', 'when' => fn($model) => $model->enabled && $model->isConnected()];
 
         return $rules;
     }

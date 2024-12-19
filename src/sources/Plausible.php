@@ -41,11 +41,7 @@ class Plausible extends CredentialsSource
     {
         $rules = parent::defineRules();
 
-        $rules[] = [
-            ['apiKey', 'siteId'], 'required', 'when' => function($model) {
-                return $model->enabled;
-            },
-        ];
+        $rules[] = [['apiKey', 'siteId'], 'required', 'when' => fn($model) => $model->enabled];
 
         return $rules;
     }

@@ -55,7 +55,9 @@ export function Widget({
             });
         }, realtimeInterval);
 
-        return () => { return clearInterval(interval); };
+        return () => {
+            return clearInterval(interval);
+        };
     }, [__id, data.period, waitForData, fetchWidgetData, afterFetchData, realtimeInterval]);
 
     return (
