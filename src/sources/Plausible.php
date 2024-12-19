@@ -48,7 +48,7 @@ class Plausible extends CredentialsSource
 
     public function getPrimaryColor(): ?string
     {
-        return '#4f46e5';
+        return '#5046e5';
     }
 
     public function getIcon(): ?string
