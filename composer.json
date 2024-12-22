@@ -1,6 +1,6 @@
 {
     "name": "verbb/metrix",
-    "description": "Display your analytics within Craft. Supports Google Analytics, Heap and more.",
+    "description": "Display your analytics within Craft. Supports Google Analytics, Plausible, Fathom and more.",
     "type": "craft-plugin",
     "version": "1.0.0",
     "keywords": [

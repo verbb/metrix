@@ -12,7 +12,19 @@
         "title": "Feature Tour",
         "collapsable": false,
         "children": [
-            
+            "feature-tour/dashboard",
+        ]
+    },
+    {
+        "title": "Providers",
+        "collapsable": false,
+        "children": [
+            "providers/cloudflare",
+            "providers/fathom",
+            "providers/google-analytics",
+            "providers/matomo",
+            "providers/mix-panel",
+            "providers/plausible"
         ]
     },
     {
@@ -26,7 +38,15 @@
         "title": "Developers",
         "collapsable": false,
         "children": [
-            "developers/events"
+            "developers/events",
+            "developers/source",
+            "developers/view",
+            "developers/preset",
+            "developers/period",
+            "developers/widget",
+            "developers/custom-source",
+            "developers/custom-period",
+            "developers/custom-widget"
         ]
     }
 ]
