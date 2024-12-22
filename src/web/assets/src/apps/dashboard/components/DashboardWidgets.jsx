@@ -17,7 +17,7 @@ export const DashboardWidgets = ({ widgets, loading }) => {
                 {widgets.map((widget) => {
                     const Component = widget.component;
 
-                    return (
+                    return widget.component !== null ? (
                         <Component
                             key={widget.__id}
                             widget={widget}
@@ -27,7 +27,7 @@ export const DashboardWidgets = ({ widgets, loading }) => {
                                 widget.data.width === '3' ? 'lg:mc-col-span-3' : '',
                             )}
                         />
-                    );
+                    ) : '';
                 })}
             </AnimatePresence>
         </div>

@@ -30,6 +30,11 @@ abstract class Widget extends SavableComponent implements WidgetInterface
         return Metrix::$plugin->getSettings()->getNewWidgetConfig();
     }
 
+    public static function getAssetBundle(): ?string
+    {
+        return null;
+    }
+
 
     // Properties
     // =========================================================================

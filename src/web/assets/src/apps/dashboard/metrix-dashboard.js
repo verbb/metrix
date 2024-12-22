@@ -15,6 +15,9 @@ import { createRoot } from 'react-dom/client';
 import { nanoid } from 'nanoid';
 
 import { Dashboard } from '@dashboard/components/Dashboard.jsx';
+import { WidgetLarge } from '@dashboard/components/widgets/WidgetLarge.jsx';
+import { WidgetSmall } from '@dashboard/components/widgets/WidgetSmall.jsx';
+import MetrixConfig from './MetrixConfig.js';
 
 import useAppStore from '@dashboard/hooks/useAppStore';
 import useWidgetStore from '@dashboard/hooks/useWidgetStore';
@@ -68,3 +71,15 @@ Craft.Metrix.Dashboard = Garnish.Base.extend({
         }));
     },
 });
+
+Craft.Metrix.Config = new MetrixConfig();
+
+// Fire an event so plugins can reliably hook in
+document.dispatchEvent(new CustomEvent('onMetrixConfigReady', {
+    bubbles: true,
+}));
+
+Craft.Metrix.SharedComponents = {
+    WidgetLarge,
+    WidgetSmall,
+};

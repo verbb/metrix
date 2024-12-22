@@ -108,6 +108,10 @@ class Widgets extends Component
         foreach ($this->getAllEnabledWidgets() as $widget) {
             if ($widget->getView()?->handle === $viewHandle) {
                 $widgets[] = $widget->getFrontEndData();
+
+                if ($widget::getAssetBundle()) {
+                    Craft::$app->getView()->registerAssetBundle($widget::getAssetBundle());
+                }
             }
         }
 

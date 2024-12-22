@@ -16,7 +16,8 @@ const typeToComponentMap = {
 
 // Preload a single widget
 export const preloadWidget = (widget) => {
-    const component = typeToComponentMap[widget.type] || null;
+    // Check if a custom widget is registered
+    const component = Craft.Metrix.Config.getRegisteredWidget(widget.type) || typeToComponentMap[widget.type] || null;
 
     return {
         component,
