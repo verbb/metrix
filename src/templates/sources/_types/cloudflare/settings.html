@@ -1,0 +1,21 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+{% import 'metrix/_macros' as customForms %}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'API Token' | t('metrix'),
+    instructions: 'Enter your {name} {label} here.' | t('metrix'),
+    name: 'apiToken',
+    required: true,
+    suggestEnvVars: true,
+    value: source.apiToken,
+    warning: macros.configWarning('apiToken', 'metrix'),
+    errors: source.getErrors('apiToken'),
+}) }}
+
+{{ customForms.providerSettingsField(source, {
+    label: '{name} Zone ID' | t('metrix', { name: source.providerName }),
+    instructions: 'The {name} Zone ID to pull data from.' | t('metrix', { name: source.providerName }),
+    name: 'zoneId',
+    required: true,
+}) }}

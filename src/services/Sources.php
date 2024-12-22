@@ -46,8 +46,9 @@ class Sources extends Component
     public function getAllSourceTypes(): array
     {
         $sourceTypes = [
-            sourceTypes\GoogleAnalytics::class,
+            sourceTypes\Cloudflare::class,
             sourceTypes\Fathom::class,
+            sourceTypes\GoogleAnalytics::class,
             sourceTypes\Matomo::class,
             sourceTypes\Plausible::class,
         ];
