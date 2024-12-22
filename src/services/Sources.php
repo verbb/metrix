@@ -50,6 +50,7 @@ class Sources extends Component
             sourceTypes\Fathom::class,
             sourceTypes\GoogleAnalytics::class,
             sourceTypes\Matomo::class,
+            sourceTypes\MixPanel::class,
             sourceTypes\Plausible::class,
         ];
 
