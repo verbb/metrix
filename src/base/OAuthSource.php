@@ -100,7 +100,7 @@ abstract class OAuthSource extends Source implements OAuthProviderInterface
     public function getToken(): ?Token
     {
         if ($this->id) {
-            return Auth::$plugin->getTokens()->getTokenByOwnerReference('metrix', $this->id);
+            return Auth::getInstance()->getTokens()->getTokenByOwnerReference('metrix', $this->id);
         }
 
         return null;

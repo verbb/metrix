@@ -46,7 +46,7 @@ class AuthController extends Controller
             // Keep track of which source instance is for, so we can fetch it in the callback
             Session::set('sourceHandle', $sourceHandle);
 
-            return Auth::$plugin->getOAuth()->connect('metrix', $source);
+            return Auth::getInstance()->getOAuth()->connect('metrix', $source);
         } catch (Throwable $e) {
             Metrix::error('Unable to authorize connect “{source}”: “{message}” {file}:{line}', [
                 'source' => $sourceHandle,
@@ -85,7 +85,7 @@ class AuthController extends Controller
 
         try {
             // Fetch the access token from the source and create a Token for us to use
-            $token = Auth::$plugin->getOAuth()->callback('metrix', $source);
+            $token = Auth::getInstance()->getOAuth()->callback('metrix', $source);
 
             if (!$token) {
                 Session::setError('metrix', Craft::t('metrix', 'Unable to fetch token.'), true);
@@ -95,7 +95,7 @@ class AuthController extends Controller
 
             // Save the token to the Auth plugin, with a reference to this source
             $token->reference = $source->id;
-            Auth::$plugin->getTokens()->upsertToken($token);
+            Auth::getInstance()->getTokens()->upsertToken($token);
         } catch (Throwable $e) {
             $error = Craft::t('metrix', 'Unable to process callback for “{source}”: “{message}” {file}:{line}', [
                 'source' => $sourceHandle,
@@ -127,7 +127,7 @@ class AuthController extends Controller
         }
 
         // Delete all tokens for this source
-        Auth::$plugin->getTokens()->deleteTokenByOwnerReference('metrix', $source->id);
+        Auth::getInstance()->getTokens()->deleteTokenByOwnerReference('metrix', $source->id);
 
         return $this->asModelSuccess($source, Craft::t('metrix', '{provider} disconnected.', ['provider' => $source->providerName]), 'source');
     }
