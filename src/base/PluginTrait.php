@@ -12,10 +12,10 @@ use verbb\metrix\services\Widgets;
 
 use Craft;
 
-use yii\log\Logger;
+use verbb\base\LogTrait;
+use verbb\base\helpers\Plugin;
 
 use verbb\auth\Auth;
-use verbb\base\BaseHelper;
 
 use nystudio107\pluginvite\services\VitePluginService;
 
@@ -24,28 +24,43 @@ trait PluginTrait
     // Static Properties
     // =========================================================================
 
-    public static Metrix $plugin;
+    public static ?Metrix $plugin = null;
 
 
-    // Public Methods
+    // Traits
     // =========================================================================
 
-    public static function log(string $message, array $attributes = []): void
+    use LogTrait;
+
+
+    // Static Methods
+    // =========================================================================
+
+    public static function config(): array
     {
-        if ($attributes) {
-            $message = Craft::t('metrix', $message, $attributes);
-        }
+        Plugin::bootstrapPlugin('metrix');
 
-        Craft::getLogger()->log($message, Logger::LEVEL_INFO, 'metrix');
-    }
-
-    public static function error(string $message, array $attributes = []): void
-    {
-        if ($attributes) {
-            $message = Craft::t('metrix', $message, $attributes);
-        }
-
-        Craft::getLogger()->log($message, Logger::LEVEL_ERROR, 'metrix');
+        return [
+            'components' => [
+                'periods' => Periods::class,
+                'presets' => Presets::class,
+                'service' => Service::class,
+                'sources' => Sources::class,
+                'views' => Views::class,
+                'vite' => [
+                    'class' => VitePluginService::class,
+                    'assetClass' => MetrixAsset::class,
+                    'useDevServer' => true,
+                    'devServerPublic' => 'http://localhost:4040/',
+                    'errorEntry' => 'js/main.js',
+                    'cacheKeySuffix' => '',
+                    'devServerInternal' => 'http://localhost:4040/',
+                    'checkDevServer' => true,
+                    'includeReactRefreshShim' => true,
+                ],
+                'widgets' => Widgets::class,
+            ],
+        ];
     }
 
 
@@ -85,41 +100,6 @@ trait PluginTrait
     public function getWidgets(): Widgets
     {
         return $this->get('widgets');
-    }
-
-
-    // Private Methods
-    // =========================================================================
-
-    private function _setPluginComponents(): void
-    {
-        $this->setComponents([
-            'periods' => Periods::class,
-            'presets' => Presets::class,
-            'service' => Service::class,
-            'sources' => Sources::class,
-            'views' => Views::class,
-            'vite' => [
-                'class' => VitePluginService::class,
-                'assetClass' => MetrixAsset::class,
-                'useDevServer' => true,
-                'devServerPublic' => 'http://localhost:4040/',
-                'errorEntry' => 'js/main.js',
-                'cacheKeySuffix' => '',
-                'devServerInternal' => 'http://localhost:4040/',
-                'checkDevServer' => true,
-                'includeReactRefreshShim' => true,
-            ],
-            'widgets' => Widgets::class,
-        ]);
-        
-        Auth::registerModule();
-        BaseHelper::registerModule();
-    }
-
-    private function _setLogging(): void
-    {
-        BaseHelper::setFileLogging('metrix');
     }
 
 }
