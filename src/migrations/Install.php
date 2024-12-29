@@ -122,6 +122,7 @@ class Install extends Migration
 
     public function dropTables(): void
     {
+        $this->dropTableIfExists('{{%metrix_presets}}');
         $this->dropTableIfExists('{{%metrix_sources}}');
         $this->dropTableIfExists('{{%metrix_views}}');
         $this->dropTableIfExists('{{%metrix_widgets}}');
@@ -129,6 +130,10 @@ class Install extends Migration
 
     public function dropForeignKeys(): void
     {
+        if ($this->db->tableExists('{{%metrix_presets}}')) {
+            MigrationHelper::dropAllForeignKeysOnTable('{{%metrix_presets}}', $this);
+        }
+
         if ($this->db->tableExists('{{%metrix_sources}}')) {
             MigrationHelper::dropAllForeignKeysOnTable('{{%metrix_sources}}', $this);
         }
