@@ -13,6 +13,16 @@
       "assets/Button-BoJzKCFC.css"
     ]
   },
+  "_MetrixConfig-BmoIh_pC.js": {
+    "file": "assets/MetrixConfig-BmoIh_pC.js",
+    "name": "MetrixConfig",
+    "imports": [
+      "_Button-CTzKo-ja.js",
+      "_react-DJpHYEPN.js",
+      "_dndkit-CA2JRGlN.js",
+      "_chartjs-BzvTYjqM.js"
+    ]
+  },
   "_chartjs-BzvTYjqM.js": {
     "file": "assets/chartjs-BzvTYjqM.js",
     "name": "chartjs"
@@ -22,16 +32,6 @@
     "name": "dndkit",
     "imports": [
       "_react-DJpHYEPN.js"
-    ]
-  },
-  "_modifiers.esm-Cv_9_0KG.js": {
-    "file": "assets/modifiers.esm-Cv_9_0KG.js",
-    "name": "modifiers.esm",
-    "imports": [
-      "_Button-CTzKo-ja.js",
-      "_react-DJpHYEPN.js",
-      "_dndkit-CA2JRGlN.js",
-      "_chartjs-BzvTYjqM.js"
     ]
   },
   "_react-DJpHYEPN.js": {
@@ -48,27 +48,27 @@
     ]
   },
   "src/apps/dashboard/metrix-dashboard.js": {
-    "file": "assets/metrix-dashboard-C4-Bfdh0.js",
+    "file": "assets/metrix-dashboard-BwABJamr.js",
     "name": "metrix-dashboard",
     "src": "src/apps/dashboard/metrix-dashboard.js",
     "isEntry": true,
     "imports": [
       "_Button-CTzKo-ja.js",
       "_react-DJpHYEPN.js",
-      "_modifiers.esm-Cv_9_0KG.js",
+      "_MetrixConfig-BmoIh_pC.js",
       "_dndkit-CA2JRGlN.js",
       "_chartjs-BzvTYjqM.js"
     ]
   },
   "src/apps/presets/metrix-presets.js": {
-    "file": "assets/metrix-presets-BASvMRjX.js",
+    "file": "assets/metrix-presets-DWwgTLrv.js",
     "name": "metrix-presets",
     "src": "src/apps/presets/metrix-presets.js",
     "isEntry": true,
     "imports": [
       "_Button-CTzKo-ja.js",
       "_react-DJpHYEPN.js",
-      "_modifiers.esm-Cv_9_0KG.js",
+      "_MetrixConfig-BmoIh_pC.js",
       "_dndkit-CA2JRGlN.js",
       "_chartjs-BzvTYjqM.js"
     ]
