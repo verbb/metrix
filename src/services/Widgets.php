@@ -67,6 +67,12 @@ class Widgets extends Component
     public function createWidget(mixed $config): WidgetInterface
     {
         try {
+            // If already a `MissingWidget` (typically serialized in preset), convert back
+            if ($config['type'] === widgetTypes\MissingWidget::class) {
+                $config['type'] = ArrayHelper::remove($config, 'expectedType');
+                ArrayHelper::remove($config, 'errorMessage');
+            }
+
             return ComponentHelper::createComponent($config, WidgetInterface::class);
         } catch (MissingComponentException|InvalidConfigException $e) {
             $config['errorMessage'] = $e->getMessage();
