@@ -17,12 +17,12 @@ import { nanoid } from 'nanoid';
 import { Dashboard } from '@dashboard/components/Dashboard.jsx';
 import { WidgetLarge } from '@dashboard/components/widgets/WidgetLarge.jsx';
 import { WidgetSmall } from '@dashboard/components/widgets/WidgetSmall.jsx';
-import MetrixConfig from './MetrixConfig.js';
 
 import useAppStore from '@dashboard/hooks/useAppStore';
 import useWidgetStore from '@dashboard/hooks/useWidgetStore';
 import useWidgetSettingsStore from '@dashboard/hooks/useWidgetSettingsStore';
 
+import MetrixConfig from '@shared/MetrixConfig.js';
 import { addPortalContainer } from '@utils';
 import { preloadWidgets } from '@utils/widgets';
 

@@ -19,6 +19,7 @@ import { Presets } from '@presets/components/Presets.jsx';
 import useAppStore from '@presets/hooks/useAppStore';
 import useWidgetSettingsStore from '@presets/hooks/useWidgetSettingsStore';
 
+import MetrixConfig from '@shared/MetrixConfig.js';
 import { addPortalContainer } from '@utils';
 import { preloadWidgets } from '@utils/widgets';
 
@@ -46,3 +47,10 @@ Craft.Metrix.Presets = Garnish.Base.extend({
         }));
     },
 });
+
+Craft.Metrix.Config = new MetrixConfig();
+
+// Fire an event so plugins can reliably hook in
+document.dispatchEvent(new CustomEvent('onMetrixConfigReady', {
+    bubbles: true,
+}));
