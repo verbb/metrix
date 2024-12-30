@@ -100,14 +100,22 @@ class Preset extends SavableComponent
         // any sources exist. But when converting to widgets, they must have a source.
         $firstSource = Metrix::$plugin->getSources()->getAllConfiguredSources()[0] ?? null;
 
+        // It's a similar deal with views
+        $firstView = Metrix::$plugin->getViews()->getAllViews()[0] ?? null;
+
         foreach ($this->getWidgets() as $widget) {
             // Set a default source, if not already set
             if ($firstSource && !$widget->getSource()) {
                 $widget->setSource($firstSource);
             }
 
-            // Ensure that we only return widgets that have a source
-            if (!$widget->getSource()) {
+            // Set a default view, if not already set
+            if ($firstView && !$widget->getView()) {
+                $widget->setView($firstView);
+            }
+
+            // Ensure that we only return widgets that have a source and/or view
+            if (!$widget->getSource() || !$widget->getView()) {
                 continue;
             }
 
