@@ -8,7 +8,7 @@ import { ChartTooltip } from '@dashboard/components/charts/ChartTooltip';
 import { WidgetLarge } from '@dashboard/components/widgets/WidgetLarge';
 
 import {
-    api, format, chartFormat, theme, chartColors,
+    api, format, chartFormat, theme, CHART_COLORS,
 } from '@utils';
 
 export const BarWidget = (props) => {
@@ -40,7 +40,7 @@ export const BarWidget = (props) => {
                 datasets: [
                     {
                         data: values,
-                        backgroundColor: chartColors[0],
+                        backgroundColor: CHART_COLORS[0],
                         yAxisID: 'y',
                         yAxisFormatter: yAxisTooltipFormat,
                         xAxisFormatter: xAxisTooltipFormat,
@@ -155,7 +155,7 @@ export const BarWidget = (props) => {
         );
     }
 
-    return <WidgetLarge className="mc-h-[29rem]" renderContent={renderContent} {...props} />;
+    return <WidgetLarge className="mc-h-widget-2" renderContent={renderContent} {...props} />;
 };
 
 BarWidget.meta = {

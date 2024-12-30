@@ -8,7 +8,7 @@ import { WidgetLarge } from '@dashboard/components/widgets/WidgetLarge';
 
 import { useCustomTooltip } from '@dashboard/hooks/useCustomTooltip';
 
-import { api, chartFormat, chartColors } from '@utils';
+import { api, chartFormat, CHART_COLORS } from '@utils';
 
 export const PieWidget = (props) => {
     const { widget } = props;
@@ -74,8 +74,8 @@ export const PieWidget = (props) => {
                 datasets: [
                     {
                         data: values,
-                        backgroundColor: chartColors,
-                        hoverBackgroundColor: chartColors,
+                        backgroundColor: CHART_COLORS,
+                        hoverBackgroundColor: CHART_COLORS,
                         borderWidth: 0,
                         hoverBorderWidth: 0,
                         yAxisID: 'y',
@@ -135,7 +135,7 @@ export const PieWidget = (props) => {
         );
     }
 
-    return <WidgetLarge className="mc-h-[29rem]" afterFetchData={afterFetchData} renderContent={renderContent} {...props} />;
+    return <WidgetLarge className="mc-h-widget-2" afterFetchData={afterFetchData} renderContent={renderContent} {...props} />;
 };
 
 PieWidget.meta = {

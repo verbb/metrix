@@ -1,7 +1,7 @@
 import tailwindcssAnimate from 'tailwindcss-animate';
 import tailwindcssForms from '@tailwindcss/forms';
 
-import { chartColors } from './src/web/assets/src/shared/utils/chart-colors';
+import { CHART_COLORS, WIDGET_HEIGHT, WIDGET_HEIGHTS } from './src/web/assets/src/shared/utils/constants';
 
 export default {
     // Prefix classes so Craft's don't interfere, and vice versa
@@ -16,6 +16,13 @@ export default {
     theme: {
         // Extend the default Tailwind config
         extend: {
+            spacing: WIDGET_HEIGHTS,
+            height: WIDGET_HEIGHTS,
+
+            gridAutoRows: {
+                widgets: `minmax(${WIDGET_HEIGHT}rem, auto)`,
+            },
+
             animation: {
                 spin: 'spin 0.5s linear infinite',
             },
@@ -25,7 +32,7 @@ export default {
             },
 
             colors: {
-                chart: chartColors.reduce((acc, color, index) => {
+                chart: CHART_COLORS.reduce((acc, color, index) => {
                     acc[index + 1] = color; // Assign numeric keys
 
                     return acc;
