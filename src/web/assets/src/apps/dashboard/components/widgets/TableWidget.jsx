@@ -7,10 +7,10 @@ import { Button } from '@components/ui/Button';
 import { WidgetLarge } from '@dashboard/components/widgets/WidgetLarge';
 
 import {
-    api, cn, format, chartFormat, sort,
+    api, cn, format, chartFormat, WIDGET_HEIGHT, sort,
 } from '@utils';
 
-const MAX_ITEMS = 9;
+const MAX_ITEMS = WIDGET_HEIGHT - 5;
 
 export const TableWidget = (props) => {
     const { widget } = props;
@@ -189,7 +189,7 @@ export const TableWidget = (props) => {
         );
     }
 
-    return <WidgetLarge className="mc-h-[29rem]" renderContent={renderContent} {...props} />;
+    return <WidgetLarge className="mc-h-widget-2" renderContent={renderContent} {...props} />;
 };
 
 TableWidget.meta = {

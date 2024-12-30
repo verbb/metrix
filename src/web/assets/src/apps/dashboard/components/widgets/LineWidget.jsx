@@ -8,7 +8,7 @@ import { ChartTooltip } from '@dashboard/components/charts/ChartTooltip';
 import { WidgetLarge } from '@dashboard/components/widgets/WidgetLarge';
 
 import {
-    api, format, chartFormat, chartColors, hexToRgba,
+    api, format, chartFormat, WIDGET_HEIGHT, CHART_COLORS, hexToRgba,
 } from '@utils';
 
 export const LineWidget = (props) => {
@@ -40,9 +40,9 @@ export const LineWidget = (props) => {
                 datasets: [
                     {
                         data: values,
-                        borderColor: chartColors[0],
-                        pointBackgroundColor: chartColors[0],
-                        pointHoverBackgroundColor: chartColors[0],
+                        borderColor: CHART_COLORS[0],
+                        pointBackgroundColor: CHART_COLORS[0],
+                        pointHoverBackgroundColor: CHART_COLORS[0],
                         yAxisID: 'y',
                         borderWidth: 3,
                         pointHoverBorderColor: 'white',
@@ -65,8 +65,8 @@ export const LineWidget = (props) => {
 
                             const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
 
-                            gradient.addColorStop(0, hexToRgba(chartColors[0], '0.2'));
-                            gradient.addColorStop(1, hexToRgba(chartColors[0], '0'));
+                            gradient.addColorStop(0, hexToRgba(CHART_COLORS[0], '0.2'));
+                            gradient.addColorStop(1, hexToRgba(CHART_COLORS[0], '0'));
 
                             return gradient;
                         },
@@ -124,7 +124,7 @@ export const LineWidget = (props) => {
                             mirror: true,
                             maxTicksLimit: 10,
                             z: 1,
-                            color: chartColors[0],
+                            color: CHART_COLORS[0],
                             textStrokeColor: '#fff',
                             textStrokeWidth: 3,
                             padding: 5,
@@ -156,7 +156,7 @@ export const LineWidget = (props) => {
                         ticks: {
                             mirror: true,
                             autoSkip: true,
-                            color: chartColors[0],
+                            color: CHART_COLORS[0],
                             textStrokeColor: '#fff',
                             textStrokeWidth: 3,
                             padding: 0,
@@ -187,7 +187,7 @@ export const LineWidget = (props) => {
 
         return (
             <div className="mc-h-full mc-flex mc-flex-col mc-relative mc-pt-4 -mc-mx-[10px]">
-                <div className="mc-relative mc-w-full" style={{ height: '25.3rem' }}>
+                <div className="mc-relative mc-w-full" style={{ height: `${(WIDGET_HEIGHT * 2) - 2.7}rem` }}>
                     <Line ref={chartRef} {...chartOptions} />
 
                     <ChartTooltip
@@ -201,7 +201,7 @@ export const LineWidget = (props) => {
         );
     }
 
-    return <WidgetLarge className="mc-h-[29rem]" renderContent={renderContent} {...props} />;
+    return <WidgetLarge className="mc-h-widget-2" renderContent={renderContent} {...props} />;
 };
 
 LineWidget.meta = {

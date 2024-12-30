@@ -46,7 +46,7 @@ export const CounterWidget = (props) => {
         );
     }
 
-    return <WidgetSmall className="mc-h-[14rem]" renderContent={renderContent} {...props} />;
+    return <WidgetSmall className="mc-h-widget-1" renderContent={renderContent} {...props} />;
 };
 
 CounterWidget.meta = {

@@ -6,12 +6,9 @@ export const DashboardWidgets = ({ widgets, loading }) => {
     return (
         <div
             className={cn(
-                'mc-grid mc-gap-4 mc-grid-cols-1 md:mc-grid-cols-2 lg:mc-grid-cols-3',
+                'mc-grid mc-auto-rows-widgets mc-gap-4 mc-grid-cols-1 md:mc-grid-cols-2 lg:mc-grid-cols-3',
                 loading ? 'mc-opacity-10' : '',
             )}
-            style={{
-                gridAutoRows: 'minmax(14rem, auto)',
-            }}
         >
             <AnimatePresence>
                 {widgets.map((widget) => {

@@ -1,4 +1,13 @@
-export const chartColors = [
+export const WIDGET_HEIGHT = 14;
+export const WIDGET_GAP = 1;
+
+export const WIDGET_HEIGHTS = Array.from({ length: 5 }, (_, i) => {
+    return {
+        [`widget-${i + 1}`]: `${WIDGET_HEIGHT * (i + 1) + WIDGET_GAP * i}rem`,
+    };
+}).reduce((acc, cur) => { return { ...acc, ...cur }; }, {});
+
+export const CHART_COLORS = [
     '#1C64F2', // Blue
     '#FF9800', // Vibrant orange
     '#16BDCA', // Teal
