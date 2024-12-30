@@ -12,7 +12,7 @@
         "title": "Feature Tour",
         "collapsable": false,
         "children": [
-            "feature-tour/dashboard",
+            "feature-tour/dashboard"
         ]
     },
     {
