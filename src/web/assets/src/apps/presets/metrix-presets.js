@@ -33,7 +33,17 @@ Craft.Metrix.Presets = Garnish.Base.extend({
         const { loadSettings } = useWidgetSettingsStore.getState();
         const { setNewWidget } = useAppStore.getState();
 
-        const { widgets, widgetSettings, newWidget } = settings;
+        const {
+            widgets,
+            widgetSettings,
+            newWidget,
+            hasSource,
+        } = settings;
+
+        // Prevent rendering the component if there are no sources yet
+        if (!hasSource) {
+            return;
+        }
 
         loadSettings(widgetSettings);
         setNewWidget(newWidget);
