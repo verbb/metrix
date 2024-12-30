@@ -106,6 +106,11 @@ class Preset extends SavableComponent
                 $widget->setSource($firstSource);
             }
 
+            // Ensure that we only return widgets that have a source
+            if (!$widget->getSource()) {
+                continue;
+            }
+
             $widgets[] = $widget->getFrontEndData();
         }
 
@@ -138,11 +143,13 @@ class Preset extends SavableComponent
         $widgets = $this->getFrontEndWidgets();
         $widgetTypeOptions = Options::getEnabledWidgetTypeSchemaOptions();
         $newWidget = Widget::getNewWigetConfig();
+        $firstSource = Metrix::$plugin->getSources()->getAllConfiguredSources()[0] ?? null;
 
         return [
             'widgets' => $widgets,
             'widgetSettings' => $widgetTypeOptions,
             'newWidget' => $newWidget,
+            'hasSource' => (bool)$firstSource,
         ];
     }
 }
