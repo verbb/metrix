@@ -115,7 +115,8 @@ const DraggableWidgetRow = ({
                 </div>
 
                 <div className="mc-text-xs mc-text-slate-400 mc-font-medium">
-                    {widget.component.meta.name} - {period()}
+                    {widget.component.meta.name}
+                    {widget.data.period && ` - ${period()}`}
                 </div>
             </div>
 
