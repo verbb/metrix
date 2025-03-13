@@ -8,4 +8,4 @@ Follow these steps to configure Plausible Analytics for Metrix.
 2. Go to the **Settings > API** section.
 3. Generate a new API key with **Read Access**.
 4. Copy the API key and paste it into the **API Key** field in Metrix.
-1. Select the **Site ID** in Metrix using the dynamic dropdown.
+1. Enter your **Site ID** (Domain) in Metrix. For example `verbb.io`.
