@@ -193,7 +193,10 @@ class Plausible extends CredentialsSource
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => $this->getBaseUrl() . 'api/v2/',
-            'headers' => ['Authorization' => 'Bearer ' . $this->getApiKey()],
+            'headers' => [
+                'Authorization' => 'Bearer ' . $this->getApiKey(),
+                'Accept' => 'application/json',
+            ],
         ]);
     }
 
