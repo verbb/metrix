@@ -23,3 +23,14 @@
     warning: macros.configWarning('siteId', 'metrix'),
     errors: source.getErrors('siteId'),
 }) }}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Base URL' | t('metrix'),
+    instructions: 'Enter your {name} {label} here. Only change this when using self-hosted setups.' | t('metrix'),
+    name: 'baseUrl',
+    required: true,
+    suggestEnvVars: true,
+    value: source.baseUrl,
+    warning: macros.configWarning('baseUrl', 'metrix'),
+    errors: source.getErrors('baseUrl'),
+}) }}
