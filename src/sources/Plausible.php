@@ -32,6 +32,7 @@ class Plausible extends CredentialsSource
 
     public ?string $apiKey = null;
     public ?string $siteId = null;
+    public ?string $baseUrl = 'https://plausible.io/';
 
 
     // Public Methods
@@ -41,7 +42,7 @@ class Plausible extends CredentialsSource
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['apiKey', 'siteId'], 'required', 'when' => fn($model) => $model->enabled];
+        $rules[] = [['apiKey', 'siteId', 'baseUrl'], 'required', 'when' => fn($model) => $model->enabled];
 
         return $rules;
     }
@@ -67,6 +68,13 @@ class Plausible extends CredentialsSource
     public function getSiteId(): ?string
     {
         return App::parseEnv($this->siteId);
+    }
+
+    public function getBaseUrl(): ?string
+    {
+        $baseUrl = App::parseEnv($this->baseUrl);
+
+        return rtrim($baseUrl, '/') . '/';
     }
 
     public function fetchAvailableMetrics(): array
@@ -184,7 +192,7 @@ class Plausible extends CredentialsSource
         }
 
         return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => 'https://plausible.io/api/v2/',
+            'base_uri' => $this->getBaseUrl() . 'api/v2/',
             'headers' => ['Authorization' => 'Bearer ' . $this->getApiKey()],
         ]);
     }
