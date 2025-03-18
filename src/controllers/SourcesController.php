@@ -75,7 +75,9 @@ class SourcesController extends Controller
         }
 
         Plugin::registerAsset('src/apps/sources/metrix-sources.js');
-        $this->view->registerJs('new Craft.Metrix.SourceConnect(' . Json::encode([]) . ');');
+        $this->view->registerJs('new Craft.Metrix.SourceConnect(' . Json::encode([
+            'connected' => $source->isConnected(),
+        ]) . ');');
 
         return $this->renderTemplate('metrix/sources/_edit', [
             'title' => $title,
