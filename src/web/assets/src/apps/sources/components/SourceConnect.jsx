@@ -22,6 +22,7 @@ export const SourceConnect = ({ connected }) => {
 
     useEffect(() => {
         setStatusText(connected ? Craft.t('metrix', 'Connected') : Craft.t('metrix', 'Not connected'));
+        setStatusIndicator(connected ? 'on' : 'off');
     }, [connected]);
 
     const getFormInputs = () => {

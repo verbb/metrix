@@ -27,7 +27,7 @@ Craft.Metrix.SourceConnect = Garnish.Base.extend({
             const root = createRoot(container);
 
             root.render(createElement(SourceConnect, {
-                connected: false,
+                connected: settings.connected,
             }));
         }
     },
