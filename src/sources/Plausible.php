@@ -155,7 +155,7 @@ class Plausible extends CredentialsSource
 
     public function fetchRealtimeData(WidgetDataInterface $widgetData): array
     {
-        $response = $this->request('GET', 'https://plausible.io/api/v1/stats/realtime/visitors', [
+        $response = $this->request('GET', $this->getBaseUrl() . 'api/v1/stats/realtime/visitors', [
             'query' => [
                 'site_id' => $this->getSiteId(),
             ],
