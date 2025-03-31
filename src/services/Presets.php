@@ -102,7 +102,7 @@ class Presets extends Component
         }
 
         if ($runValidation && !$preset->validate()) {
-            IconPicker::log('Icon set not saved due to validation error.');
+            Metrix::log('Preset not saved due to validation error.');
 
             return false;
         }
