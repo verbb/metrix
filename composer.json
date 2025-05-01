@@ -2,7 +2,7 @@
     "name": "verbb/metrix",
     "description": "Display your analytics within Craft. Supports Google Analytics, Plausible, Fathom and more.",
     "type": "craft-plugin",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "keywords": [
         "craft",
         "cms",
