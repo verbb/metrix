@@ -48,6 +48,7 @@ abstract class Source extends SavableComponent implements SourceInterface
         ]);
 
         Metrix::error($source->name . ': ' . $message);
+        Metrix::error($exception->getTraceAsString());
 
         if ($throwError) {
             throw new Exception($message);
