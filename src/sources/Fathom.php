@@ -142,11 +142,21 @@ class Fathom extends CredentialsSource
             'entity' => 'pageview',
             'entity_id' => $this->getSiteId(),
             'aggregates' => implode(',', $metrics),
-            'date_grouping' => $this->_getIntervalDimension($widgetData),
             'timezone' => 'UTC',
             'start_date' => $startDate,
             'end_date' => $endDate,
         ];
+
+        // Check if we should group things via date, or fields
+        $groupingDimension = $this->_getGroupingDimension($widgetData);
+        $groupedDimension = 'date';
+
+        if ($groupingDimension === 'date' || !$widgetData->widget::supportsDimensions()) {
+            $payload['date_grouping'] = $this->_getDateDimension($widgetData);
+        } else {
+            $payload['field_grouping'] = $groupedDimension = $this->_getFieldDimension($widgetData);
+            $payload['sort_by'] = $payload['aggregates'] . ':desc';
+        }
 
         $response = $this->request('GET', 'aggregations', [
             'query' => $payload,
@@ -156,7 +166,7 @@ class Fathom extends CredentialsSource
 
         foreach ($response as $result) {
             $metric = $result[$widgetData->metric] ?? null;
-            $dimension = $result['date'] ?? null;
+            $dimension = $result[$groupedDimension] ?? null;
 
             if ($dimension) {
                 $data[$dimension] = $metric;
@@ -210,7 +220,16 @@ class Fathom extends CredentialsSource
     // Private Methods
     // =========================================================================
 
-    private function _getIntervalDimension(WidgetDataInterface $widgetData): string
+    private function _getGroupingDimension(WidgetDataInterface $widgetData): string
+    {
+        if ($widgetData->widget::supportsDimensions() && !empty($widgetData->dimension)) {
+            return 'field';
+        }
+
+        return 'date';
+    }
+
+    private function _getDateDimension(WidgetDataInterface $widgetData): string
     {
         $intervalDimension = $widgetData->period::getIntervalDimension();
 
@@ -228,4 +247,28 @@ class Fathom extends CredentialsSource
 
         return 'day';
     }
+
+    private function _getFieldDimension(WidgetDataInterface $widgetData): string
+    {
+        $items = [];
+
+        if ($widgetData->dimension === 'referrer') {
+            $items[] = 'referrer_hostname';
+        }
+
+        if ($widgetData->dimension === 'page') {
+            $items[] = 'pathname';
+        }
+
+        if ($widgetData->dimension === 'country') {
+            $items[] = 'country_code';
+        }
+
+        if (empty($items)) {
+            $items[] = $widgetData->dimension;
+        }
+
+        return implode(',', $items);
+    }
+
 }
