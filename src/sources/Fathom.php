@@ -121,6 +121,10 @@ class Fathom extends CredentialsSource
             'utm_medium' => 'UTM Medium',
             'page' => 'Page',
             'country' => 'Country',
+            'region' => 'Region',
+            'browser' => 'Browser',
+            'device_type' => 'Device Type',
+            'operating_system' => 'Operating System',
         ];
 
         return array_map(fn($key, $label) => [
