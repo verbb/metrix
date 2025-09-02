@@ -4,6 +4,7 @@ namespace verbb\metrix\sources;
 use verbb\metrix\base\CredentialsSource;
 use verbb\metrix\base\Period;
 use verbb\metrix\base\WidgetDataInterface;
+use verbb\metrix\widgets\Counter;
 
 use Craft;
 use craft\helpers\App;
@@ -156,7 +157,12 @@ class Fathom extends CredentialsSource
         $groupedDimension = 'date';
 
         if ($groupingDimension === 'date' || !$widgetData->widget::supportsDimensions()) {
-            $payload['date_grouping'] = $this->_getDateDimension($widgetData);
+            // Special-handling for single accomulative values like Counter
+            if ($widgetData->widget instanceof Counter) {
+                // Exclude, the documented 'none' throws an error
+            } else {
+                $payload['date_grouping'] = $this->_getDateDimension($widgetData);
+            }
         } else {
             $payload['field_grouping'] = $groupedDimension = $this->_getFieldDimension($widgetData);
             $payload['sort_by'] = $payload['aggregates'] . ':desc';

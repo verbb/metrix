@@ -22,6 +22,15 @@
 ### Changed
 - Now requires Craft 5.0+.
 
+## 1.0.3 - 2025-09-02
+
+### Added
+- Add Region, Browser, Device Type and OS to available dimensions for Fathom.
+
+### Fixed
+- Fix Fathom “Today” values for Counter widget.
+- Fix Fathom grouping and sorting for some dimensions.
+
 ## 1.0.2 - 2025-07-18
 
 ### Changed
