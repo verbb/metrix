@@ -2,7 +2,7 @@
     "name": "verbb/metrix",
     "description": "Display your analytics within Craft. Supports Google Analytics, Plausible, Fathom and more.",
     "type": "craft-plugin",
-    "version": "2.0.3",
+    "version": "3.0.0-alpha.1",
     "keywords": [
         "craft",
         "cms",
@@ -25,11 +25,11 @@
         }
     ],
     "require": {
-        "php": "^8.2",
-        "craftcms/cms": "^5.0.0",
+        "php": "^8.4",
+        "craftcms/cms": "6.x-dev",
         "nystudio107/craft-plugin-vite": "^5.0.0",
-        "verbb/auth": "^2.0.19",
-        "verbb/base": "^3.0.0"
+        "verbb/auth": "dev-craft-6",
+        "verbb/base": "dev-craft-6"
     },
     "autoload": {
         "psr-4": {
@@ -39,7 +39,9 @@
     "extra": {
         "name": "Metrix",
         "handle": "metrix",
-        "changelogUrl": "https://raw.githubusercontent.com/verbb/metrix/craft-5/CHANGELOG.md",
+        "changelogUrl": "https://raw.githubusercontent.com/verbb/metrix/craft-6/CHANGELOG.md",
         "class": "verbb\\metrix\\Metrix"
-    }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }

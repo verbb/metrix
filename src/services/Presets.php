@@ -11,7 +11,7 @@ use craft\base\Field;
 use craft\base\MemoizableArray;
 use craft\db\Query;
 use craft\errors\MissingComponentException;
-use craft\events\ConfigEvent;
+use CraftCms\Cms\ProjectConfig\Events\ItemAdded;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Component as ComponentHelper;
 use craft\helpers\Db;
@@ -128,7 +128,7 @@ class Presets extends Component
         return true;
     }
 
-    public function handleChangedPreset(ConfigEvent $event): void
+    public function handleChangedPreset($event): void
     {
         $presetUid = $event->tokenMatches[0];
         $data = $event->newValue;
@@ -218,7 +218,7 @@ class Presets extends Component
         return true;
     }
 
-    public function handleDeletedPreset(ConfigEvent $event): void
+    public function handleDeletedPreset($event): void
     {
         $uid = $event->tokenMatches[0];
         $presetRecord = $this->_getPresetRecord($uid);

@@ -12,6 +12,7 @@ use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 
 use DateTime;
+use DateTimeInterface;
 
 class Preset extends SavableComponent
 {
@@ -23,8 +24,8 @@ class Preset extends SavableComponent
     public bool $enabled = true;
     public ?int $sortOrder = null;
     public array $widgets = [];
-    public ?DateTime $dateCreated = null;
-    public ?DateTime $dateUpdated = null;
+    public ?DateTimeInterface $dateCreated = null;
+    public ?DateTimeInterface $dateUpdated = null;
     public ?string $uid = null;
 
 
