@@ -1,4 +1,4 @@
-<p align="center"><img src="https://verbb.imgix.net/plugins/metrix/metrix-icon.svg" width="100" height="100" alt="Metrix icon"></p>
+<p align="center"><img src="https://assets.verbb.io/plugins/metrix/metrix-icon.svg" width="100" height="100" alt="Metrix icon"></p>
 <h1 align="center">Metrix for Craft CMS</h1>
 
 Metrix is a Craft CMS plugin for viewing your analytics data from a variety of different sources within the Craft control panel.
