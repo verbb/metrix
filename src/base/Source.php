@@ -8,6 +8,7 @@ use craft\base\SavableComponent;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
+use craft\helpers\UrlHelper;
 use craft\validators\HandleValidator;
 
 use verbb\auth\helpers\Provider as ProviderHelper;
@@ -115,6 +116,11 @@ abstract class Source extends SavableComponent implements SourceInterface
     public function getIcon(): ?string
     {
         return ProviderHelper::getIcon(static::$providerHandle);
+    }
+
+    public function getCpEditUrl(): ?string
+    {
+        return UrlHelper::cpUrl('metrix/sources/' . $this->handle);
     }
 
     public function isConnected(): bool
