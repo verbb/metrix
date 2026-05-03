@@ -37,6 +37,11 @@
 ### Changed
 - Now requires Craft 5.0+.
 
+## 1.0.4 - 2026-05-03
+
+### Changed
+- Bump `verbb/auth` to allow `firebase/php-jwt` 7.x.
+
 ## 1.0.3 - 2025-09-02
 
 ### Added
