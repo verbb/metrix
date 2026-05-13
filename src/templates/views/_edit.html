@@ -62,6 +62,14 @@
     required: true,
 }) }}
 
+{{ forms.checkbox({
+    label: 'Supports multi-site data' | t('metrix'),
+    instructions: 'If this view will be retrieving site-specific data' | t('metrix'),
+    id: 'supportsMultiSite',
+    name: 'supportsMultiSite',
+    checked: (viewModel is defined ? viewModel.supportsMultiSite|string : null),
+    errors: (viewModel is defined ? viewModel.getErrors('supportsMultiSite') : null),
+}) }}
 
 {% endblock %}
 

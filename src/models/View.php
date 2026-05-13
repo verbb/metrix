@@ -18,4 +18,5 @@ class View extends Model
     public ?DateTime $dateUpdated = null;
     public ?string $uid = null;
 
+    public ?bool $supportsMultiSite = false;
 }

@@ -5,6 +5,23 @@
     { label: 'Dashboard' | t('metrix'), url: url('metrix') }
 ] %}
 
+{% set sites = siteMenuItems(null, requestedSite) %}
+{% js %}
+window.Craft.sites = JSON.parse(`{{ sites|json_encode|raw }}`);
+{% endjs %}
+
+{% if craft.app.getIsMultiSite() and requestedSite %}
+    {% set crumbs = crumbs | unshift({
+        id: 'site-crumb',
+        icon: 'world',
+        label: requestedSite.name | t('site'),
+        menu: {
+            items: siteMenuItems(null, requestedSite),
+            label: 'Select site' | t('site')
+        },
+    }) %}
+{% endif %}
+
 {% set title = 'Dashboard' | t('metrix') %}
 {% set selectedSubnavItem = 'dashboard' %}
 {% set showHeader = false %}

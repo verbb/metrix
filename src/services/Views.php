@@ -93,6 +93,7 @@ class Views extends Component
         $viewRecord = $this->_getViewRecordById($view->id);
         $viewRecord->name = $view->name;
         $viewRecord->handle = $view->handle;
+        $viewRecord->supportsMultiSite = $view->supportsMultiSite;
 
         if ($isNewView) {
             $maxSortOrder = (new Query())
@@ -201,6 +202,7 @@ class Views extends Component
                 'id',
                 'name',
                 'handle',
+                'supportsMultiSite',
                 'sortOrder',
                 'dateCreated',
                 'dateUpdated',
