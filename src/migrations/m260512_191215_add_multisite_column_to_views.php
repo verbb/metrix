@@ -15,7 +15,10 @@ class m260512_191215_add_multisite_column_to_views extends Migration
      */
     public function safeUp(): bool
     {
-        $this->addColumn('{{%metrix_views}}', 'supportsMultiSite', $this->boolean()->defaultValue(false));
+        $table = Craft::$app->db->schema->getTableSchema('metrix_views');
+        if (!isset($table->columns['supportsMultisite'])) {
+            $this->addColumn('{{%metrix_views}}', 'supportsMultiSite', $this->boolean()->defaultValue(false));
+        }
 
         return true;
     }

@@ -219,9 +219,11 @@ class GoogleAnalytics extends OAuthSource
             $pBaseUrl = Craft::$app->getSites()->primarySite->baseUrl;
 
             $url = str_replace($pBaseUrl, '', Cp::requestedSite()->baseUrl);
-            if ($url[0] !== "/") {
+            if (isset($url[0]) && $url[0] !== "/") {
                 $url = "/$url";
             }
+
+            if ($url === '') $url = '/';
 
             $payload['dimensionFilter'] = [
                 'filter' => [
