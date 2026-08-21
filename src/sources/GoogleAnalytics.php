@@ -1,6 +1,7 @@
 <?php
 namespace verbb\metrix\sources;
 
+use craft\helpers\Cp;
 use verbb\metrix\Metrix;
 use verbb\metrix\base\OAuthSource;
 use verbb\metrix\base\Period;
@@ -212,6 +213,27 @@ class GoogleAnalytics extends OAuthSource
             $payload['dimensions'] = [['name' => $widgetData->dimension]];
         } else {
             $payload['dimensions'] = [['name' => $intervalDimension]];
+        }
+
+        if ($widgetData->widget?->getView()?->supportsMultiSite) {
+            $pBaseUrl = Craft::$app->getSites()->primarySite->baseUrl;
+
+            $url = str_replace($pBaseUrl, '', Cp::requestedSite()->baseUrl);
+            if (isset($url[0]) && $url[0] !== "/") {
+                $url = "/$url";
+            }
+
+            if ($url === '') $url = '/';
+
+            $payload['dimensionFilter'] = [
+                'filter' => [
+                    'fieldName' => 'pagePath',
+                    'stringFilter' => [
+                        'matchType' => 'BEGINS_WITH',
+                        'value' => $url
+                    ]
+                ]
+            ];
         }
 
         $response = $this->request('POST', 'https://analyticsdata.googleapis.com/v1beta/' . $this->getPropertyId() . ':runReport', [

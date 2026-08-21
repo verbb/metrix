@@ -61,6 +61,7 @@ class ViewsController extends Controller
         $view->id = $this->request->getParam('id');
         $view->name = $this->request->getParam('name');
         $view->handle = $this->request->getParam('handle');
+        $view->supportsMultiSite = $this->request->getParam('supportsMultiSite');
 
         if (!Metrix::$plugin->getViews()->saveView($view)) {
             return $this->asModelFailure($view, modelName: 'view');

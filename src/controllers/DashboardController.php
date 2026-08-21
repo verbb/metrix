@@ -151,8 +151,13 @@ class DashboardController extends Controller
         $this->requireAcceptsJson();
 
         $id = $this->request->getParam('id');
-
         $widget = Metrix::$plugin->getWidgets()->getWidgetById($id);
+
+        $viewHandle = $this->request->getParam('view');
+        $view = Metrix::$plugin->getViews()->getViewByHandle($viewHandle);
+        if ($view && $view->supportsMultiSite) {
+            $site = $this->request->getParam('site');
+        }
 
         return $this->asJson($widget->getWidgetData());
     }

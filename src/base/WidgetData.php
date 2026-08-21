@@ -1,6 +1,7 @@
 <?php
 namespace verbb\metrix\base;
 
+use craft\helpers\Cp;
 use verbb\metrix\Metrix;
 
 use Craft;
@@ -72,6 +73,10 @@ class WidgetData extends Model implements WidgetDataInterface
             $this->dimension,
             $this->period,
         ];
+
+        if ($this->widget?->getView()?->supportsMultiSite) {
+            $cacheKey[] = Cp::requestedSite()->id;
+        }
         
         return implode('.', $cacheKey);
     }
