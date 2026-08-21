@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.6 - 2026-08-20
+
+### Fixed
+- Fix Last Week period date range and plot dimensions to consistently use the previous Monday–Sunday week.
+
 ## 2.0.5 - 2026-05-03
 
 ### Changed
