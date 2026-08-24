@@ -124,7 +124,7 @@ You'll need to provide an asset bundle to serve your JS correctly.
 <?php
 namespace modules\sitemodule;
 
-use verbb\metrix\assetbundles\MetrixAsset;
+use verbb\metrix\web\assets\src\CpReactAsset;
 
 use craft\web\AssetBundle;
 
@@ -138,7 +138,7 @@ class HeatmapAsset extends AssetBundle
         $this->sourcePath = '@modules/sitemodule/widgets/assets/dist';
 
         $this->depends = [
-            MetrixAsset::class,
+            CpReactAsset::class,
         ];
 
         $this->js = [

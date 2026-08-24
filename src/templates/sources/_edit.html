@@ -127,37 +127,53 @@
                 </div>
             {% else %}
                 <div class="heading">
-                    <span class="status"></span><span class="light">{{ 'Provider not configured' | t('metrix') }}</span>
+                    <span class="status disabled"></span><span class="light">{{ 'Provider not configured' | t('metrix') }}</span>
                 </div>
             {% endif %}
         </div>
+    {% endif %}
 
-        {% if source.isConnected() %}
-            <div class="field lightswitch-field sf-connect">
-                <div class="heading">
-                    <span class="status on"></span>{{ 'Connected' | t('metrix') }}
-                </div>
-
-                <div class="input ltr">
-                    <a class="btn small formsubmit" data-action="metrix/auth/disconnect" data-param="source" data-value="{{ source.handle }}" data-redirect="{{ saveShortcutRedirect | hash }}">{{ 'Disconnect' | t('metrix') }}</a>
-                </div>
+    {% if source.id and source.supportsConnection() %}
+        {% if source.supportsOAuthConnection() %}
+            <div class="field lightswitch-field pk-connect-field">
+                <pk-connect-oauth
+                    {% if source.isConnected() %}connected{% endif %}
+                    connect-action="metrix/auth/connect"
+                    disconnect-action="metrix/auth/disconnect"
+                    param-name="source"
+                    param-value="{{ source.handle }}"
+                    connect-redirect="{{ '{cpEditUrl}' | hash }}"
+                    disconnect-redirect="{{ saveShortcutRedirect | hash }}"
+                    label-connected="{{ 'Connected' | t('metrix') }}"
+                    label-not-connected="{{ 'Not Connected' | t('metrix') }}"
+                    label-connect="{{ 'Connect' | t('metrix') }}"
+                    label-disconnect="{{ 'Disconnect' | t('metrix') }}"
+                    label-save-to-connect="{{ 'Save this source to connect.' | t('metrix') }}"
+                ></pk-connect-oauth>
             </div>
         {% else %}
-            <div class="field lightswitch-field sf-connect">
-                <div class="heading">
-                    <span class="status"></span><span class="light">{{ 'Not Connected' | t('metrix') }}</span>
-                </div>
-
-                <div class="input ltr">
-                    <a class="btn small formsubmit" data-action="metrix/auth/connect" data-param="source" data-value="{{ source.handle }}" data-redirect="{{ '{cpEditUrl}' | hash }}">{{ 'Connect' | t('metrix') }}</a>
-                </div>
+            {% set connectionStatus = source.isConnected() ? 'connected' : 'disconnected' %}
+            <div class="field lightswitch-field pk-connect-field" data-connection-status="{{ connectionStatus }}">
+                <pk-connect
+                    action="metrix/sources/check-connection"
+                    status="{{ connectionStatus }}"
+                    source-id="{{ source.id }}"
+                    type="{{ className(source) }}"
+                    label-connected="{{ 'Connected' | t('metrix') }}"
+                    label-not-connected="{{ 'Not connected' | t('metrix') }}"
+                    label-connecting="{{ 'Connecting...' | t('metrix') }}"
+                    label-error="{{ 'Error' | t('metrix') }}"
+                    label-connect="{{ 'Connect' | t('metrix') }}"
+                    label-refresh="{{ 'Refresh' | t('metrix') }}"
+                    label-save-to-connect="{{ 'Save this source to connect.' | t('metrix') }}"
+                    label-error-heading="{{ 'Source Error' | t('metrix') }}"
+                    label-generic-error="{{ 'An unexpected error occurred.' | t('metrix') }}"
+                    label-show-details="{{ 'Show details' | t('metrix') }}"
+                    label-hide-details="{{ 'Hide details' | t('metrix') }}"
+                    label-close="{{ 'Close' | t('app') }}"
+                ></pk-connect>
             </div>
         {% endif %}
-    {% elseif source.supportsConnection() %}
-        <div class="field lightswitch-field metrix-ui metrix-integration-connect">
-            <div class="heading"></div>
-            <div class="input ltr"></div>
-        </div>
     {% endif %}
 </div>
 
@@ -187,19 +203,6 @@
 {% endblock %}
 
 {% js %}
-
-// Add event listeners to all form inputs, to detect a change. Show a message to save when changed.
-$(document).ready(function() {
-    var html = '<div class="heading"><span class="warning with-icon">{{ 'Save this source to connect.' | t('metrix') }}</span></div>';
-    
-    $('#main-form').find('input, select, textarea').on('input', function() {
-        $('.sf-connect').html(html);
-    });
-
-    $('#main-form').find('.lightswitch').on('change', function() {
-        $('.sf-connect').html(html);
-    });
-});
 
 {% if source is not defined or not source.handle %}
     new Craft.HandleGenerator("#{{ 'name' | namespaceInputId }}", "#{{ 'handle' | namespaceInputId }}");

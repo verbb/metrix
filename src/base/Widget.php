@@ -160,7 +160,14 @@ abstract class Widget extends SavableComponent implements WidgetInterface
 
     public function getSerializedWidget(): array
     {
-        return $this->getSettings();
+        $settings = $this->getSettings();
+
+        // Presets store source by handle in project config (not sourceId).
+        if ($source = $this->getSource()) {
+            $settings['source'] = $source->handle;
+        }
+
+        return $settings;
     }
 
     public function getWidgetData(): array

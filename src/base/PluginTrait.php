@@ -2,7 +2,7 @@
 namespace verbb\metrix\base;
 
 use verbb\metrix\Metrix;
-use verbb\metrix\assetbundles\MetrixAsset;
+use verbb\metrix\web\assets\src\CpReactAsset;
 use verbb\metrix\services\Periods;
 use verbb\metrix\services\Presets;
 use verbb\metrix\services\Service;
@@ -11,6 +11,7 @@ use verbb\metrix\services\Views;
 use verbb\metrix\services\Widgets;
 
 use Craft;
+use craft\helpers\App;
 
 use verbb\base\LogTrait;
 use verbb\base\helpers\Plugin;
@@ -49,10 +50,10 @@ trait PluginTrait
                 'views' => Views::class,
                 'vite' => [
                     'class' => VitePluginService::class,
-                    'assetClass' => MetrixAsset::class,
-                    'useDevServer' => true,
+                    'assetClass' => CpReactAsset::class,
+                    'useDevServer' => App::parseBooleanEnv('$METRIX_USE_VITE_DEV_SERVER') ?? false,
                     'devServerPublic' => 'http://localhost:4040/',
-                    'errorEntry' => 'js/main.js',
+                    'errorEntry' => 'src/dashboard/metrix-dashboard.js',
                     'cacheKeySuffix' => '',
                     'devServerInternal' => 'http://localhost:4040/',
                     'checkDevServer' => true,

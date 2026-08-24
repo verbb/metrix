@@ -19,6 +19,11 @@ abstract class OAuthSource extends Source implements OAuthProviderInterface
         return true;
     }
 
+    public static function supportsConnection(): bool
+    {
+        return true;
+    }
+
 
     // Traits
     // =========================================================================

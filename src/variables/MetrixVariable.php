@@ -20,6 +20,34 @@ class MetrixVariable
         return Metrix::$plugin->getPluginName();
     }
 
+    public function registerCpAssets(): void
+    {
+        Plugin::registerCpAssets();
+    }
+
+    public function registerDashboardAssets(): void
+    {
+        Plugin::registerDashboardAssets();
+    }
+
+    public function registerPresetsAssets(): void
+    {
+        Plugin::registerPresetsAssets();
+    }
+
+    public function registerSourcesAssets(): void
+    {
+        Plugin::registerSourcesAssets();
+    }
+
+    public function registerSourcesCpJs(): void
+    {
+        Plugin::registerSourcesCpJs();
+    }
+
+    /**
+     * @deprecated Use app-specific register methods instead.
+     */
     public function registerAsset(string $path): void
     {
         Plugin::registerAsset($path);

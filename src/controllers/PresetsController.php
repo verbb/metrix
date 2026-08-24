@@ -60,7 +60,7 @@ class PresetsController extends Controller
 
         $settings = Metrix::$plugin->getSettings();
 
-        Plugin::registerAsset('src/apps/presets/metrix-presets.js');
+        Plugin::registerPresetsAssets();
         $this->view->registerJs('new Craft.Metrix.Presets(' . Json::encode($preset->getComponentSettings()) . ');');
 
         $firstSource = Metrix::$plugin->getSources()->getAllConfiguredSources()[0] ?? null;

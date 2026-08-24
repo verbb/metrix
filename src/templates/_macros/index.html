@@ -11,7 +11,7 @@
                 value: source[config.name] ?? '',
             }) }}
 
-            <button class="btn mui-btn-transparent" type="button" data-icon="refresh" data-refresh-settings="{{ config.name }}" data-source="{{ source.handle }}" data-source-class="{{ className(source) }}"></button>
+            <button class="btn metrix-btn-transparent" type="button" data-icon="refresh" data-refresh-settings="{{ config.name }}" data-source="{{ source.handle }}" data-source-class="{{ className(source) }}"></button>
         {% endset %}
 
         {{ forms.field({

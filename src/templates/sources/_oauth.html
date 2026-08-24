@@ -2,13 +2,13 @@
 {% import 'verbb-base/_macros' as macros %}
 
 {% set name = source.providerName %}
-{% set handle = source.providerHandle | lower %}
+{% set handle = source.providerHandle | kebab %}
 
 {% set instructions %}
 To connect to {name}, follow our <a href="https://verbb.io/craft-plugins/metrix/docs/providers/{handle}" target="_blank" rel="noopener">{name} provider guide</a>.
 {% endset %}
 
-<div class="mui-settings-block">
+<div class="metrix-settings-block">
     {{ instructions | t('metrix', { name: name, handle: handle }) | md }}
 </div>
 

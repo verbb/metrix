@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Rebuild the Dashboard UI on [Plugin Kit](https://docs.verbb.io/plugin-kit/react/).
 ## 2.0.5 - 2026-05-03
 
 ### Changed

@@ -2,7 +2,6 @@
 namespace verbb\metrix\migrations;
 
 use verbb\metrix\Metrix;
-use verbb\metrix\models\Preset;
 use verbb\metrix\models\View;
 
 use Craft;
@@ -160,71 +159,6 @@ class Install extends Migration
         ]);
 
         Metrix::$plugin->getViews()->saveView($view);
-
-        $projectConfig = Craft::$app->projectConfig;
-
-        // Don't make the same config changes twice
-        $installed = ($projectConfig->get('plugins.metrix', true) !== null);
-        $configExists = ($projectConfig->get('metrix', true) !== null);
-
-        if (!$installed && !$configExists) {
-            $this->_defaultPreset();
-        }
-    }
-
-    
-    // Private Methods
-    // =========================================================================
-
-    private function _defaultPreset(): void
-    {
-        $widgets = [
-            [
-                'type' => 'verbb\\metrix\\widgets\\Line',
-                'period' => 'verbb\\metrix\\periods\\Last7Days',
-                'metric' => 'sessions',
-                'width' => '2',
-            ],
-            [
-                'type' => 'verbb\\metrix\\widgets\\Realtime',
-                'width' => '1',
-            ],
-            [
-                'type' => 'verbb\\metrix\\widgets\\Counter',
-                'period' => 'verbb\\metrix\\periods\\Last7Days',
-                'metric' => 'sessions',
-                'width' => '1',
-            ],
-            [
-                'type' => 'verbb\\metrix\\widgets\\Pie',
-                'period' => 'verbb\\metrix\\periods\\Last7Days',
-                'metric' => 'sessions',
-                'dimension' => 'browser',
-                'width' => '1',
-            ],
-            [
-                'type' => 'verbb\\metrix\\widgets\\Table',
-                'period' => 'verbb\\metrix\\periods\\Last7Days',
-                'metric' => 'sessions',
-                'dimension' => 'operatingSystem',
-                'width' => '1',
-            ],
-            [
-                'type' => 'verbb\\metrix\\widgets\\Table',
-                'period' => 'verbb\\metrix\\periods\\Last7Days',
-                'metric' => 'sessions',
-                'dimension' => 'country',
-                'width' => '1',
-            ],
-        ];
-
-        $preset = new Preset([
-            'name' => 'Default',
-            'handle' => 'default',
-            'enabled' => true,
-            'widgets' => $widgets,
-        ]);
-
-        Metrix::$plugin->getPresets()->savePreset($preset);
+        Metrix::$plugin->getPresets()->ensureDefaultPresets();
     }
 }

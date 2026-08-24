@@ -1,86 +1,121 @@
 {
-  "_Button-!~{008}~.js": {
-    "file": "assets/Button-ByyUKexe.css",
-    "src": "_Button-!~{008}~.js"
-  },
-  "_Button-FL204d0O.js": {
-    "file": "assets/Button-FL204d0O.js",
-    "name": "Button",
-    "imports": [
-      "_react-DJpHYEPN.js"
-    ],
-    "css": [
-      "assets/Button-ByyUKexe.css"
-    ]
-  },
-  "_MetrixConfig-BmmY9V7S.js": {
-    "file": "assets/MetrixConfig-BmmY9V7S.js",
+  "_MetrixConfig-CdcfiiFk.js": {
+    "file": "assets/MetrixConfig-CdcfiiFk.js",
     "name": "MetrixConfig",
     "imports": [
-      "_Button-FL204d0O.js",
-      "_react-DJpHYEPN.js",
-      "_dndkit-CA2JRGlN.js",
-      "_chartjs-BzvTYjqM.js"
+      "_plugin-kit-Cy7J-hQb.js",
+      "_react-vendor-DjYJI7Ii.js",
+      "_plugin-kit-forms-Brt9hHxU.js",
+      "_plugin-kit-core-CIKs8t1s.js",
+      "_dndkit-BNC6iOvR.js",
+      "_chartjs-BKHhuD4B.js"
     ]
   },
-  "_chartjs-BzvTYjqM.js": {
-    "file": "assets/chartjs-BzvTYjqM.js",
+  "_chartjs-BKHhuD4B.js": {
+    "file": "assets/chartjs-BKHhuD4B.js",
     "name": "chartjs"
   },
-  "_dndkit-CA2JRGlN.js": {
-    "file": "assets/dndkit-CA2JRGlN.js",
+  "_dndkit-BNC6iOvR.js": {
+    "file": "assets/dndkit-BNC6iOvR.js",
     "name": "dndkit",
     "imports": [
-      "_react-DJpHYEPN.js"
+      "_react-vendor-DjYJI7Ii.js"
     ]
   },
-  "_react-DJpHYEPN.js": {
-    "file": "assets/react-DJpHYEPN.js",
-    "name": "react"
+  "_lit-vh8rfySC.js": {
+    "file": "assets/lit-vh8rfySC.js",
+    "name": "lit"
   },
-  "src/apps/cp/metrix-cp.js": {
-    "file": "assets/metrix-cp-DFDsKkwW.js",
+  "_plugin-kit-!~{002}~.js": {
+    "file": "assets/plugin-kit-FfAT0HnB.css",
+    "src": "_plugin-kit-!~{002}~.js"
+  },
+  "_plugin-kit-Cy7J-hQb.js": {
+    "file": "assets/plugin-kit-Cy7J-hQb.js",
+    "name": "plugin-kit",
+    "imports": [
+      "_react-vendor-DjYJI7Ii.js",
+      "_lit-vh8rfySC.js",
+      "_plugin-kit-forms-Brt9hHxU.js",
+      "_plugin-kit-core-CIKs8t1s.js"
+    ],
+    "css": [
+      "assets/plugin-kit-FfAT0HnB.css"
+    ]
+  },
+  "_plugin-kit-core-CIKs8t1s.js": {
+    "file": "assets/plugin-kit-core-CIKs8t1s.js",
+    "name": "plugin-kit-core"
+  },
+  "_plugin-kit-forms-Brt9hHxU.js": {
+    "file": "assets/plugin-kit-forms-Brt9hHxU.js",
+    "name": "plugin-kit-forms"
+  },
+  "_react-vendor-DjYJI7Ii.js": {
+    "file": "assets/react-vendor-DjYJI7Ii.js",
+    "name": "react-vendor"
+  },
+  "src/cp/js/metrix-cp.js": {
+    "file": "src/cp/js/metrix-cp.js",
     "name": "metrix-cp",
-    "src": "src/apps/cp/metrix-cp.js",
+    "src": "src/cp/js/metrix-cp.js",
+    "isEntry": true,
+    "imports": [
+      "_plugin-kit-core-CIKs8t1s.js"
+    ]
+  },
+  "src/cp/metrix-cp-styles.js": {
+    "file": "src/cp/js/metrix-cp-styles.js",
+    "name": "metrix-cp-styles",
+    "src": "src/cp/metrix-cp-styles.js",
     "isEntry": true,
     "css": [
-      "assets/metrix-cp-a5yeb22Z.css"
+      "src/cp/css/metrix-cp.css"
     ]
   },
-  "src/apps/dashboard/metrix-dashboard.js": {
-    "file": "assets/metrix-dashboard-CGDSw6jz.js",
+  "src/dashboard/metrix-dashboard.js": {
+    "file": "src/dashboard/js/metrix-dashboard.js",
     "name": "metrix-dashboard",
-    "src": "src/apps/dashboard/metrix-dashboard.js",
+    "src": "src/dashboard/metrix-dashboard.js",
     "isEntry": true,
     "imports": [
-      "_Button-FL204d0O.js",
-      "_react-DJpHYEPN.js",
-      "_MetrixConfig-BmmY9V7S.js",
-      "_dndkit-CA2JRGlN.js",
-      "_chartjs-BzvTYjqM.js"
+      "_MetrixConfig-CdcfiiFk.js",
+      "_react-vendor-DjYJI7Ii.js",
+      "_plugin-kit-Cy7J-hQb.js",
+      "_dndkit-BNC6iOvR.js",
+      "_plugin-kit-forms-Brt9hHxU.js",
+      "_plugin-kit-core-CIKs8t1s.js",
+      "_chartjs-BKHhuD4B.js",
+      "_lit-vh8rfySC.js"
     ]
   },
-  "src/apps/presets/metrix-presets.js": {
-    "file": "assets/metrix-presets-BoAsm_lz.js",
+  "src/presets/metrix-presets.js": {
+    "file": "src/presets/js/metrix-presets.js",
     "name": "metrix-presets",
-    "src": "src/apps/presets/metrix-presets.js",
+    "src": "src/presets/metrix-presets.js",
     "isEntry": true,
     "imports": [
-      "_Button-FL204d0O.js",
-      "_react-DJpHYEPN.js",
-      "_MetrixConfig-BmmY9V7S.js",
-      "_dndkit-CA2JRGlN.js",
-      "_chartjs-BzvTYjqM.js"
+      "_MetrixConfig-CdcfiiFk.js",
+      "_react-vendor-DjYJI7Ii.js",
+      "_dndkit-BNC6iOvR.js",
+      "_plugin-kit-Cy7J-hQb.js",
+      "_plugin-kit-forms-Brt9hHxU.js",
+      "_plugin-kit-core-CIKs8t1s.js",
+      "_chartjs-BKHhuD4B.js",
+      "_lit-vh8rfySC.js"
     ]
   },
-  "src/apps/sources/metrix-sources.js": {
-    "file": "assets/metrix-sources-H8j0Q9hr.js",
+  "src/sources/metrix-sources.js": {
+    "file": "src/sources/js/metrix-sources.js",
     "name": "metrix-sources",
-    "src": "src/apps/sources/metrix-sources.js",
+    "src": "src/sources/metrix-sources.js",
     "isEntry": true,
     "imports": [
-      "_Button-FL204d0O.js",
-      "_react-DJpHYEPN.js"
+      "_plugin-kit-Cy7J-hQb.js",
+      "_react-vendor-DjYJI7Ii.js",
+      "_lit-vh8rfySC.js",
+      "_plugin-kit-forms-Brt9hHxU.js",
+      "_plugin-kit-core-CIKs8t1s.js"
     ]
   }
 }

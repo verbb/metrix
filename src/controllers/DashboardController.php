@@ -14,6 +14,7 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\Controller;
 
+use Throwable;
 use yii\web\Response;
 
 class DashboardController extends Controller
@@ -38,7 +39,7 @@ class DashboardController extends Controller
 
         $view = Craft::$app->getView();
 
-        Plugin::registerAsset('src/apps/dashboard/metrix-dashboard.js');
+        Plugin::registerDashboardAssets();
 
         $periodOptions = Options::getGroupedPeriodOptions();
         $viewOptions = Options::getViewOptions();
@@ -151,10 +152,17 @@ class DashboardController extends Controller
         $this->requireAcceptsJson();
 
         $id = $this->request->getParam('id');
-
         $widget = Metrix::$plugin->getWidgets()->getWidgetById($id);
 
-        return $this->asJson($widget->getWidgetData());
+        if (!$widget) {
+            return $this->asFailure(Craft::t('metrix', 'Unable to find widget {id}.', ['id' => $id]));
+        }
+
+        try {
+            return $this->asJson($widget->getWidgetData());
+        } catch (Throwable $e) {
+            return $this->asFailure($e->getMessage());
+        }
     }
 
     public function actionSaveWidget(): Response

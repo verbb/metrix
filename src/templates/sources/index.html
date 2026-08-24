@@ -42,14 +42,14 @@
             if (value) {
                 return '<span class="status on"></span>' + Craft.t('metrix', 'Enabled');
             } else {
-                return '<span class="status"></span>' + Craft.t('metrix', 'Disabled');
+                return '<span class="status disabled"></span>' + Craft.t('metrix', 'Disabled');
             }
         } },
         { name: 'connected', title: Craft.t('app', 'Connected'), callback: function(value) {
             if (value) {
                 return '<span class="status on"></span>' + Craft.t('metrix', 'Connected');
             } else {
-                return '<span class="status"></span>' + Craft.t('metrix', 'Disconnected');
+                return '<span class="status disabled"></span>' + Craft.t('metrix', 'Disconnected');
             }
         } },
         { name: 'provider', title: Craft.t('app', 'Provider'), callback: function(provider) {
@@ -60,12 +60,12 @@
             }
 
             if (provider.icon) {
-                $icon = '<span class="mui-provider-icon">' + provider.icon + '</span>';
+                $icon = '<span class="metrix-provider-icon">' + provider.icon + '</span>';
             }
 
-            return '<div class="mui-provider" style="--bg-color: ' + provider.color + '">' +
+            return '<div class="metrix-provider" style="--bg-color: ' + provider.color + '">' +
                 $icon +
-                '<span class="mui-provider-label">' + provider.name + '</span>' +
+                '<span class="metrix-provider-label">' + provider.name + '</span>' +
             '</div>';
         } },
     ];

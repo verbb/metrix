@@ -1,0 +1,430 @@
+@source "../**/*.{js,jsx}";
+@layer dnd-kit, base, components, utilities;
+
+@import 'tailwindcss';
+
+@theme {
+    /* Widget grid row heights — mirrors legacy tailwind.config widget-1..5 */
+    --spacing-widget-1: 14rem;
+    --spacing-widget-2: 29rem;
+    --spacing-widget-3: 44rem;
+    --spacing-widget-4: 59rem;
+    --spacing-widget-5: 74rem;
+
+    --height-widget-1: 14rem;
+    --height-widget-2: 29rem;
+    --height-widget-3: 44rem;
+    --height-widget-4: 59rem;
+    --height-widget-5: 74rem;
+
+    /* Legacy tailwind.config `gridAutoRows.widgets` */
+    --grid-auto-rows-widgets: minmax(14rem, auto);
+
+    --animate-spin: spin 0.5s linear infinite;
+
+    /* Craft-aligned palette (Navigation pattern) */
+    --color-*: initial;
+
+    --color-white: #fff;
+    --color-black: #000;
+
+    --color-link: #2563eb;
+    --color-error: #d81f23;
+    --color-success: var(--color-teal-700);
+    --color-warning: var(--color-amber-700);
+
+    --color-gray-50: hsl(212, 60%, 97%);
+    --color-gray-100: hsl(212, 50%, 93%);
+    --color-gray-150: hsl(212, 40%, 89%);
+    --color-gray-200: hsl(212, 30%, 85%);
+    --color-gray-250: hsl(211, 20%, 75%);
+    --color-gray-300: hsl(211, 13%, 65%);
+    --color-gray-350: hsl(211, 11%, 59%);
+    --color-gray-400: hsl(210, 10%, 53%);
+    --color-gray-500: hsl(211, 12%, 43%);
+    --color-gray-550: hsl(210, 13%, 40%);
+    --color-gray-600: hsl(209, 14%, 37%);
+    --color-gray-700: hsl(209, 18%, 30%);
+    --color-gray-800: hsl(209, 20%, 25%);
+    --color-gray-900: hsl(210, 24%, 16%);
+    --color-gray-1000: hsl(210, 24%, 10%);
+
+    --color-red-50: #fef2f2;
+    --color-red-100: #fee2e2;
+    --color-red-200: #fecaca;
+    --color-red-300: #fca5a5;
+    --color-red-400: #f87171;
+    --color-red-500: #ef4444;
+    --color-red-600: #dc2626;
+    --color-red-700: #b91c1c;
+    --color-red-800: #991b1b;
+    --color-red-900: #7f1d1d;
+
+    --color-blue-50: #eff6ff;
+    --color-blue-100: #dbeafe;
+    --color-blue-200: #bfdbfe;
+    --color-blue-300: #93c5fd;
+    --color-blue-400: #60a5fa;
+    --color-blue-500: #3b82f6;
+    --color-blue-600: #2563eb;
+    --color-blue-700: #1d4ed8;
+    --color-blue-800: #1e40af;
+    --color-blue-900: #1e3a8a;
+
+    --color-green-50: #f0fdf4;
+    --color-green-500: #22c55e;
+    --color-green-600: #16a34a;
+    --color-green-700: #15803d;
+
+    --radius-xs: 2px;
+    --radius-sm: 3px;
+    --radius-md: 4px;
+    --radius-lg: 5px;
+}
+
+.fade-enter {
+    opacity: 0;
+}
+
+.fade-enter-active {
+    opacity: 1;
+    transition: opacity 100ms ease-in;
+}
+
+/* Craft CP empty-state typography — vanilla CP applies this via `.zilch`; shadow DOM needs it locally */
+.zilch {
+    color: var(--color-gray-500);
+    font-size: 20px;
+    line-height: 24px;
+}
+
+.pane {
+    /* Craft `.pane` chrome — CP global styles don't pierce Metrix shadow roots */
+    background-color: var(--pane-bg, var(--color-white));
+    border: var(--pane-border, none);
+    border-radius: var(--pane-border-radius, var(--radius-lg));
+    box-shadow: var(
+        --pane-shadow,
+        0 0 0 1px var(--gray-200, var(--color-gray-200)),
+        0 2px 12px hsl(from var(--gray-200, var(--color-gray-200)) h s l / 50%)
+    );
+    box-sizing: border-box;
+    padding: 10px !important;
+    position: relative;
+    word-wrap: break-word;
+}
+
+.width-picker {
+    display: flex;
+    align-items: center;
+
+    .width-picker-column {
+        /* Solid Craft slate borders — rgba theme tokens read as empty toggles in shadow DOM */
+        background-color: #fff;
+        background-image: none;
+        border: 1px solid #cbd5e1;
+        box-sizing: border-box;
+        cursor: pointer;
+        display: inline-block;
+        height: 13px;
+        margin-bottom: 1px;
+        margin-left: 0;
+        margin-top: 1px;
+        text-decoration: none;
+        width: 7px;
+
+        &:not(:first-child) {
+            border-left: none;
+        }
+    }
+
+    .width-picker-column:first-child {
+        width: 8px;
+    }
+
+    .width-picker-column.active {
+        border: 1px solid #64748b;
+        height: 15px;
+        margin-bottom: 0;
+        margin-top: 0;
+
+        &:not(:first-child) {
+            border-left: none;
+        }
+    }
+
+    .rounded-left {
+        border-top-left-radius: 3px;
+        border-bottom-left-radius: 3px;
+    }
+
+    .rounded-right {
+        border-top-right-radius: 3px;
+        border-bottom-right-radius: 3px;
+    }
+}
+
+/* Preset widget rows — match legacy clear icon controls + compact column picker */
+.metrix-preset-widget-row {
+    align-items: flex-start;
+}
+
+.metrix-preset-widget-sortable {
+    position: relative;
+}
+
+.metrix-preset-widget-sortable--dragging {
+    opacity: 0.4;
+    z-index: 1;
+}
+
+.metrix-preset-widget-row__actions {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 0.5rem;
+    padding-top: 0.125rem;
+}
+
+.metrix-preset-widget-row__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.metrix-preset-widget-row__btn:hover {
+    color: #2563eb;
+}
+
+.metrix-preset-widget-row__btn--danger:hover {
+    color: #d81f23;
+}
+
+.metrix-preset-widget-row__btn--drag {
+    cursor: move;
+}
+
+.metrix-layout-settings-sortable {
+    position: relative;
+}
+
+.metrix-layout-settings-sortable--dragging {
+    opacity: 0.4;
+    z-index: 1;
+}
+
+/* Layout settings row actions — match preset editor compact controls */
+.metrix-layout-settings-row__actions {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 0.5rem;
+    padding-top: 0.125rem;
+}
+
+.metrix-layout-settings-row__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.metrix-layout-settings-row__btn:hover {
+    color: #2563eb;
+}
+
+.metrix-layout-settings-row__btn--danger:hover {
+    color: #d81f23;
+}
+
+.metrix-layout-settings-row__btn--drag {
+    cursor: move;
+}
+
+/* Table widget — legacy row bar fill */
+.metrix-table-row-bar {
+    background-color: #f0fdf4;
+}
+
+/* Layout settings popover — legacy 400×600 scroll panel (flush pk-popover caps at 360px by default) */
+.metrix-layout-settings-popover {
+    --pk-popover-flush-min-width: 25rem;
+    --pk-popover-flush-max-width: 25rem;
+}
+
+.metrix-layout-settings-popover::part(panel) {
+    padding: 0;
+    width: 25rem;
+    max-width: min(25rem, calc(100vw - 1rem));
+    overflow: hidden;
+}
+
+.metrix-layout-settings-panel {
+    box-sizing: border-box;
+    width: 100%;
+    max-height: 600px;
+    padding: 1rem;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.metrix-widget-error-popover {
+    --pk-popover-flush-min-width: 20rem;
+    --pk-popover-flush-max-width: 31.25rem;
+}
+
+.metrix-widget-error-popover::part(panel) {
+    width: min(92vw, 500px);
+    min-width: 320px;
+    padding: 0;
+    text-align: left;
+}
+
+.metrix-widget-error-details {
+    position: relative;
+    box-sizing: border-box;
+    padding: 0.625rem 2rem 0.625rem 0.625rem;
+    text-align: left;
+}
+
+.metrix-widget-error-copy {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
+    margin: 0.25rem;
+}
+
+/* Stack trace — one line per entry, horizontal scroll (legacy whitespace-nowrap + overflow-auto) */
+.metrix-widget-error-trace {
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+}
+
+.metrix-widget-error-trace > span {
+    display: block;
+}
+
+/* Line/bar/pie chart tooltip — legacy Tailwind slate-800/100 (not PK gray or translucent slate tokens) */
+.metrix-chart-tooltip {
+    background-color: #1e293b;
+    color: #fff;
+}
+
+.metrix-chart-tooltip__body {
+    color: #f1f5f9;
+}
+
+/* Preset editor — full-width dashed “add row” trigger (legacy dashed variant had w-full) */
+.metrix-preset-new-widget {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.metrix-preset-new-widget::part(base) {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Widget settings dialog — match legacy Radix max-w-3xl + scrollable body */
+.metrix-widget-settings-dialog::part(panel) {
+    --pk-dialog-max-width: 48rem;
+    width: min(100%, var(--pk-dialog-max-width));
+}
+
+.metrix-widget-settings-dialog::part(body) {
+    min-height: 250px;
+    max-height: 65vh;
+}
+
+/* Widget header controls — shared height token for period select + ellipsis menu */
+.metrix-widget-header-controls {
+    --metrix-header-control-height: calc(
+        2 * var(--pk-select-item-padding-block, 4px)
+        + var(--pk-select-item-line-height, 1.25) * var(--pk-select-item-font-size, 11px)
+        + 2 * var(--pk-select-trigger-border-width, 1px)
+    );
+}
+
+.metrix-widget-header-controls pk-select,
+.metrix-widget-header-controls pk-dropdown-menu {
+    align-self: center;
+}
+
+/* Widget header period select — white trigger on pane (legacy Radix mc-bg-white + border) */
+.metrix-widget-period-select {
+    --pk-select-fill: var(--color-white);
+    --pk-select-fill-hover: var(--color-white);
+    --pk-input-focus-shadow: none;
+}
+
+.metrix-widget-period-select::part(control) {
+    border-color: var(--color-gray-200);
+    background-color: var(--color-white);
+    min-height: var(--metrix-header-control-height);
+}
+
+.metrix-widget-period-select:not([disabled]):hover::part(control) {
+    border-color: var(--color-gray-200);
+    background-color: var(--color-white);
+}
+
+/* Ellipsis menu host — match select trigger height (pk-dropdown-menu defaults taller xs button) */
+.metrix-widget-header-menu {
+    display: inline-flex;
+    align-items: center;
+    height: var(--metrix-header-control-height);
+    vertical-align: middle;
+}
+
+/* Widget header ellipsis — borderless gray-700 glyph on white hover (legacy outline + border-transparent) */
+.metrix-widget-menu-trigger {
+    --pk-btn-fill: transparent;
+    --pk-btn-fill-hover: var(--color-white);
+    --pk-btn-fill-active: var(--color-white);
+    --pk-btn-on: var(--pk-color-gray-700);
+    --pk-btn-icon-size: 1rem;
+    --pk-btn-height: var(--metrix-header-control-height);
+    --pk-btn-padding-inline: 0.125rem;
+    --pk-btn-radius: var(--pk-radius-sm);
+    margin-right: -0.125rem;
+}
+
+/* Dashboard header layout-settings cog — square icon button matching "New widget" (legacy secondary #c4d0e1) */
+.metrix-layout-settings-trigger {
+    --pk-btn-icon-size: 1rem;
+}
+
+/* Widget menu column-size row — label + picker, not a selectable menu item */
+.metrix-widget-menu-width-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    padding: var(--pk-dropdown-item-padding-block, 8px) var(--pk-dropdown-item-padding-inline, 12px);
+    font-size: var(--pk-dropdown-item-font-size, var(--pk-font-size-base));
+    line-height: var(--pk-dropdown-item-line-height, 1.5);
+    color: var(--pk-color-gray-700);
+    cursor: default;
+    user-select: none;
+}
+
+.metrix-widget-menu-width-row__label {
+    flex: 1 1 auto;
+    min-width: 0;
+}
