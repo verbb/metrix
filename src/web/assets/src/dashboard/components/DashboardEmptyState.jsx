@@ -19,10 +19,17 @@ export const DashboardEmptyState = ({
 }) => {
     const presets = useAppStore((state) => state.presets);
 
+    const sourcesUrl = typeof Craft.getCpUrl === 'function'
+        ? Craft.getCpUrl('metrix/sources')
+        : Craft.getUrl('metrix/sources');
+    const settingsUrl = typeof Craft.getCpUrl === 'function'
+        ? Craft.getCpUrl('metrix/settings')
+        : Craft.getUrl('metrix/settings');
+
     const renderContent = () => {
         if (type === 'noSources') {
             return (
-                <div className="text-center">
+                <div className="text-center max-w-xl">
                     <h2 className="font-semibold text-2xl mb-4 text-gray-600">
                         {Craft.t('metrix', 'No sources available')}
                     </h2>
@@ -30,13 +37,22 @@ export const DashboardEmptyState = ({
                     <p className="text-gray-500 mb-6">
                         {Craft.t('metrix', 'Add a data source to start using widgets.')}
                     </p>
+
+                    <Button
+                        type="button"
+                        variant="primary"
+                        size="lg"
+                        onClick={() => { window.location.href = sourcesUrl; }}
+                    >
+                        {Craft.t('metrix', 'Add a source')}
+                    </Button>
                 </div>
             );
         }
 
         if (type === 'noViewOptions') {
             return (
-                <div className="text-center">
+                <div className="text-center max-w-xl">
                     <h2 className="font-semibold text-2xl mb-4 text-gray-600">
                         {Craft.t('metrix', 'No views available')}
                     </h2>
@@ -44,6 +60,15 @@ export const DashboardEmptyState = ({
                     <p className="text-gray-500 mb-6">
                         {Craft.t('metrix', 'Configure views to display your widgets.')}
                     </p>
+
+                    <Button
+                        type="button"
+                        variant="primary"
+                        size="lg"
+                        onClick={() => { window.location.href = settingsUrl; }}
+                    >
+                        {Craft.t('metrix', 'Configure views')}
+                    </Button>
                 </div>
             );
         }
@@ -96,15 +121,13 @@ export const DashboardEmptyState = ({
                     </div>
 
                     {errorPresets && errorDetail && (
-                        <div className="mt-8 text-error text-lg text-center w-full leading-relaxed">
-                            <strong className="block">{errorDetail.heading}</strong>
-                            <small className="block mb-2">{errorDetail.text}</small>
-
-                            <small className="block font-mono text-[10px]">
-                                {errorDetail.traceAsArray.map((str) => (
-                                    <span key={str} className="block">{str}</span>
-                                ))}
-                            </small>
+                        <div className="mt-8 text-error text-sm text-center w-full max-w-lg leading-relaxed">
+                            <strong className="block mb-1">
+                                {errorDetail.heading || Craft.t('metrix', 'Unable to load preset.')}
+                            </strong>
+                            {errorDetail.text ? (
+                                <span className="block text-gray-600">{errorDetail.text}</span>
+                            ) : null}
                         </div>
                     )}
                 </>

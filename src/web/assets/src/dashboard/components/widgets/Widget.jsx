@@ -74,7 +74,7 @@ export function Widget({
                 {error && <WidgetError error={error} />}
 
                 <FadeIn className="flex min-h-0 flex-1 flex-col" show={!loading && !error}>
-                    {chartData && chartData.rows ? (
+                    {chartData?.rows?.length ? (
                         <div key={data.type} className="flex min-h-0 flex-1 flex-col">
                             {renderContent(chartData)}
                         </div>

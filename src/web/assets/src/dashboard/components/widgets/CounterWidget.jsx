@@ -34,7 +34,9 @@ export const CounterWidget = (props) => {
                     <div className="text-gray-550 text-base">
                         <span className={cn(
                             'font-medium',
-                            prevChartData > 0 ? 'text-green-500' : 'text-red-500',
+                            prevChartData > 0 && 'text-green-500',
+                            prevChartData < 0 && 'text-red-500',
+                            prevChartData === 0 && 'text-gray-500',
                         )}>
                             {format(prevChartData, preChartColFormat)}
                         </span>
