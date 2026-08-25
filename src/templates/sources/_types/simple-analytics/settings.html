@@ -1,0 +1,34 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+{% import 'metrix/_macros' as customForms %}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Hostname' | t('metrix'),
+    instructions: 'Enter your {name} {label} here (e.g. example.com).' | t('metrix'),
+    name: 'hostname',
+    required: true,
+    suggestEnvVars: true,
+    value: source.hostname,
+    warning: macros.configWarning('hostname', 'metrix'),
+    errors: source.getErrors('hostname'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'API Key' | t('metrix'),
+    instructions: 'Required for private websites. Public websites can leave this blank.' | t('metrix'),
+    name: 'apiKey',
+    suggestEnvVars: true,
+    value: source.apiKey,
+    warning: macros.configWarning('apiKey', 'metrix'),
+    errors: source.getErrors('apiKey'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Timezone' | t('metrix'),
+    instructions: 'Timezone for histogram data (e.g. UTC or Europe/Amsterdam).' | t('metrix'),
+    name: 'timezone',
+    suggestEnvVars: true,
+    value: source.timezone,
+    warning: macros.configWarning('timezone', 'metrix'),
+    errors: source.getErrors('timezone'),
+}) }}

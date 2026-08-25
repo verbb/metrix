@@ -1,0 +1,36 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+{% import 'metrix/_macros' as customForms %}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Client ID' | t('metrix'),
+    instructions: 'Enter your {name} OAuth client ID here.' | t('metrix'),
+    name: 'clientId',
+    required: true,
+    suggestEnvVars: true,
+    value: source.clientId,
+    warning: macros.configWarning('clientId', 'metrix'),
+    errors: source.getErrors('clientId'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Client Secret' | t('metrix'),
+    instructions: 'Enter your {name} OAuth client secret here.' | t('metrix'),
+    name: 'clientSecret',
+    required: true,
+    suggestEnvVars: true,
+    value: source.clientSecret,
+    warning: macros.configWarning('clientSecret', 'metrix'),
+    errors: source.getErrors('clientSecret'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Domain ID' | t('metrix'),
+    instructions: 'Enter your {name} {label} here.' | t('metrix'),
+    name: 'domainId',
+    required: true,
+    suggestEnvVars: true,
+    value: source.domainId,
+    warning: macros.configWarning('domainId', 'metrix'),
+    errors: source.getErrors('domainId'),
+}) }}

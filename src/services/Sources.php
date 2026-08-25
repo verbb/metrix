@@ -48,10 +48,14 @@ class Sources extends Component
         $sourceTypes = [
             sourceTypes\Cloudflare::class,
             sourceTypes\Fathom::class,
+            sourceTypes\GoatCounter::class,
             sourceTypes\GoogleAnalytics::class,
             sourceTypes\Matomo::class,
             sourceTypes\MixPanel::class,
+            sourceTypes\Pirsch::class,
             sourceTypes\Plausible::class,
+            sourceTypes\SimpleAnalytics::class,
+            sourceTypes\Umami::class,
         ];
 
         $event = new RegisterComponentTypesEvent([

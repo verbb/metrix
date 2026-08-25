@@ -1,0 +1,55 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+{% import 'metrix/_macros' as customForms %}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Base URL' | t('metrix'),
+    instructions: 'Enter your {name} {label} here. Use https://api.umami.is for Umami Cloud, or your self-hosted instance URL (without /api).' | t('metrix'),
+    name: 'baseUrl',
+    required: true,
+    suggestEnvVars: true,
+    value: source.baseUrl,
+    warning: macros.configWarning('baseUrl', 'metrix'),
+    errors: source.getErrors('baseUrl'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Website ID' | t('metrix'),
+    instructions: 'Enter your {name} {label} here.' | t('metrix'),
+    name: 'websiteId',
+    required: true,
+    suggestEnvVars: true,
+    value: source.websiteId,
+    warning: macros.configWarning('websiteId', 'metrix'),
+    errors: source.getErrors('websiteId'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'API Key' | t('metrix'),
+    instructions: 'Umami Cloud API key, or a bearer token for self-hosted instances. Leave blank when using username and password.' | t('metrix'),
+    name: 'apiKey',
+    suggestEnvVars: true,
+    value: source.apiKey,
+    warning: macros.configWarning('apiKey', 'metrix'),
+    errors: source.getErrors('apiKey'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Username' | t('metrix'),
+    instructions: 'Self-hosted login username. Used when no API key is provided.' | t('metrix'),
+    name: 'username',
+    suggestEnvVars: true,
+    value: source.username,
+    warning: macros.configWarning('username', 'metrix'),
+    errors: source.getErrors('username'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Password' | t('metrix'),
+    instructions: 'Self-hosted login password. Used when no API key is provided.' | t('metrix'),
+    name: 'password',
+    suggestEnvVars: true,
+    value: source.password,
+    warning: macros.configWarning('password', 'metrix'),
+    errors: source.getErrors('password'),
+}) }}
