@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fix Matomo Site ID dropdown failing for API tokens without superuser access.
+
 ## 2.0.6 - 2026-08-20
 
 ### Fixed
