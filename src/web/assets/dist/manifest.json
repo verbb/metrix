@@ -1,9 +1,9 @@
 {
-  "_MetrixConfig-CdcfiiFk.js": {
-    "file": "assets/MetrixConfig-CdcfiiFk.js",
+  "_MetrixConfig-BptmiVBt.js": {
+    "file": "assets/MetrixConfig-BptmiVBt.js",
     "name": "MetrixConfig",
     "imports": [
-      "_plugin-kit-Cy7J-hQb.js",
+      "_plugin-kit-DPes_Z4D.js",
       "_react-vendor-DjYJI7Ii.js",
       "_plugin-kit-forms-Brt9hHxU.js",
       "_plugin-kit-core-CIKs8t1s.js",
@@ -30,8 +30,8 @@
     "file": "assets/plugin-kit-FfAT0HnB.css",
     "src": "_plugin-kit-!~{002}~.js"
   },
-  "_plugin-kit-Cy7J-hQb.js": {
-    "file": "assets/plugin-kit-Cy7J-hQb.js",
+  "_plugin-kit-DPes_Z4D.js": {
+    "file": "assets/plugin-kit-DPes_Z4D.js",
     "name": "plugin-kit",
     "imports": [
       "_react-vendor-DjYJI7Ii.js",
@@ -79,9 +79,9 @@
     "src": "src/dashboard/metrix-dashboard.js",
     "isEntry": true,
     "imports": [
-      "_MetrixConfig-CdcfiiFk.js",
+      "_MetrixConfig-BptmiVBt.js",
       "_react-vendor-DjYJI7Ii.js",
-      "_plugin-kit-Cy7J-hQb.js",
+      "_plugin-kit-DPes_Z4D.js",
       "_dndkit-BNC6iOvR.js",
       "_plugin-kit-forms-Brt9hHxU.js",
       "_plugin-kit-core-CIKs8t1s.js",
@@ -95,10 +95,10 @@
     "src": "src/presets/metrix-presets.js",
     "isEntry": true,
     "imports": [
-      "_MetrixConfig-CdcfiiFk.js",
+      "_MetrixConfig-BptmiVBt.js",
       "_react-vendor-DjYJI7Ii.js",
       "_dndkit-BNC6iOvR.js",
-      "_plugin-kit-Cy7J-hQb.js",
+      "_plugin-kit-DPes_Z4D.js",
       "_plugin-kit-forms-Brt9hHxU.js",
       "_plugin-kit-core-CIKs8t1s.js",
       "_chartjs-BKHhuD4B.js",
@@ -111,7 +111,7 @@
     "src": "src/sources/metrix-sources.js",
     "isEntry": true,
     "imports": [
-      "_plugin-kit-Cy7J-hQb.js",
+      "_plugin-kit-DPes_Z4D.js",
       "_react-vendor-DjYJI7Ii.js",
       "_lit-vh8rfySC.js",
       "_plugin-kit-forms-Brt9hHxU.js",
