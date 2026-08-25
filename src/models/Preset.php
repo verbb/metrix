@@ -31,7 +31,7 @@ class Preset extends SavableComponent
     // Public Methods
     // =========================================================================
 
-    public function __construct(array $config)
+    public function __construct(array $config = [])
     {
         if (isset($config['widgets'])) {
             if (is_string($config['widgets']) && Json::isJsonObject($config['widgets'])) {
