@@ -2,8 +2,10 @@ import { create } from 'zustand';
 import { nanoid } from 'nanoid';
 import { arrayMove } from '@dnd-kit/sortable';
 
-import { api, getErrorMessage } from '@utils';
+import { api } from '@utils';
+import { getWidgetDataParams } from '@utils/dashboardPeriod';
 import { zustandHmrFix } from '@utils/store';
+import useAppStore from '@dashboard/hooks/useAppStore';
 
 const useWidgetStore = create((set, get) => {
     return {
@@ -14,10 +16,73 @@ const useWidgetStore = create((set, get) => {
                 return {
                     ...widget,
                     __id: nanoid(),
+                    loading: Boolean(widget.data?.id),
+                    waitForData: Boolean(widget.data?.id),
                 };
             });
 
             set({ widgets });
+
+            if (widgets.some((widget) => { return widget.data?.id; })) {
+                get().fetchAllWidgetData();
+            }
+        },
+
+        /**
+         * Fetch every widget in parallel so requests overlap and each pane can render
+         * as soon as its own response arrives (batch POST was sequential server-side).
+         */
+        fetchAllWidgetData: async({ refresh = false } = {}) => {
+            const widgets = get().widgets.filter((widget) => { return widget.data?.id; });
+
+            if (!widgets.length) {
+                return;
+            }
+
+            set((state) => {
+                return {
+                    widgets: state.widgets.map((widget) => {
+                        if (!widget.data?.id) {
+                            return widget;
+                        }
+
+                        return {
+                            ...widget,
+                            loading: true,
+                            error: null,
+                            waitForData: true,
+                        };
+                    }),
+                };
+            });
+
+            await Promise.allSettled(widgets.map(async(widget) => {
+                try {
+                    const payload = getWidgetDataParams(widget, { refresh });
+                    const response = await api.get('widget-data', payload);
+
+                    get().updateWidgetState(widget, {
+                        chartData: response.data,
+                        loading: false,
+                        waitForData: false,
+                        error: null,
+                    });
+                } catch (error) {
+                    // Short face message only — raw provider/API text lives in WidgetError Details.
+                    get().updateWidgetState(widget, {
+                        loading: false,
+                        waitForData: false,
+                        error: {
+                            message: Craft.t('metrix', 'Failed to fetch widget data. Please try again.'),
+                            error,
+                        },
+                    });
+                }
+            }));
+        },
+
+        fetchBatchWidgetData: async(refresh = false) => {
+            return get().fetchAllWidgetData({ refresh });
         },
 
         addWidget: (widget) => {
@@ -132,7 +197,7 @@ const useWidgetStore = create((set, get) => {
             }
         },
 
-        fetchWidgetData: async(id) => {
+        fetchWidgetData: async(id, { refresh = false } = {}) => {
             const widget = get().widgets.find((w) => { return w.__id === id; });
 
             if (!widget) {
@@ -144,7 +209,7 @@ const useWidgetStore = create((set, get) => {
             get().updateWidgetState(widget, { loading: true, error: null });
 
             try {
-                const payload = { ...widget.data };
+                const payload = getWidgetDataParams(widget, { refresh });
 
                 const response = await api.get('widget-data', payload);
 
@@ -154,12 +219,11 @@ const useWidgetStore = create((set, get) => {
                     loading: false,
                 });
             } catch (error) {
-                const errorDetail = getErrorMessage(error);
-
+                // Short face message only — raw provider/API text lives in WidgetError Details.
                 get().updateWidgetState(widget, {
                     loading: false,
                     error: {
-                        message: errorDetail.text || Craft.t('metrix', 'Failed to fetch widget data. Please try again.'),
+                        message: Craft.t('metrix', 'Failed to fetch widget data. Please try again.'),
                         error,
                     },
                 });
@@ -190,6 +254,10 @@ const useWidgetStore = create((set, get) => {
             } catch (error) {
                 console.error('Error saving widget order:', error);
             }
+        },
+
+        refreshWidgetData: async(id) => {
+            return get().fetchWidgetData(id, { refresh: true });
         },
 
         updateWidgetState: (widget, updates) => {

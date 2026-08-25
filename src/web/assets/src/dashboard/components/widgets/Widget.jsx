@@ -31,14 +31,16 @@ export function Widget({
     } = widget;
 
     useEffect(() => {
-        if (!waitForData) {
-            fetchWidgetData(__id).then((responseData) => {
-                if (afterFetchData) {
-                    afterFetchData(responseData);
-                }
-            });
+        if (waitForData || chartData || !data.id) {
+            return;
         }
-    }, [__id, data.type, waitForData, fetchWidgetData, afterFetchData]);
+
+        fetchWidgetData(__id).then((responseData) => {
+            if (afterFetchData) {
+                afterFetchData(responseData);
+            }
+        });
+    }, [__id, data.id, data.type, waitForData, chartData, fetchWidgetData, afterFetchData]);
 
     // Poll realtime widgets until data loads; stop while errored so we don't spam the API.
     useEffect(() => {

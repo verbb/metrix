@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react';
+import { useState } from 'react';
 
 import {
     Button,
@@ -7,37 +7,37 @@ import {
     DropdownMenu,
     DropdownSeparator,
     Icon,
-    Option,
-    Select,
-    Separator,
 } from '@verbb/plugin-kit-react/components';
 
 import { WidgetSettings } from '@dashboard/components/widgets/WidgetSettings';
 import { WidthPicker } from '@components/WidthPicker';
 
 import useWidgetStore from '@dashboard/hooks/useWidgetStore';
-import useWidgetSettingsStore from '@dashboard/hooks/useWidgetSettingsStore';
-import useAppStore from '@dashboard/hooks/useAppStore';
 
 export function WidgetHeader({ widget }) {
     const duplicateWidget = useWidgetStore((state) => state.duplicateWidget);
     const updateWidget = useWidgetStore((state) => state.updateWidget);
     const removeWidget = useWidgetStore((state) => state.removeWidget);
-    const periodOptions = useAppStore((state) => state.periodOptions);
+    const refreshWidgetData = useWidgetStore((state) => state.refreshWidgetData);
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-    const { getSettingsByType } = useWidgetSettingsStore();
-    const schema = getSettingsByType(widget.data.type, widget.data.source);
+    const [refreshing, setRefreshing] = useState(false);
 
     const handleWidthChange = (newWidth) => {
         updateWidget(widget, { width: newWidth }, false);
         setIsMenuOpen(false);
     };
 
-    const handlePeriodChange = (newPeriod) => {
-        updateWidget(widget, { period: newPeriod });
+    const handleRefresh = async() => {
+        setRefreshing(true);
+
+        try {
+            await refreshWidgetData(widget.__id);
+        } finally {
+            setRefreshing(false);
+            setIsMenuOpen(false);
+        }
     };
 
     const handleDuplicate = () => {
@@ -54,53 +54,14 @@ export function WidgetHeader({ widget }) {
         }
     };
 
-    const hasPeriodField = schema?.some((field) => field.name === 'period');
-
-    const toStringValue = (value) => (value === undefined || value === null ? '' : String(value));
-
-    const handlePeriodSelectChange = (event) => {
-        const raw = event.detail?.value;
-        const match = periodOptions
-            .flat()
-            .find((option) => toStringValue(option.value) === toStringValue(raw));
-
-        if (match) {
-            handlePeriodChange(match.value);
-        }
-    };
-
     return (
-        <div className="flex flex-row items-center relative z-[10]">
-            <div className="font-bold text-gray-600 truncate mr-4">
+        <div className="flex flex-row items-center relative z-[10] gap-2">
+            <div className="font-bold text-gray-600 truncate min-w-0 flex-1">
                 {widget.data.dimensionLabel && `${widget.data.dimensionLabel} - `}
                 {widget.data.metricLabel}
             </div>
 
-            <div className="flex flex-row items-center flex-shrink-0 gap-1 ml-auto metrix-widget-header-controls">
-                {hasPeriodField && (
-                    <Select
-                        className="metrix-widget-period-select"
-                        value={toStringValue(widget.data.period)}
-                        size="xs"
-                        onPkChange={handlePeriodSelectChange}
-                    >
-                        {periodOptions.map((group, groupIndex) => (
-                            <Fragment key={`period-group-${groupIndex}`}>
-                                {groupIndex > 0 ? <Separator /> : null}
-
-                                {group.map((option) => (
-                                    <Option
-                                        key={toStringValue(option.value)}
-                                        value={toStringValue(option.value)}
-                                    >
-                                        {option.label}
-                                    </Option>
-                                ))}
-                            </Fragment>
-                        ))}
-                    </Select>
-                )}
-
+            <div className="flex flex-row items-center flex-shrink-0 gap-1 metrix-widget-header-controls">
                 <DropdownMenu
                     className="metrix-widget-header-menu"
                     open={isMenuOpen}
@@ -129,6 +90,16 @@ export function WidgetHeader({ widget }) {
                         }}
                     >
                         {Craft.t('metrix', 'Settings')}
+                    </DropdownItem>
+
+                    <DropdownItem
+                        value="refresh"
+                        disabled={refreshing || widget.loading}
+                        onPkSelect={handleRefresh}
+                    >
+                        {refreshing
+                            ? Craft.t('metrix', 'Refreshing…')
+                            : Craft.t('metrix', 'Refresh')}
                     </DropdownItem>
 
                     <DropdownItem value="duplicate" onPkSelect={handleDuplicate}>
