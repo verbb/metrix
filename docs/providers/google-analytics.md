@@ -42,3 +42,13 @@ https://proxy.verbb.io?return=http://my-site.test/metrix/auth/callback
 ```
 
 Here, it routes the request through to our Verbb servers, which forwards on the request to the URL in the `return` parameter (which would be your local project).
+
+## OAuth consent screen publishing status
+Google issues **short-lived refresh tokens (7 days)** while your OAuth consent screen publishing status is **Testing**. After that, Metrix will mark the source as disconnected and ask you to reconnect.
+
+For production sites:
+
+1. In [Google Cloud Console](https://console.cloud.google.com/apis/credentials/consent), set the OAuth consent screen to **In production** (or **Internal** for Google Workspace-only apps).
+2. Reconnect the Metrix Google Analytics source once so a long-lived refresh token is issued.
+
+Tokens minted while the app was still in Testing keep the 7-day limit — publishing alone does not extend them. You do not always need full Google verification to publish; Internal apps and many single-project External apps can stay unverified depending on scopes and audience.

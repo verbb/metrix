@@ -2,7 +2,7 @@
     "name": "verbb/metrix",
     "description": "Display your analytics within Craft. Supports Google Analytics, Plausible, Fathom and more.",
     "type": "craft-plugin",
-    "version": "2.0.5",
+    "version": "2.1.0-beta.1",
     "keywords": [
         "craft",
         "cms",
@@ -28,7 +28,7 @@
         "php": "^8.2",
         "craftcms/cms": "^5.0.0",
         "nystudio107/craft-plugin-vite": "^5.0.0",
-        "verbb/auth": "^2.0.35",
+        "verbb/auth": "^2.0.45",
         "verbb/base": "^3.0.0"
     },
     "autoload": {
