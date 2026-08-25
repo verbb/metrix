@@ -62,6 +62,75 @@
     required: true,
 }) }}
 
+<hr>
+
+<h2>{{ 'Analytics scope' | t('metrix') }}</h2>
+<p class="instructions">{{ 'Optionally limit widgets in this view to traffic for a Craft site, path, or hostname. Best when one analytics property covers multiple Craft sites. For separate domains/properties, prefer separate Sources instead.' | t('metrix') }}</p>
+
+{#
+  Craft FieldToggle only adds/removes `hidden` on the selected target — inactive
+  targets must start with the `hidden` class (same pattern as source type panes).
+#}
+{{ forms.selectField({
+    label: 'Scope' | t('metrix'),
+    instructions: 'How this view filters analytics requests.' | t('metrix'),
+    id: 'analyticsScope-mode',
+    name: 'analyticsScope[mode]',
+    options: scopeModeOptions,
+    value: analyticsScope.mode,
+    errors: viewModel.getErrors('mode'),
+    toggle: true,
+}) }}
+
+{{ forms.selectField({
+    label: 'Craft site' | t('metrix'),
+    instructions: 'Metrix derives a hostname or path filter from the site’s base URL (hostname when domains differ; path when sites share a root URL).' | t('metrix'),
+    fieldId: 'craftSite',
+    id: 'analyticsScope-craftSiteId',
+    name: 'analyticsScope[craftSiteId]',
+    options: siteOptions,
+    value: analyticsScope.craftSiteId ? analyticsScope.craftSiteId|string : '',
+    errors: viewModel.getErrors('craftSiteId'),
+    fieldClass: analyticsScope.mode != 'craftSite' ? 'hidden' : null,
+}) }}
+
+{{ forms.textField({
+    label: 'Path prefix' | t('metrix'),
+    instructions: 'e.g. /en or /fr/. Applied as a page-path filter where the provider supports it.' | t('metrix'),
+    fieldId: 'path',
+    id: 'analyticsScope-pathPrefix',
+    name: 'analyticsScope[pathPrefix]',
+    class: 'code',
+    value: analyticsScope.pathPrefix,
+    errors: viewModel.getErrors('pathPrefix'),
+    placeholder: '/en',
+    fieldClass: analyticsScope.mode != 'path' ? 'hidden' : null,
+}) }}
+
+{{ forms.textField({
+    label: 'Hostname' | t('metrix'),
+    instructions: 'e.g. fr.example.com. Applied as a hostname filter where the provider supports it.' | t('metrix'),
+    fieldId: 'hostname',
+    id: 'analyticsScope-hostname',
+    name: 'analyticsScope[hostname]',
+    class: 'code',
+    value: analyticsScope.hostname,
+    errors: viewModel.getErrors('hostname'),
+    placeholder: 'fr.example.com',
+    fieldClass: analyticsScope.mode != 'hostname' ? 'hidden' : null,
+}) }}
+
+{{ forms.selectField({
+    label: 'Match' | t('metrix'),
+    instructions: 'How the path or hostname value is matched.' | t('metrix'),
+    fieldId: 'match',
+    id: 'analyticsScope-match',
+    name: 'analyticsScope[match]',
+    options: matchOptions,
+    value: analyticsScope.match,
+    errors: viewModel.getErrors('match'),
+    fieldClass: analyticsScope.mode not in ['path', 'hostname'] ? 'hidden' : null,
+}) }}
 
 {% endblock %}
 
@@ -70,5 +139,22 @@
 {% if viewModel is not defined or not viewModel.handle %}
     new Craft.HandleGenerator('#name', '#handle');
 {% endif %}
+
+(function() {
+    const modeSelect = document.getElementById('analyticsScope-mode');
+    const matchField = document.getElementById('match');
+    if (!modeSelect || !matchField) return;
+
+    // Craft toggle only reveals the field whose id equals the selected mode.
+    // Match applies to both path and hostname, so keep it in sync separately.
+    const syncMatch = () => {
+        const mode = modeSelect.value;
+        const show = mode === 'path' || mode === 'hostname';
+        matchField.classList.toggle('hidden', !show);
+    };
+
+    modeSelect.addEventListener('change', syncMatch);
+    syncMatch();
+})();
 
 {% endjs %}

@@ -26,3 +26,5 @@ Method | Description
 `fetchData(WidgetDataInterface $widgetData)` | Retrieves data based on widget and period configurations.
 `fetchRealtimeData()` | Retrieves real-time data, if supported by the source.
 `fetchConnection()` | Validates the source connection by testing the credentials.
+`supportsAnalyticsScope()` | Whether View analytics scope (path/hostname) can be applied.
+`applyAnalyticsScope(array &$request, AnalyticsScope $scope)` | Mutates a provider request to honour View scope.

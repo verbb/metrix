@@ -4,6 +4,7 @@ namespace verbb\metrix\sources;
 use verbb\metrix\base\CredentialsSource;
 use verbb\metrix\base\Period;
 use verbb\metrix\base\WidgetDataInterface;
+use verbb\metrix\models\AnalyticsScope;
 
 use Craft;
 use craft\helpers\App;
@@ -191,6 +192,37 @@ class Matomo extends CredentialsSource
     // Protected Methods
     // =========================================================================
 
+    public function supportsAnalyticsScope(): bool
+    {
+        return true;
+    }
+
+    public function applyAnalyticsScope(array &$request, AnalyticsScope $scope): void
+    {
+        $parts = [];
+
+        if ($hostname = $scope->getResolvedHostname()) {
+            $parts[] = 'pageHostname' . $this->_matomoOperator($scope->getHostnameMatch()) . $hostname;
+        }
+
+        if ($path = $scope->getResolvedPathPrefix()) {
+            // pageUrl segment operators apply to the full URL; path matching is best-effort.
+            $parts[] = 'pageUrl' . $this->_matomoOperator($scope->getPathMatch()) . $path;
+        }
+
+        if ($parts === []) {
+            return;
+        }
+
+        $segment = implode(';', $parts);
+
+        if (!empty($request['segment'])) {
+            $request['segment'] .= ';' . $segment;
+        } else {
+            $request['segment'] = $segment;
+        }
+    }
+
     protected function getCanonicalMetricMap(): array
     {
         return [
@@ -216,6 +248,26 @@ class Matomo extends CredentialsSource
     // Private Methods
     // =========================================================================
 
+    /**
+     * @param array<string, mixed> $params
+     * @return array<string, mixed>
+     */
+    private function _withAnalyticsScope(array $params, WidgetDataInterface $widgetData): array
+    {
+        $this->applyWidgetAnalyticsScope($params, $widgetData);
+
+        return $params;
+    }
+
+    private function _matomoOperator(string $match): string
+    {
+        return match ($match) {
+            AnalyticsScope::MATCH_EXACT => '==',
+            AnalyticsScope::MATCH_CONTAINS => '=@',
+            default => '=^',
+        };
+    }
+
     private function _fetchSummaryData(WidgetDataInterface $widgetData): array
     {
         $intervalDimension = $this->_getIntervalDimension($widgetData);
@@ -232,6 +284,8 @@ class Matomo extends CredentialsSource
             'format' => 'json',
             'token_auth' => $this->getApiToken(),
         ];
+
+        $this->applyWidgetAnalyticsScope($params, $widgetData);
 
         $response = $this->request('POST', '', ['form_params' => $params]);
         $data = [];
@@ -269,7 +323,7 @@ class Matomo extends CredentialsSource
         $limit = $widgetData->getRowLimit();
 
         $response = $this->request('POST', '', [
-            'form_params' => [
+            'form_params' => $this->_withAnalyticsScope([
                 'module' => 'API',
                 'method' => $method,
                 'idSite' => $this->getSiteId(),
@@ -280,7 +334,7 @@ class Matomo extends CredentialsSource
                 'filter_sort_column' => $metric,
                 'filter_sort_order' => 'desc',
                 'token_auth' => $this->getApiToken(),
-            ],
+            ], $widgetData),
         ]);
 
         if (!is_array($response)) {

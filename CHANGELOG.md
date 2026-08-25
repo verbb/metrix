@@ -16,6 +16,7 @@
 - Add optional widget **title**, **subtitle**, and table/pie **row limit** settings.
 - Add shared Chart.js renderer for line/bar/pie widgets.
 - Add “Updated …” in widget headers to show data freshness.
+- Add View **analytics scope** (Craft site, path prefix, or hostname) to filter widget data for multi-site installs.
 
 ### Changed
 - Rebuild the Dashboard UI on [Plugin Kit](https://docs.verbb.io/plugin-kit/react/).
@@ -23,11 +24,13 @@
 - Source option lists prepend mapped Common metrics/dimensions before the provider’s full native catalog.
 - Widget data cache keys include the source settings hash; counter comparison periods are cached separately.
 - Widget data cache entries are tagged per source and invalidated on source save, delete, connect, and disconnect.
+- Widget data cache keys/tags include View analytics scope; View save invalidates scoped widget caches.
 - Dimension widget responses are sorted and truncated by row limit (provider `limit`/`filter_limit` where supported).
 - Widget data responses include `_meta.fetchedAt` and `_meta.fromCache`.
 - Default presets use semantic templates with canonical keys; fresh installs seed Website Overview, Content Performance, Acquisition, and Realtime.
 - Google Analytics OAuth default scope reduced to `analytics.readonly`.
 - Matomo dimension widgets use Reporting API breakdown methods (browsers, country, city, referrers) instead of VisitsSummary.
+- Require `verbb/auth` `^2.0.45` for OAuth reconnect handling when refresh tokens are permanently rejected.
 
 ### Fixed
 - Fix Google Analytics (and other OAuth) sources staying “Connected” after a dead refresh token (e.g. Google Testing-mode 7-day expiry). Dashboard widgets now show a reconnect message instead of a raw API 401, and the source flips to Not Connected so you can reconnect from Sources.

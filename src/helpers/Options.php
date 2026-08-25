@@ -128,7 +128,16 @@ class Options
         $options = [];
 
         foreach (Metrix::$plugin->getViews()->getAllViewableViews() as $view) {
-            $options[] = ['label' => $view->name, 'value' => $view->handle];
+            $scope = $view->getAnalyticsScope();
+
+            $options[] = [
+                'label' => $view->name,
+                'value' => $view->handle,
+                'analyticsScope' => $scope->isActive() ? [
+                    'mode' => $scope->mode,
+                    'summary' => $scope->getSummaryLabel(),
+                ] : null,
+            ];
         }
 
         return $options;

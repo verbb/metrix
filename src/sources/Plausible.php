@@ -4,6 +4,7 @@ namespace verbb\metrix\sources;
 use verbb\metrix\base\CredentialsSource;
 use verbb\metrix\base\Period;
 use verbb\metrix\base\WidgetDataInterface;
+use verbb\metrix\models\AnalyticsScope;
 
 use Craft;
 use craft\helpers\App;
@@ -133,6 +134,8 @@ class Plausible extends CredentialsSource
             $payload['dimensions'][] = $intervalDimension;
         }
 
+        $this->applyWidgetAnalyticsScope($payload, $widgetData);
+
         $response = $this->request('POST', 'query', [
             'json' => $payload,
         ]);
@@ -203,6 +206,26 @@ class Plausible extends CredentialsSource
 
     // Protected Methods
     // =========================================================================
+
+    public function supportsAnalyticsScope(): bool
+    {
+        return true;
+    }
+
+    public function applyAnalyticsScope(array &$request, AnalyticsScope $scope): void
+    {
+        $filters = $request['filters'] ?? [];
+
+        // Plausible site_id is already a domain — path filters are the useful View scope.
+        if ($path = $scope->getResolvedPathPrefix()) {
+            $operator = $scope->getPathMatch() === AnalyticsScope::MATCH_EXACT ? 'is' : 'contains';
+            $filters[] = [$operator, 'event:page', [$path]];
+        }
+
+        if ($filters !== []) {
+            $request['filters'] = $filters;
+        }
+    }
 
     protected function getCanonicalMetricMap(): array
     {

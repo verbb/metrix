@@ -2,6 +2,7 @@
 namespace verbb\metrix\base;
 
 use verbb\metrix\Metrix;
+use verbb\metrix\models\AnalyticsScope;
 
 use Craft;
 use craft\base\Model;
@@ -19,6 +20,7 @@ class WidgetData extends Model implements WidgetDataInterface
     public ?string $metric = null;
     public ?string $dimension = null;
     public ?int $limit = null;
+    public ?AnalyticsScope $scope = null;
 
 
     // Public Methods
@@ -80,6 +82,7 @@ class WidgetData extends Model implements WidgetDataInterface
             $this->dimension,
             $this->period,
             $this->getRowLimit(),
+            $this->scope?->cacheKey() ?? 'scope:none',
         ];
 
         if ($suffix !== '') {
@@ -111,6 +114,16 @@ class WidgetData extends Model implements WidgetDataInterface
 
         if ($this->source?->id) {
             $tags[] = 'metrix.source.id.' . $this->source->id;
+        }
+
+        $view = $this->widget?->getView();
+
+        if ($view?->id) {
+            $tags[] = 'metrix.view.id.' . $view->id;
+        }
+
+        if ($view?->handle) {
+            $tags[] = 'metrix.view.' . $view->handle;
         }
 
         return $tags;

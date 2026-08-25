@@ -52,3 +52,8 @@ For production sites:
 2. Reconnect the Metrix Google Analytics source once so a long-lived refresh token is issued.
 
 Tokens minted while the app was still in Testing keep the 7-day limit — publishing alone does not extend them. You do not always need full Google verification to publish; Internal apps and many single-project External apps can stay unverified depending on scopes and audience.
+
+## Multi-site Craft installs
+If several Craft sites share one GA4 property, set **Analytics scope** on the Metrix View (Craft site, path prefix, or hostname). Metrix applies a GA `dimensionFilter` on `hostName` and/or `pagePath` for widgets in that view.
+
+If each site has its own GA4 property, create one Metrix Source per property instead.

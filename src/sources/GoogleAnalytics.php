@@ -5,6 +5,7 @@ use verbb\metrix\Metrix;
 use verbb\metrix\base\OAuthSource;
 use verbb\metrix\base\Period;
 use verbb\metrix\base\WidgetDataInterface;
+use verbb\metrix\models\AnalyticsScope;
 
 use Craft;
 use craft\helpers\App;
@@ -215,6 +216,8 @@ class GoogleAnalytics extends OAuthSource
                 $payload['dimensions'] = [['name' => $intervalDimension]];
             }
 
+            $this->applyWidgetAnalyticsScope($payload, $widgetData);
+
             $response = $this->request('POST', 'https://analyticsdata.googleapis.com/v1beta/' . $this->getPropertyId() . ':runReport', [
                 'json' => $payload,
             ]);
@@ -247,6 +250,8 @@ class GoogleAnalytics extends OAuthSource
                 'limit' => 100,
             ];
 
+            $this->applyWidgetAnalyticsScope($payload, $widgetData);
+
             $response = $this->request('POST', 'https://analyticsdata.googleapis.com/v1beta/' . $this->getPropertyId() . ':runRealtimeReport', [
                 'json' => $payload,
             ]);
@@ -266,6 +271,37 @@ class GoogleAnalytics extends OAuthSource
 
     // Protected Methods
     // =========================================================================
+
+    public function supportsAnalyticsScope(): bool
+    {
+        return true;
+    }
+
+    public function applyAnalyticsScope(array &$request, AnalyticsScope $scope): void
+    {
+        $filters = [];
+
+        if ($hostname = $scope->getResolvedHostname()) {
+            $filters[] = $this->_dimensionFilter('hostName', $hostname, $scope->getHostnameMatch());
+        }
+
+        if ($path = $scope->getResolvedPathPrefix()) {
+            $filters[] = $this->_dimensionFilter('pagePath', $path, $scope->getPathMatch());
+        }
+
+        if ($filters === []) {
+            return;
+        }
+
+        // Merge with any existing filter as an AND group.
+        if (isset($request['dimensionFilter'])) {
+            $filters[] = $request['dimensionFilter'];
+        }
+
+        $request['dimensionFilter'] = count($filters) === 1
+            ? $filters[0]
+            : ['andGroup' => ['expressions' => $filters]];
+    }
 
     protected function getCanonicalMetricMap(): array
     {
@@ -297,6 +333,28 @@ class GoogleAnalytics extends OAuthSource
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function _dimensionFilter(string $fieldName, string $value, string $match): array
+    {
+        $matchType = match ($match) {
+            AnalyticsScope::MATCH_EXACT => 'EXACT',
+            AnalyticsScope::MATCH_CONTAINS => 'CONTAINS',
+            default => 'BEGINS_WITH',
+        };
+
+        return [
+            'filter' => [
+                'fieldName' => $fieldName,
+                'stringFilter' => [
+                    'matchType' => $matchType,
+                    'value' => $value,
+                ],
+            ],
+        ];
+    }
 
     private function _getPropertyMetadata(): array
     {

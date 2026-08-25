@@ -369,6 +369,8 @@ abstract class Widget extends SavableComponent implements WidgetInterface
             'metric' => $this->getResolvedMetric(),
             'dimension' => $this->getResolvedDimension(),
             'limit' => $this->getRowLimit(),
+            // View-owned analytics scope (path/hostname/Craft site) — resolved server-side.
+            'scope' => $this->getView()?->getAnalyticsScope(),
         ]);
 
         return $dataType->getData($refreshCache);

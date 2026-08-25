@@ -8,6 +8,17 @@ This differs to the Craft Dashboard (and not to be confused with it), where widg
 
 Combined with user permissions, you can even allow only certain user groups to access views. Each Metrix install comes with a default view.
 
+### Multi-site / analytics scope
+A View can optionally limit widget data to a **Craft site**, **path prefix**, or **hostname**. Use this when one analytics property (e.g. a single GA4 property) covers multiple Craft sites.
+
+- **Craft site** — Metrix derives a hostname or path filter from the site base URL.
+- **Path prefix** — e.g. `/en` or `/fr/` for path-based multi-site.
+- **Hostname** — e.g. `fr.example.com` for domain-based multi-site on one property.
+
+If each Craft site has its own analytics property or Plausible site, create separate Sources (and Views) instead — that remains the right model for fully separate domains.
+
+Supported providers for View scope today: **Google Analytics**, **Plausible** (path), and **Matomo**. Other sources ignore the scope.
+
 ## Presets
 When first creating a new view, you'll have the choice to be able to add new widgets to it. While this is great for a few widgets, it can get tedious for multiple widgets, which can be compounded when you want to setup multiple views.
 

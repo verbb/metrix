@@ -3,6 +3,7 @@ namespace verbb\metrix\base;
 
 use verbb\metrix\Metrix;
 use verbb\metrix\helpers\Canonical;
+use verbb\metrix\models\AnalyticsScope;
 
 use Craft;
 use craft\base\SavableComponent;
@@ -310,6 +311,7 @@ abstract class Source extends SavableComponent implements SourceInterface
             'dimensions' => $this->supportsDimensions(),
             'connection' => static::supportsConnection(),
             'oauth' => static::supportsOAuthConnection(),
+            'analyticsScope' => $this->supportsAnalyticsScope(),
         ];
     }
 
@@ -325,6 +327,38 @@ abstract class Source extends SavableComponent implements SourceInterface
     public function supportsDimensions(): bool
     {
         return true;
+    }
+
+    /**
+     * Whether View analytics scope (path/hostname) can be applied to this provider.
+     */
+    public function supportsAnalyticsScope(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function applyAnalyticsScope(array &$request, AnalyticsScope $scope): void
+    {
+        // No-op by default — providers opt in via supportsAnalyticsScope() + override.
+    }
+
+    /**
+     * Apply the widget’s View scope to a request when active and supported.
+     *
+     * @param array<string, mixed> $request
+     */
+    protected function applyWidgetAnalyticsScope(array &$request, WidgetDataInterface $widgetData): void
+    {
+        $scope = $widgetData->scope ?? null;
+
+        if (!$scope instanceof AnalyticsScope || !$scope->isActive() || !$this->supportsAnalyticsScope()) {
+            return;
+        }
+
+        $this->applyAnalyticsScope($request, $scope);
     }
 
     public function resolveCanonicalMetric(string $key): ?string
