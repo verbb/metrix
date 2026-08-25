@@ -2,7 +2,7 @@
 namespace verbb\metrix\widgets\data;
 
 use verbb\metrix\base\WidgetData;
-use verbb\metrix\base\WidgetDataInterface;
+use verbb\metrix\Metrix;
 
 use Craft;
 
@@ -40,19 +40,28 @@ class CounterData extends WidgetData
 
     protected function calculatePercentageChange(int $currentValue): float
     {
-        // Fetch the previous period's data
         $previousPeriodRange = $this->period::getPreviousDateRange();
-
-        // Change the period's current date range for sources to handle
-        $this->period::$currentDateRange = $previousPeriodRange;
-
-        $previousData = $this->source->fetchData(new static([
+        $originalRange = $this->period::$currentDateRange;
+        $cacheDuration = Metrix::$plugin->getSettings()->getCacheDuration();
+        $previousWidgetData = new static([
             'widget' => $this->widget,
             'source' => $this->source,
             'period' => $this->period,
             'metric' => $this->metric,
             'dimension' => $this->dimension,
-        ]));
+        ]);
+
+        try {
+            $this->period::$currentDateRange = $previousPeriodRange;
+
+            $previousData = Craft::$app->getCache()->getOrSet(
+                $previousWidgetData->getCacheKey('previous'),
+                fn() => $this->source->fetchData($previousWidgetData),
+                $cacheDuration,
+            );
+        } finally {
+            $this->period::$currentDateRange = $originalRange;
+        }
 
         $previousValue = array_sum($previousData);
 

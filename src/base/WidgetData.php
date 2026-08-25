@@ -6,8 +6,6 @@ use verbb\metrix\Metrix;
 use Craft;
 use craft\base\Model;
 
-use Exception;
-
 class WidgetData extends Model implements WidgetDataInterface
 {
     // Properties
@@ -23,30 +21,63 @@ class WidgetData extends Model implements WidgetDataInterface
     // Public Methods
     // =========================================================================
 
-    public function getData(): array
+    public function getData(bool $refreshCache = false): array
     {
         $cacheDuration = Metrix::$plugin->getSettings()->getCacheDuration();
-        $cacheKey = $this->_getCacheKey();
+        $cacheKey = $this->getCacheKey();
+        $fetchedAt = time();
 
         // Some widgets can define not to be cachable (realtime)
         if ($this->widget && !$this->widget::supportsCache()) {
             $cacheDuration = 1;
         }
 
+        $cache = Craft::$app->getCache();
+
+        if ($refreshCache) {
+            $cache->delete($cacheKey);
+        }
+
+        $fromCache = $cacheDuration > 1 && $cache->exists($cacheKey);
+
         // Retrieve raw API data from the cache
-        $rawData = Craft::$app->getCache()->getOrSet($cacheKey, function() {
+        $rawData = $cache->getOrSet($cacheKey, function() {
             return $this->widget->fetchData($this);
         }, $cacheDuration);
 
         // Always apply `formatData` to the cached raw data
-        return $this->formatData($rawData);
+        $formatted = $this->formatData($rawData);
+
+        return array_merge($formatted, [
+            '_meta' => [
+                'fetchedAt' => $fetchedAt,
+                'fromCache' => $fromCache && !$refreshCache,
+            ],
+        ]);
     }
 
     public function clearCache(): void
     {
-        $cacheKey = $this->_getCacheKey();
+        Craft::$app->getCache()->delete($this->getCacheKey());
+    }
 
-        Craft::$app->getCache()->delete($cacheKey);
+    public function getCacheKey(string $suffix = ''): string
+    {
+        $cacheKey = [
+            'metrix',
+            get_class($this->widget),
+            $this->source?->handle,
+            $this->source?->getCacheKey(),
+            $this->metric,
+            $this->dimension,
+            $this->period,
+        ];
+
+        if ($suffix !== '') {
+            $cacheKey[] = $suffix;
+        }
+
+        return implode('.', $cacheKey);
     }
 
 
@@ -57,23 +88,4 @@ class WidgetData extends Model implements WidgetDataInterface
     {
         return $rawData;
     }
-
-
-    // Private Methods
-    // =========================================================================
-
-    private function _getCacheKey(): string
-    {
-        $cacheKey = [
-            'metrix',
-            get_class($this->widget),
-            $this->source?->handle,
-            $this->metric,
-            $this->dimension,
-            $this->period,
-        ];
-        
-        return implode('.', $cacheKey);
-    }
-    
 }
