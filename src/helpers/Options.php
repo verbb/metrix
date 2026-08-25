@@ -2,6 +2,7 @@
 namespace verbb\metrix\helpers;
 
 use verbb\metrix\Metrix;
+use verbb\metrix\helpers\SemanticPresets;
 
 use Craft;
 
@@ -24,9 +25,14 @@ class Options
     public static function getPresetOptions(): array
     {
         $options = [];
+        $definitions = SemanticPresets::getDefinitions();
 
         foreach (Metrix::$plugin->getPresets()->getAllEnabledPresets() as $preset) {
-            $options[] = ['label' => $preset->name, 'value' => $preset->handle];
+            $options[] = [
+                'label' => $preset->name,
+                'value' => $preset->handle,
+                'description' => $definitions[$preset->handle]['description'] ?? '',
+            ];
         }
 
         return $options;

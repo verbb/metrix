@@ -3,6 +3,7 @@ namespace verbb\metrix\services;
 
 use verbb\metrix\Metrix;
 use verbb\metrix\events\PresetEvent;
+use verbb\metrix\helpers\SemanticPresets;
 use verbb\metrix\models\Preset;
 use verbb\metrix\records\Preset as PresetRecord;
 
@@ -122,59 +123,30 @@ class Presets extends Component
             return;
         }
 
-        $this->createDefaultPreset();
+        $this->createSemanticPresets();
     }
 
+    public function createSemanticPresets(): void
+    {
+        foreach (SemanticPresets::getDefinitions() as $handle => $definition) {
+            $preset = new Preset([
+                'name' => $definition['name'],
+                'handle' => $handle,
+                'enabled' => true,
+                'sortOrder' => $definition['sortOrder'],
+                'widgets' => $definition['widgets'],
+            ]);
+
+            $this->savePreset($preset);
+        }
+    }
+
+    /**
+     * @deprecated Use {@see createSemanticPresets()}.
+     */
     public function createDefaultPreset(): void
     {
-        $widgets = [
-            [
-                'type' => 'verbb\\metrix\\widgets\\Line',
-                'period' => 'verbb\\metrix\\periods\\Last7Days',
-                'metric' => 'sessions',
-                'width' => '2',
-            ],
-            [
-                'type' => 'verbb\\metrix\\widgets\\Realtime',
-                'width' => '1',
-            ],
-            [
-                'type' => 'verbb\\metrix\\widgets\\Counter',
-                'period' => 'verbb\\metrix\\periods\\Last7Days',
-                'metric' => 'sessions',
-                'width' => '1',
-            ],
-            [
-                'type' => 'verbb\\metrix\\widgets\\Pie',
-                'period' => 'verbb\\metrix\\periods\\Last7Days',
-                'metric' => 'sessions',
-                'dimension' => 'browser',
-                'width' => '1',
-            ],
-            [
-                'type' => 'verbb\\metrix\\widgets\\Table',
-                'period' => 'verbb\\metrix\\periods\\Last7Days',
-                'metric' => 'sessions',
-                'dimension' => 'operatingSystem',
-                'width' => '1',
-            ],
-            [
-                'type' => 'verbb\\metrix\\widgets\\Table',
-                'period' => 'verbb\\metrix\\periods\\Last7Days',
-                'metric' => 'sessions',
-                'dimension' => 'country',
-                'width' => '1',
-            ],
-        ];
-
-        $preset = new Preset([
-            'name' => 'Default',
-            'handle' => 'default',
-            'enabled' => true,
-            'widgets' => $widgets,
-        ]);
-
-        $this->savePreset($preset);
+        $this->createSemanticPresets();
     }
 
     public function savePreset(Preset $preset, bool $runValidation = true): bool
@@ -234,7 +206,8 @@ class Presets extends Component
             $presetRecord->handle = $data['handle'];
             $presetRecord->enabled = $data['enabled'];
             $presetRecord->sortOrder = $data['sortOrder'];
-            $presetRecord->widgets = $data['widgets'];
+            // Project config omits empty arrays, so presets with no widgets won't include this key.
+            $presetRecord->widgets = $data['widgets'] ?? [];
             $presetRecord->uid = $presetUid;
 
             // Save the preset

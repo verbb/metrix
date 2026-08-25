@@ -2,7 +2,6 @@ import {
     Button,
     DropdownItem,
     DropdownMenu,
-    Icon,
 } from '@verbb/plugin-kit-react/components';
 
 import useAppStore from '@dashboard/hooks/useAppStore';
@@ -54,7 +53,7 @@ export const DashboardEmptyState = ({
 
             return (
                 <>
-                    <div className="text-center">
+                    <div className="text-center max-w-xl">
                         <h2 className="font-semibold text-2xl mb-4 text-gray-600">
                             {Craft.t('metrix', 'No widgets yet')}
                         </h2>
@@ -68,48 +67,31 @@ export const DashboardEmptyState = ({
                         <WidgetNew buttonSize="lg" />
 
                         {presets.length > 0 && (
-                            <>
-                                {presets.length === 1 ? (
-                                    <Button
-                                        type="button"
-                                        variant="primary"
-                                        size="lg"
-                                        title={Craft.t('metrix', 'Load preset widgets')}
-                                        aria-label={Craft.t('metrix', 'Load preset widgets')}
-                                        loading={loadingPresets}
-                                        disabled={loadingPresets}
-                                        onClick={() => onPresetSelect(presets[0].value)}
-                                    >
-                                        {Craft.t('metrix', 'Load preset widgets')}
-                                    </Button>
-                                ) : (
-                                    <DropdownMenu placement="bottom-end">
-                                        <Button
-                                            slot="trigger"
-                                            type="button"
-                                            variant="primary"
-                                            size="lg"
-                                            title={Craft.t('metrix', 'Load preset widgets')}
-                                            aria-label={Craft.t('metrix', 'Load preset widgets')}
-                                            loading={loadingPresets}
-                                            disabled={loadingPresets}
-                                        >
-                                            {Craft.t('metrix', 'Load preset widgets')}
-                                            <Icon slot="end" icon="chevron-down" className="size-3" />
-                                        </Button>
+                            <DropdownMenu placement="bottom-end">
+                                <Button
+                                    slot="trigger"
+                                    type="button"
+                                    variant="primary"
+                                    size="lg"
+                                    withCaret
+                                    loading={loadingPresets}
+                                    disabled={loadingPresets}
+                                    title={Craft.t('metrix', 'Load preset widgets')}
+                                    aria-label={Craft.t('metrix', 'Load preset widgets')}
+                                >
+                                    {Craft.t('metrix', 'Load preset widgets')}
+                                </Button>
 
-                                        {presets.map((preset) => (
-                                            <DropdownItem
-                                                key={preset.value}
-                                                value={preset.value}
-                                                onPkSelect={() => onPresetSelect(preset.value)}
-                                            >
-                                                {preset.label}
-                                            </DropdownItem>
-                                        ))}
-                                    </DropdownMenu>
-                                )}
-                            </>
+                                {presets.map((preset) => (
+                                    <DropdownItem
+                                        key={preset.value}
+                                        value={preset.value}
+                                        onPkSelect={() => onPresetSelect(preset.value)}
+                                    >
+                                        {preset.label}
+                                    </DropdownItem>
+                                ))}
+                            </DropdownMenu>
                         )}
                     </div>
 
@@ -136,7 +118,7 @@ export const DashboardEmptyState = ({
                 <NoWidgetsSvg />
             </div>
 
-            <div className="relative z-0 flex flex-col items-center w-full">
+            <div className="relative z-0 flex flex-col items-center w-full px-4">
                 {renderContent()}
             </div>
         </div>
