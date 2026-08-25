@@ -48,6 +48,46 @@ class Schema
             'placeholder' => Craft::t('metrix', 'Select an option'),
             'validation' => ['required' => true],
             'options' => Options::getEnabledWidgetTypeOptions(),
+            // Client filters Realtime when the selected source lacks supportsRealtime().
+            'capabilityFilter' => true,
+        ], $config);
+    }
+
+    public static function titles(array $config = []): array
+    {
+        return array_merge([
+            'type' => 'text',
+            'label' => Craft::t('metrix', 'Title'),
+            'instructions' => Craft::t('metrix', 'Optional custom title. Leave blank to use the metric/dimension labels.'),
+            'name' => 'title',
+            'placeholder' => Craft::t('metrix', 'Auto'),
+        ], $config);
+    }
+
+    public static function subtitles(array $config = []): array
+    {
+        return array_merge([
+            'type' => 'text',
+            'label' => Craft::t('metrix', 'Subtitle'),
+            'instructions' => Craft::t('metrix', 'Optional supporting text shown under the title.'),
+            'name' => 'subtitle',
+        ], $config);
+    }
+
+    public static function limits(array $config = []): array
+    {
+        return array_merge([
+            'type' => 'select',
+            'label' => Craft::t('metrix', 'Row limit'),
+            'instructions' => Craft::t('metrix', 'Maximum rows to fetch and display for this widget.'),
+            'name' => 'limit',
+            'options' => [
+                ['label' => '5', 'value' => '5'],
+                ['label' => '10', 'value' => '10'],
+                ['label' => '25', 'value' => '25'],
+                ['label' => '50', 'value' => '50'],
+                ['label' => '100', 'value' => '100'],
+            ],
         ], $config);
     }
 

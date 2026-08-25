@@ -32,6 +32,8 @@ class Realtime extends Widget
         return [
             Schema::sources(),
             Schema::chartTypes(),
+            Schema::titles(),
+            Schema::subtitles(),
             Schema::widths(),
         ];
     }

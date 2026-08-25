@@ -12,6 +12,8 @@ use verbb\metrix\widgets\data\RealtimeData;
 use Craft;
 use craft\base\SavableComponent;
 
+use Throwable;
+
 abstract class Widget extends SavableComponent implements WidgetInterface
 {
     // Static Methods
@@ -59,6 +61,9 @@ abstract class Widget extends SavableComponent implements WidgetInterface
     public ?string $canonicalDimension = null;
     public ?bool $inheritPeriod = null;
     public ?int $width = null;
+    public ?string $title = null;
+    public ?string $subtitle = null;
+    public ?int $limit = null;
 
     private ?SourceInterface $_source = null;
     private ?View $_view = null;
@@ -71,7 +76,8 @@ abstract class Widget extends SavableComponent implements WidgetInterface
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['period', 'metric', 'dimension', 'canonicalMetric', 'canonicalDimension', 'inheritPeriod', 'width'], 'safe'];
+        $rules[] = [['period', 'metric', 'dimension', 'canonicalMetric', 'canonicalDimension', 'inheritPeriod', 'width', 'title', 'subtitle', 'limit'], 'safe'];
+        $rules[] = [['limit'], 'number', 'integerOnly' => true, 'min' => 1, 'max' => 500];
 
         return $rules;
     }
@@ -86,6 +92,9 @@ abstract class Widget extends SavableComponent implements WidgetInterface
         $attributes[] = 'canonicalDimension';
         $attributes[] = 'inheritPeriod';
         $attributes[] = 'width';
+        $attributes[] = 'title';
+        $attributes[] = 'subtitle';
+        $attributes[] = 'limit';
 
         return $attributes;
     }
@@ -197,8 +206,8 @@ abstract class Widget extends SavableComponent implements WidgetInterface
 
     public function getResolvedPeriod(?string $globalPeriod = null): ?string
     {
-        // Dashboard header period is view-scoped and overrides all widgets when present.
-        if ($globalPeriod) {
+        // Dashboard header period applies only while this widget inherits the view range.
+        if ($globalPeriod && $this->getInheritPeriod()) {
             return $globalPeriod;
         }
 
@@ -224,7 +233,16 @@ abstract class Widget extends SavableComponent implements WidgetInterface
 
         if ($source = $this->getSource()) {
             if ($this->metric) {
-                return $this->_getValueForLabel($source->fetchAvailableMetrics(), $this->metric);
+                try {
+                    return $this->_getValueForLabel($source->fetchAvailableMetrics(), $this->metric);
+                } catch (Throwable $e) {
+                    // Label lookup must not take down the dashboard when OAuth/API is dead.
+                    if (Source::isOAuthReconnectFailure($e)) {
+                        Source::apiError($source, $e, false);
+                    }
+
+                    return $this->metric;
+                }
             }
         }
 
@@ -239,11 +257,47 @@ abstract class Widget extends SavableComponent implements WidgetInterface
 
         if ($source = $this->getSource()) {
             if ($this->dimension) {
-                return $this->_getValueForLabel($source->fetchAvailableDimensions(), $this->dimension);
+                try {
+                    return $this->_getValueForLabel($source->fetchAvailableDimensions(), $this->dimension);
+                } catch (Throwable $e) {
+                    if (Source::isOAuthReconnectFailure($e)) {
+                        Source::apiError($source, $e, false);
+                    }
+
+                    return $this->dimension;
+                }
             }
         }
 
         return null;
+    }
+
+    public function getRowLimit(): int
+    {
+        $limit = (int)($this->limit ?? 0);
+
+        // Dimension widgets default to 10; plot/counter ignore this unless a source asks.
+        if ($limit < 1) {
+            return 10;
+        }
+
+        return min($limit, 500);
+    }
+
+    public function getDisplayTitle(): string
+    {
+        if ($this->title) {
+            return $this->title;
+        }
+
+        $dimensionLabel = $this->getDimensionLabel();
+        $metricLabel = $this->getMetricLabel();
+
+        if ($dimensionLabel && $metricLabel) {
+            return $dimensionLabel . ' - ' . $metricLabel;
+        }
+
+        return $metricLabel ?: Craft::t('metrix', 'Widget');
     }
 
     public function getFrontEndData(): array
@@ -275,6 +329,10 @@ abstract class Widget extends SavableComponent implements WidgetInterface
             'canonicalMetric' => $this->canonicalMetric,
             'canonicalDimension' => $this->canonicalDimension,
             'width' => (string)$this->width,
+            'title' => $this->title,
+            'subtitle' => $this->subtitle,
+            'displayTitle' => $this->getDisplayTitle(),
+            'limit' => $this->getRowLimit(),
         ];
     }
 
@@ -310,6 +368,7 @@ abstract class Widget extends SavableComponent implements WidgetInterface
             'period' => $period,
             'metric' => $this->getResolvedMetric(),
             'dimension' => $this->getResolvedDimension(),
+            'limit' => $this->getRowLimit(),
         ]);
 
         return $dataType->getData($refreshCache);

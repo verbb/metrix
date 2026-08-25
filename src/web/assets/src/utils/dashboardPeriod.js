@@ -1,8 +1,21 @@
 import useAppStore from '@dashboard/hooks/useAppStore';
 
 /**
- * Build widget-data request params. When `globalPeriod` is set in the header it
- * overrides every widget for the session; otherwise each widget uses its own period.
+ * Match PHP Widget::getInheritPeriod() — explicit false opts out of the header range.
+ */
+export function widgetInheritsDashboardPeriod(widget) {
+    const { inheritPeriod, period } = widget?.data || {};
+
+    if (inheritPeriod === null || inheritPeriod === undefined) {
+        return period == null;
+    }
+
+    return Boolean(inheritPeriod);
+}
+
+/**
+ * Build widget-data request params.
+ * Dashboard `globalPeriod` is sent only when the widget inherits the view date range.
  */
 export function getWidgetDataParams(widget, { refresh = false } = {}) {
     const { globalPeriod } = useAppStore.getState();
@@ -12,7 +25,7 @@ export function getWidgetDataParams(widget, { refresh = false } = {}) {
         params.refresh = true;
     }
 
-    if (globalPeriod) {
+    if (globalPeriod && widgetInheritsDashboardPeriod(widget)) {
         params.globalPeriod = globalPeriod;
     }
 

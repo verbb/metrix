@@ -210,6 +210,7 @@ class GoogleAnalytics extends OAuthSource
 
             if ($widgetData->widget::supportsDimensions() && $widgetData->dimension) {
                 $payload['dimensions'] = [['name' => $widgetData->dimension]];
+                $payload['limit'] = $widgetData->getRowLimit();
             } else {
                 $payload['dimensions'] = [['name' => $intervalDimension]];
             }
