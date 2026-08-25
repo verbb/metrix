@@ -85,6 +85,98 @@ class Presets extends Component
         ];
     }
 
+    /**
+     * Ensures preset rows exist in the database.
+     *
+     * Presets are authored in project config and synced via listeners. During install, or after
+     * a table rebuild, project config can already contain presets while the table is empty.
+     */
+    public function ensurePresetsInDatabase(): void
+    {
+        if (!Craft::$app->getDb()->tableExists('{{%metrix_presets}}')) {
+            return;
+        }
+
+        if ($this->_hasPresetRecords()) {
+            return;
+        }
+
+        $configPresets = Craft::$app->getProjectConfig()->get(self::CONFIG_PRESETS_KEY, true) ?? [];
+
+        foreach ($configPresets as $uid => $data) {
+            $event = new ConfigEvent([
+                'path' => self::CONFIG_PRESETS_KEY . '.' . $uid,
+                'newValue' => $data,
+            ]);
+            $event->tokenMatches = [$uid];
+
+            $this->handleChangedPreset($event);
+        }
+    }
+
+    public function ensureDefaultPresets(): void
+    {
+        $this->ensurePresetsInDatabase();
+
+        if ($this->_hasPresetRecords()) {
+            return;
+        }
+
+        $this->createDefaultPreset();
+    }
+
+    public function createDefaultPreset(): void
+    {
+        $widgets = [
+            [
+                'type' => 'verbb\\metrix\\widgets\\Line',
+                'period' => 'verbb\\metrix\\periods\\Last7Days',
+                'metric' => 'sessions',
+                'width' => '2',
+            ],
+            [
+                'type' => 'verbb\\metrix\\widgets\\Realtime',
+                'width' => '1',
+            ],
+            [
+                'type' => 'verbb\\metrix\\widgets\\Counter',
+                'period' => 'verbb\\metrix\\periods\\Last7Days',
+                'metric' => 'sessions',
+                'width' => '1',
+            ],
+            [
+                'type' => 'verbb\\metrix\\widgets\\Pie',
+                'period' => 'verbb\\metrix\\periods\\Last7Days',
+                'metric' => 'sessions',
+                'dimension' => 'browser',
+                'width' => '1',
+            ],
+            [
+                'type' => 'verbb\\metrix\\widgets\\Table',
+                'period' => 'verbb\\metrix\\periods\\Last7Days',
+                'metric' => 'sessions',
+                'dimension' => 'operatingSystem',
+                'width' => '1',
+            ],
+            [
+                'type' => 'verbb\\metrix\\widgets\\Table',
+                'period' => 'verbb\\metrix\\periods\\Last7Days',
+                'metric' => 'sessions',
+                'dimension' => 'country',
+                'width' => '1',
+            ],
+        ];
+
+        $preset = new Preset([
+            'name' => 'Default',
+            'handle' => 'default',
+            'enabled' => true,
+            'widgets' => $widgets,
+        ]);
+
+        $this->savePreset($preset);
+    }
+
     public function savePreset(Preset $preset, bool $runValidation = true): bool
     {
         $isNewPreset = $preset->getIsNew();
@@ -309,5 +401,13 @@ class Presets extends Component
         $query->andWhere(['uid' => $uid]);
 
         return $query->one() ?? new PresetRecord();
+    }
+
+    private function _hasPresetRecords(): bool
+    {
+        return (new Query())
+            ->from(['{{%metrix_presets}}'])
+            ->where(['dateDeleted' => null])
+            ->exists();
     }
 }
