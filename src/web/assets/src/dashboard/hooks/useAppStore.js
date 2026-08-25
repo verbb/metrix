@@ -5,6 +5,7 @@ import { zustandHmrFix } from '@utils/store';
 const useAppStore = create((set) => {
     return {
         currentView: null,
+        globalPeriod: null,
         realtimeInterval: null,
         presets: [],
         sources: [],
@@ -14,6 +15,10 @@ const useAppStore = create((set) => {
 
         setCurrentView: (currentView) => {
             return set({ currentView });
+        },
+
+        setGlobalPeriod: (globalPeriod) => {
+            return set({ globalPeriod });
         },
 
         setRealtimeInterval: (realtimeInterval) => {

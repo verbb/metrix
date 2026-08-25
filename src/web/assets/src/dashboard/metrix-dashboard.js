@@ -56,6 +56,7 @@ defineMetrixCpConstructor('Dashboard', (settings) => {
         setPresets,
         setSources,
         setRealtimeInterval,
+        setGlobalPeriod,
     } = useAppStore.getState();
 
     const {
@@ -77,6 +78,7 @@ defineMetrixCpConstructor('Dashboard', (settings) => {
     setViewOptions(viewOptions);
     setPresets(presets);
     setSources(sources);
+    setGlobalPeriod(null);
 
     mountMetrixReactApp({
         mountNode,

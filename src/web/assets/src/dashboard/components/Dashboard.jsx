@@ -27,8 +27,12 @@ export const Dashboard = () => {
     const viewOptions = useAppStore((state) => { return state.viewOptions; });
     const currentView = useAppStore((state) => { return state.currentView; });
     const setCurrentView = useAppStore((state) => { return state.setCurrentView; });
+    const globalPeriod = useAppStore((state) => { return state.globalPeriod; });
+    const setGlobalPeriod = useAppStore((state) => { return state.setGlobalPeriod; });
+    const periodOptions = useAppStore((state) => { return state.periodOptions; });
 
     const sources = useAppStore((state) => { return state.sources; });
+    const fetchAllWidgetData = useWidgetStore((state) => { return state.fetchAllWidgetData; });
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -71,8 +75,14 @@ export const Dashboard = () => {
         }
     };
 
+    const handleGlobalPeriodChange = (period) => {
+        setGlobalPeriod(period || null);
+        fetchAllWidgetData();
+    };
+
     const handleViewChange = async(view) => {
         setCurrentView(view);
+        setGlobalPeriod(null);
 
         // Update query string
         setQueryParam('view', view);
@@ -177,8 +187,12 @@ export const Dashboard = () => {
                 viewOptions={viewOptions}
                 currentView={currentView}
                 onChangeView={handleViewChange}
+                periodOptions={periodOptions}
+                globalPeriod={globalPeriod}
+                onGlobalPeriodChange={handleGlobalPeriodChange}
                 showHeader={showHeader()}
                 showHeaderActions={showHeaderActions()}
+                showGlobalPeriod={hasWidgets}
             />
 
             {renderContent()}

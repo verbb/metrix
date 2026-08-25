@@ -5,7 +5,7 @@ use verbb\metrix\Metrix;
 use verbb\metrix\base\Widget;
 use verbb\metrix\base\WidgetInterface;
 use verbb\metrix\helpers\Options;
-use verbb\metrix\periods\Today;
+use verbb\metrix\periods\Last30Days;
 use verbb\metrix\widgets\Line;
 
 use Craft;
@@ -39,7 +39,7 @@ class Settings extends Model
         if (!$this->defaultWidgetConfig) {
             $this->defaultWidgetConfig = [
                 'type' => Line::class,
-                'period' => Today::class,
+                'inheritPeriod' => true,
                 'width' => 1,
             ];
         }
@@ -181,6 +181,11 @@ class Settings extends Model
         }
 
         return $nested;
+    }
+
+    public function getDefaultGlobalPeriod(): string
+    {
+        return Last30Days::class;
     }
 
     public function getNewWidgetConfig(): array
