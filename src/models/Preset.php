@@ -5,11 +5,15 @@ use verbb\metrix\Metrix;
 use verbb\metrix\base\Widget;
 use verbb\metrix\base\WidgetInterface;
 use verbb\metrix\helpers\Options;
+use verbb\metrix\records\Preset as PresetRecord;
 
+use Craft;
 use craft\base\SavableComponent;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
+use craft\validators\HandleValidator;
+use craft\validators\UniqueValidator;
 
 use DateTime;
 
@@ -44,6 +48,36 @@ class Preset extends SavableComponent
         }
 
         parent::__construct($config);
+    }
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['name', 'handle'], 'trim'];
+        $rules[] = [['name', 'handle'], 'required'];
+        $rules[] = [['name', 'handle'], 'string', 'max' => 255];
+        $rules[] = [
+            ['handle'],
+            HandleValidator::class,
+            'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title'],
+        ];
+        $rules[] = [
+            ['handle'],
+            UniqueValidator::class,
+            'targetClass' => PresetRecord::class,
+            'filter' => $this->id ? ['not', ['id' => $this->id]] : null,
+        ];
+
+        return $rules;
+    }
+
+    public function attributeLabels(): array
+    {
+        return [
+            'name' => Craft::t('metrix', 'Name'),
+            'handle' => Craft::t('app', 'Handle'),
+        ];
     }
 
     public function getCpEditUrl(): string
@@ -150,7 +184,7 @@ class Preset extends SavableComponent
     {
         $widgets = $this->getFrontEndWidgets();
         $widgetTypeOptions = Options::getEnabledWidgetTypeSchemaOptions();
-        $newWidget = Widget::getNewWigetConfig();
+        $newWidget = Widget::getNewWidgetConfig();
         $firstSource = Metrix::$plugin->getSources()->getAllConfiguredSources()[0] ?? null;
 
         return [

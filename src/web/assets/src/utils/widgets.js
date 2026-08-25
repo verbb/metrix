@@ -19,11 +19,12 @@ export const getWidgetComponent = (type) => {
     return Craft.Metrix.Config.getRegisteredWidget(type) || typeToComponentMap[type] || null;
 };
 
-// Preload a single widget
-export const preloadWidget = (widget) => {
+// Preload a single widget. Optional extras (e.g. `__id`) are merged onto the result.
+export const preloadWidget = (widget, extras = {}) => {
     return {
         component: getWidgetComponent(widget.type),
         data: widget,
+        ...extras,
     };
 };
 

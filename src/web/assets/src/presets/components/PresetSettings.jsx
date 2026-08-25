@@ -1,3 +1,5 @@
+import { nanoid } from 'nanoid';
+
 import { WidgetSettingsShell } from '@components/WidgetSettingsShell';
 
 import { useWidgetSettingsForm } from '@hooks/useWidgetSettingsForm';
@@ -26,11 +28,17 @@ export function PresetSettings({
 
     const handleFormSubmit = (data) => {
         const mergedData = mergeFormData(data);
+
+        // Coerce width so the column picker treats newly added rows like saved ones.
+        if (mergedData.width != null) {
+            mergedData.width = Number(mergedData.width) || 1;
+        }
+
         const preloaded = preloadWidget(mergedData);
 
         onSave?.({
             ...preloaded,
-            __id: widget.__id,
+            __id: widget.__id || nanoid(),
         });
         onClose?.();
     };

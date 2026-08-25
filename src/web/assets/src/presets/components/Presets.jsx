@@ -35,7 +35,6 @@ import { WidthPicker } from '@components/WidthPicker';
 import { PresetNew } from '@presets/components/PresetNew';
 import { PresetSettings } from '@presets/components/PresetSettings';
 
-import { preloadWidget } from '@utils/widgets';
 import { cn } from '@utils';
 
 const DragHandleIcon = () => (
@@ -235,9 +234,13 @@ export const Presets = ({ widgets: initialWidgets }) => {
     };
 
     const handleAddNew = (newWidget) => {
+        // PresetSettings already returns a preloaded widget; just ensure a stable sortable id.
         setWidgets((prevWidgets) => [
             ...prevWidgets,
-            preloadWidget(newWidget.data, { __id: nanoid() }),
+            {
+                ...newWidget,
+                __id: newWidget.__id || nanoid(),
+            },
         ]);
     };
 

@@ -4,11 +4,13 @@ import { cn } from '@utils';
 
 export const WidthPicker = ({ value, onChange }) => {
     const [hoveredIndex, setHoveredIndex] = useState(null);
+    // Form values may arrive as strings; coerce so active columns match saved widgets.
+    const activeWidth = Number(value) || 1;
 
     return (
         <div className="width-picker">
             {[0, 1, 2].map((index) => {
-                const isHoveredOrPrevious = hoveredIndex !== null ? index <= hoveredIndex : index <= value - 1;
+                const isHoveredOrPrevious = hoveredIndex !== null ? index <= hoveredIndex : index <= activeWidth - 1;
 
                 const isFirst = index === 0;
                 const isLast = index === 2;
@@ -25,7 +27,7 @@ export const WidthPicker = ({ value, onChange }) => {
                     // - The last column
                     if (
                         index === hoveredIndex || // Currently hovered column
-                        (hoveredIndex === null && index === value - 1) || // Active column when no hover
+                        (hoveredIndex === null && index === activeWidth - 1) || // Active column when no hover
                         (isLast && hoveredIndex === null) // Last column when no hover
                     ) {
                         cornerClass.push('rounded-right');
@@ -48,7 +50,7 @@ export const WidthPicker = ({ value, onChange }) => {
                             setHoveredIndex(null);
                         }}
                         onClick={() => {
-                            onChange((index + 1).toString()); // Update value when clicked.
+                            onChange(index + 1);
                         }}
                     ></a>
                 );
