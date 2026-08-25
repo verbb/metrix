@@ -2,6 +2,7 @@
 namespace verbb\metrix\controllers;
 
 use verbb\metrix\Metrix;
+use verbb\metrix\base\Source;
 use verbb\metrix\base\Widget;
 use verbb\metrix\helpers\DashboardPermissions;
 use verbb\metrix\helpers\Options;
@@ -166,7 +167,8 @@ class DashboardController extends Controller
         } catch (ForbiddenHttpException $e) {
             return $this->asFailure($e->getMessage());
         } catch (Throwable $e) {
-            return $this->asFailure($e->getMessage());
+            // Expand Guzzle's truncated body summary when the raw exception bubbles up.
+            return $this->asFailure(Source::formatExceptionMessage($e));
         }
     }
 
@@ -212,7 +214,7 @@ class DashboardController extends Controller
             } catch (Throwable $e) {
                 $results[$widgetId] = [
                     'success' => false,
-                    'error' => $e->getMessage(),
+                    'error' => Source::formatExceptionMessage($e),
                 ];
             }
         }

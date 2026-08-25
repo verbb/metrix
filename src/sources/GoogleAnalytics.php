@@ -186,68 +186,80 @@ class GoogleAnalytics extends OAuthSource
 
     public function fetchData(WidgetDataInterface $widgetData): array
     {
-        $intervalDimension = $this->_getIntervalDimension($widgetData);
-        $dateRange = $widgetData->period::getCurrentDateRange();
-
-        // Check for "All Time" and set a wide date range
-        if ($widgetData->period === 'verbb\\metrix\\periods\\AllTime') {
-            $startDate = $this->_getPropertyCreationDate();
-            $endDate = (new DateTime())->format('Y-m-d');
-        } else {
+        try {
+            $intervalDimension = $this->_getIntervalDimension($widgetData);
             $dateRange = $widgetData->period::getCurrentDateRange();
-            $startDate = $dateRange['start']->format('Y-m-d');
-            $endDate = $dateRange['end']->format('Y-m-d');
-        }
 
-        $payload = [
-            'metrics' => [['name' => $widgetData->metric]],
-            'dateRanges' => [[
-                'startDate' => $startDate,
-                'endDate' => $endDate,
-            ]],
-        ];
-
-        if ($widgetData->widget::supportsDimensions() && $widgetData->dimension) {
-            $payload['dimensions'] = [['name' => $widgetData->dimension]];
-        } else {
-            $payload['dimensions'] = [['name' => $intervalDimension]];
-        }
-
-        $response = $this->request('POST', 'https://analyticsdata.googleapis.com/v1beta/' . $this->getPropertyId() . ':runReport', [
-            'json' => $payload,
-        ]);
-
-        $results = $response['rows'] ?? [];
-        $data = [];
-
-        foreach ($results as $result) {
-            $metric = $result['metricValues'][0]['value'] ?? null;
-            $dimension = $this->_formatDimension($widgetData, $result['dimensionValues'][0]['value'] ?? null);
-
-            if ($dimension) {
-                $data[$dimension] = $metric;
+            // Check for "All Time" and set a wide date range
+            if ($widgetData->period === 'verbb\\metrix\\periods\\AllTime') {
+                $startDate = $this->_getPropertyCreationDate();
+                $endDate = (new DateTime())->format('Y-m-d');
+            } else {
+                $dateRange = $widgetData->period::getCurrentDateRange();
+                $startDate = $dateRange['start']->format('Y-m-d');
+                $endDate = $dateRange['end']->format('Y-m-d');
             }
+
+            $payload = [
+                'metrics' => [['name' => $widgetData->metric]],
+                'dateRanges' => [[
+                    'startDate' => $startDate,
+                    'endDate' => $endDate,
+                ]],
+            ];
+
+            if ($widgetData->widget::supportsDimensions() && $widgetData->dimension) {
+                $payload['dimensions'] = [['name' => $widgetData->dimension]];
+            } else {
+                $payload['dimensions'] = [['name' => $intervalDimension]];
+            }
+
+            $response = $this->request('POST', 'https://analyticsdata.googleapis.com/v1beta/' . $this->getPropertyId() . ':runReport', [
+                'json' => $payload,
+            ]);
+
+            $results = $response['rows'] ?? [];
+            $data = [];
+
+            foreach ($results as $result) {
+                $metric = $result['metricValues'][0]['value'] ?? null;
+                $dimension = $this->_formatDimension($widgetData, $result['dimensionValues'][0]['value'] ?? null);
+
+                if ($dimension) {
+                    $data[$dimension] = $metric;
+                }
+            }
+
+            return $data;
+        } catch (Throwable $e) {
+            self::apiError($this, $e);
         }
 
-        return $data;
+        return [];
     }
 
     public function fetchRealtimeData(WidgetDataInterface $widgetData): array
     {
-        $payload = [
-            'metrics' => [['name' => 'activeUsers']],
-            'limit' => 100,
-        ];
+        try {
+            $payload = [
+                'metrics' => [['name' => 'activeUsers']],
+                'limit' => 100,
+            ];
 
-        $response = $this->request('POST', 'https://analyticsdata.googleapis.com/v1beta/' . $this->getPropertyId() . ':runRealtimeReport', [
-            'json' => $payload,
-        ]);
+            $response = $this->request('POST', 'https://analyticsdata.googleapis.com/v1beta/' . $this->getPropertyId() . ':runRealtimeReport', [
+                'json' => $payload,
+            ]);
 
-        $results = $response['rows'] ?? [];
+            $results = $response['rows'] ?? [];
 
-        return [
-            Craft::t('metrix', 'Active users') => $results[0]['metricValues'][0]['value'] ?? null,
-        ];
+            return [
+                Craft::t('metrix', 'Active users') => $results[0]['metricValues'][0]['value'] ?? null,
+            ];
+        } catch (Throwable $e) {
+            self::apiError($this, $e);
+        }
+
+        return [];
     }
 
 

@@ -152,7 +152,12 @@ abstract class Widget extends SavableComponent implements WidgetInterface
 
     public function getResolvedMetric(): ?string
     {
+        // Picker may still pass `__canonical__:visitors` as the metric value before normalize.
         if ($this->metric) {
+            if ($canonicalKey = Canonical::canonicalKeyFromValue($this->metric)) {
+                return $this->getSource()?->resolveCanonicalMetric($canonicalKey);
+            }
+
             return $this->metric;
         }
 
@@ -166,6 +171,10 @@ abstract class Widget extends SavableComponent implements WidgetInterface
     public function getResolvedDimension(): ?string
     {
         if ($this->dimension) {
+            if ($canonicalKey = Canonical::canonicalKeyFromValue($this->dimension)) {
+                return $this->getSource()?->resolveCanonicalDimension($canonicalKey);
+            }
+
             return $this->dimension;
         }
 

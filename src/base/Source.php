@@ -16,6 +16,7 @@ use verbb\auth\helpers\Provider as ProviderHelper;
 
 use DateTime;
 use Exception;
+use Throwable;
 
 use GuzzleHttp\Exception\RequestException;
 
@@ -36,30 +37,7 @@ abstract class Source extends SavableComponent implements SourceInterface
 
     public static function apiError($source, $exception, $throwError = true): void
     {
-        $messageText = $exception->getMessage();
-
-        // Guzzle truncates bodies in getMessage(); prefer the full response body when available.
-        $requestException = null;
-
-        if ($exception instanceof RequestException) {
-            $requestException = $exception;
-        } elseif ($exception->getPrevious() instanceof RequestException) {
-            $requestException = $exception->getPrevious();
-        }
-
-        if ($requestException && $requestException->getResponse()) {
-            $body = $requestException->getResponse()->getBody();
-
-            if ($body->isSeekable()) {
-                $body->rewind();
-            }
-
-            $responseBody = (string)$body;
-
-            if ($responseBody !== '') {
-                $messageText = $responseBody;
-            }
-        }
+        $messageText = self::formatExceptionMessage($exception);
 
         $message = Craft::t('metrix', 'API error: “{message}” {file}:{line}', [
             'message' => $messageText,
@@ -71,8 +49,62 @@ abstract class Source extends SavableComponent implements SourceInterface
         Metrix::error($exception->getTraceAsString());
 
         if ($throwError) {
-            throw new Exception($message);
+            throw new Exception($message, (int)$exception->getCode(), $exception);
         }
+    }
+
+    /**
+     * Prefer the full HTTP response body over Guzzle's truncated getMessage() summary.
+     */
+    public static function formatExceptionMessage(Throwable $exception): string
+    {
+        $requestException = self::findRequestException($exception);
+
+        if ($requestException && ($response = $requestException->getResponse())) {
+            $body = $response->getBody();
+
+            if ($body->isSeekable()) {
+                $body->rewind();
+            }
+
+            $responseBody = trim((string)$body);
+
+            if ($responseBody !== '') {
+                $decoded = Json::decodeIfJson($responseBody);
+                $prettyBody = is_array($decoded)
+                    ? Json::encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+                    : $responseBody;
+
+                $request = $requestException->getRequest();
+                $status = $response->getStatusCode() . ' ' . $response->getReasonPhrase();
+
+                return sprintf(
+                    "%s %s resulted in %s:\n%s",
+                    $request->getMethod(),
+                    (string)$request->getUri(),
+                    $status,
+                    $prettyBody
+                );
+            }
+        }
+
+        return $exception->getMessage();
+    }
+
+    private static function findRequestException(Throwable $exception): ?RequestException
+    {
+        $current = $exception;
+
+        // Walk the full previous chain — Auth/League often wrap the Guzzle exception.
+        while ($current) {
+            if ($current instanceof RequestException) {
+                return $current;
+            }
+
+            $current = $current->getPrevious();
+        }
+
+        return null;
     }
 
 
