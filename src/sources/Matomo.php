@@ -7,9 +7,7 @@ use verbb\metrix\base\WidgetDataInterface;
 
 use Craft;
 use craft\helpers\App;
-use craft\helpers\Json;
 
-use DateTime;
 use Throwable;
 
 use GuzzleHttp\Client;
@@ -94,8 +92,7 @@ class Matomo extends CredentialsSource
                     ];
                 }
 
-                // Sort the options alphabetically by label
-                usort($options, function ($a, $b) {
+                usort($options, function($a, $b) {
                     return strcmp($a['label'], $b['label']);
                 });
 
@@ -110,7 +107,6 @@ class Matomo extends CredentialsSource
 
     public function fetchAvailableMetrics(): array
     {
-        // Hardcoded metrics based on Matomo documentation
         $metrics = [
             'nb_visits' => 'Total Visits',
             'nb_uniq_visitors' => 'Unique Visitors',
@@ -127,7 +123,6 @@ class Matomo extends CredentialsSource
 
     public function fetchAvailableDimensions(): array
     {
-        // Hardcoded list of dimensions based on Matomo documentation
         $dimensions = [
             'browser' => 'Browser',
             'country' => 'Country',
@@ -143,54 +138,17 @@ class Matomo extends CredentialsSource
 
     public function fetchData(WidgetDataInterface $widgetData): array
     {
-        $intervalDimension = $this->_getIntervalDimension($widgetData);
-        $dateRange = $widgetData->period::getCurrentDateRange();
-        $startDate = $dateRange['start']->format('Y-m-d');
-        $endDate = $dateRange['end']->format('Y-m-d');
+        try {
+            if ($widgetData->widget::supportsDimensions() && $widgetData->dimension) {
+                return $this->_fetchDimensionData($widgetData);
+            }
 
-        $params = [
-            'module' => 'API',
-            'method' => 'VisitsSummary.get',
-            'idSite' => $this->getSiteId(),
-            'period' => $intervalDimension,
-            'date' => "$startDate,$endDate",
-            'format' => 'json',
-            'token_auth' => $this->getApiToken(),
-        ];
-
-        $response = $this->request('POST', '', ['form_params' => $params]);
-
-        $data = [];
-
-        foreach ($response as $key => $result) {
-            $data[$key] = $result[$widgetData->metric] ?? null;
+            return $this->_fetchSummaryData($widgetData);
+        } catch (Throwable $e) {
+            self::apiError($this, $e);
         }
 
-        return $data;
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
-    protected function getCanonicalMetricMap(): array
-    {
-        return [
-            'visitors' => 'nb_uniq_visitors',
-            'pageviews' => 'nb_pageviews',
-            'sessions' => 'nb_visits',
-            'bounce_rate' => 'bounce_rate',
-            'avg_duration' => 'avg_time_on_site',
-        ];
-    }
-
-    protected function getCanonicalDimensionMap(): array
-    {
-        return [
-            'referrer' => 'referrer',
-            'country' => 'country',
-            'browser' => 'browser',
-        ];
+        return [];
     }
 
     public function fetchConnection(): bool
@@ -230,8 +188,130 @@ class Matomo extends CredentialsSource
     }
 
 
+    // Protected Methods
+    // =========================================================================
+
+    protected function getCanonicalMetricMap(): array
+    {
+        return [
+            'visitors' => 'nb_uniq_visitors',
+            'pageviews' => 'nb_pageviews',
+            'sessions' => 'nb_visits',
+            'bounce_rate' => 'bounce_rate',
+            'avg_duration' => 'avg_time_on_site',
+        ];
+    }
+
+    protected function getCanonicalDimensionMap(): array
+    {
+        return [
+            'referrer' => 'referrer',
+            'country' => 'country',
+            'browser' => 'browser',
+            'city' => 'city',
+        ];
+    }
+
+
     // Private Methods
     // =========================================================================
+
+    private function _fetchSummaryData(WidgetDataInterface $widgetData): array
+    {
+        $intervalDimension = $this->_getIntervalDimension($widgetData);
+        $dateRange = $widgetData->period::getCurrentDateRange();
+        $startDate = $dateRange['start']->format('Y-m-d');
+        $endDate = $dateRange['end']->format('Y-m-d');
+
+        $params = [
+            'module' => 'API',
+            'method' => 'VisitsSummary.get',
+            'idSite' => $this->getSiteId(),
+            'period' => $intervalDimension,
+            'date' => "$startDate,$endDate",
+            'format' => 'json',
+            'token_auth' => $this->getApiToken(),
+        ];
+
+        $response = $this->request('POST', '', ['form_params' => $params]);
+        $data = [];
+
+        foreach ($response as $key => $result) {
+            // Single-day summary may be a flat metric map rather than date => metrics.
+            if (is_array($result) && array_key_exists($widgetData->metric, $result)) {
+                $data[$key] = $result[$widgetData->metric];
+            } elseif ($key === $widgetData->metric) {
+                $data['total'] = $result;
+            }
+        }
+
+        return $data;
+    }
+
+    private function _fetchDimensionData(WidgetDataInterface $widgetData): array
+    {
+        $method = match ($widgetData->dimension) {
+            'browser' => 'DevicesDetection.getBrowsers',
+            'country' => 'UserCountry.getCountry',
+            'city' => 'UserCountry.getCity',
+            'referrer' => 'Referrers.getReferrers',
+            default => null,
+        };
+
+        if (!$method) {
+            return [];
+        }
+
+        $dateRange = $widgetData->period::getCurrentDateRange();
+        $startDate = $dateRange['start']->format('Y-m-d');
+        $endDate = $dateRange['end']->format('Y-m-d');
+        $metric = $widgetData->metric;
+        $limit = $widgetData->getRowLimit();
+
+        $response = $this->request('POST', '', [
+            'form_params' => [
+                'module' => 'API',
+                'method' => $method,
+                'idSite' => $this->getSiteId(),
+                'period' => 'range',
+                'date' => "$startDate,$endDate",
+                'format' => 'json',
+                'filter_limit' => $limit,
+                'filter_sort_column' => $metric,
+                'filter_sort_order' => 'desc',
+                'token_auth' => $this->getApiToken(),
+            ],
+        ]);
+
+        if (!is_array($response)) {
+            return [];
+        }
+
+        $data = [];
+
+        foreach ($response as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $label = $row['label'] ?? null;
+
+            if ($label === null || $label === '') {
+                continue;
+            }
+
+            $value = $row[$metric] ?? null;
+
+            // Bounce rate arrives as "45%" — coerce to numeric for charts/tables.
+            if (is_string($value) && str_ends_with($value, '%')) {
+                $value = (float)$value;
+            }
+
+            $data[(string)$label] = is_numeric($value) ? $value + 0 : 0;
+        }
+
+        return $data;
+    }
 
     private function _getIntervalDimension(WidgetDataInterface $widgetData): string
     {
