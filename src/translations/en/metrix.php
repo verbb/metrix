@@ -116,7 +116,7 @@ return [
   'New view' => 'New view',
   'New widget' => 'New widget',
   'No data available.' => 'No data available.',
-  'No icon sets exist yet.' => 'No icon sets exist yet.',
+  'No presets exist yet.' => 'No presets exist yet.',
   'No options found.' => 'No options found.',
   'No source exists with the ID “{id}”.' => 'No source exists with the ID “{id}”.',
   'No sources available' => 'No sources available',

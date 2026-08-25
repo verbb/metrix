@@ -54,7 +54,7 @@ var columns = [
 new Craft.VueAdminTable({
     columns: columns,
     container: '#presets-vue-admin-table',
-    emptyMessage: Craft.t('metrix', 'No icon sets exist yet.'),
+    emptyMessage: Craft.t('metrix', 'No presets exist yet.'),
     tableData: {{ tableData | json_encode | raw }},
 
     {% if craft.app.config.general.allowAdminChanges %}
