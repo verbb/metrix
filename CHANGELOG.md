@@ -8,23 +8,37 @@
 - Add canonical metric/dimension vocabulary for cross-provider presets and a grouped “Common” picker tier.
 - Add Dashboard permission enforcement on all dashboard AJAX actions.
 - Add batch widget data endpoint with client-side parallel widget hydration on dashboard load.
-- Add Dashboard-level date range control in the header (view-scoped; overrides all widgets for the session).
+- Add Dashboard-level date range control in the header (view-scoped; widgets inherit unless overridden).
 - Add line chart previous-period comparison series when the selected period supports it.
 - Add widget manual refresh via the widget actions menu (server-side cache bypass).
 - Add Dashboard widget hydration uses parallel per-widget requests again (progressive render; batch endpoint remains for API use).
+- Add source capability flags (`realtime`, `dimensions`, …) exposed to the CP for schema/UI gating.
+- Add optional widget **title**, **subtitle**, and table/pie **row limit** settings.
+- Add shared Chart.js renderer for line/bar/pie widgets.
+- Add “Updated …” in widget headers to show data freshness.
 
 ### Changed
 - Rebuild the Dashboard UI on [Plugin Kit](https://docs.verbb.io/plugin-kit/react/).
 - Widget settings can store `canonicalMetric` / `canonicalDimension`; resolved to provider-native API values at fetch time.
 - Source option lists prepend mapped Common metrics/dimensions before the provider’s full native catalog.
 - Widget data cache keys include the source settings hash; counter comparison periods are cached separately.
+- Widget data cache entries are tagged per source and invalidated on source save, delete, connect, and disconnect.
+- Dimension widget responses are sorted and truncated by row limit (provider `limit`/`filter_limit` where supported).
 - Widget data responses include `_meta.fetchedAt` and `_meta.fromCache`.
 - Default presets use semantic templates with canonical keys; fresh installs seed Website Overview, Content Performance, Acquisition, and Realtime.
 - Google Analytics OAuth default scope reduced to `analytics.readonly`.
+- Matomo dimension widgets use Reporting API breakdown methods (browsers, country, city, referrers) instead of VisitsSummary.
 
 ### Fixed
+- Fix Google Analytics (and other OAuth) sources staying “Connected” after a dead refresh token (e.g. Google Testing-mode 7-day expiry). Dashboard widgets now show a reconnect message instead of a raw API 401, and the source flips to Not Connected so you can reconnect from Sources.
+- Fix dashboard index crashing when resolving native metric/dimension labels against a dead OAuth source.
 - Fix lack of validation for Presets when saving.
 - Fix typo in `getNewWigetConfig()` to `getNewWidgetConfig()`.
+- Fix widget API errors showing Guzzle’s truncated `(truncated…)` body instead of the full provider response.
+- Fix canonical metric/dimension picker values (e.g. `__canonical__:visitors`) not resolving to provider-native fields before fetch.
+- Fix empty widgets treating `rows: []` as populated content.
+- Fix counter comparison colour treating `0%` as a decrease.
+- Fix empty-dashboard states missing CTAs for sources/views.
 
 ## 2.0.5 - 2026-05-03
 
