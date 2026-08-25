@@ -48,3 +48,6 @@ export const CHART_COLORS = [
     '#B56576', // Dusty pink
     '#EAAC8B', // Pale peach
 ];
+
+// Previous-period overlay — muted so it reads as context, not a second primary series.
+export const CHART_COMPARISON_COLOR = '#94A3B8'; // slate-400

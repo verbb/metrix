@@ -13,7 +13,7 @@ import {
 } from '@dashboard/components/charts/chartOptions';
 import { WidgetLarge } from '@dashboard/components/widgets/WidgetLarge';
 
-import { CHART_COLORS } from '@utils';
+import { CHART_COLORS, CHART_COMPARISON_COLOR } from '@utils';
 
 export const LineWidget = (props) => {
     const { widget } = props;
@@ -66,9 +66,9 @@ export const LineWidget = (props) => {
             datasets.push({
                 label: comparisonLabel,
                 data: comparisonValues,
-                borderColor: CHART_COLORS[1],
-                pointBackgroundColor: CHART_COLORS[1],
-                pointHoverBackgroundColor: CHART_COLORS[1],
+                borderColor: CHART_COMPARISON_COLOR,
+                pointBackgroundColor: CHART_COMPARISON_COLOR,
+                pointHoverBackgroundColor: CHART_COMPARISON_COLOR,
                 yAxisID: 'y',
                 borderWidth: 3,
                 pointHoverBorderColor: 'white',
@@ -78,7 +78,7 @@ export const LineWidget = (props) => {
                 tension: 0.4,
                 yAxisFormatter: yAxisTooltipFormat,
                 xAxisFormatter: xAxisTooltipFormat,
-                backgroundColor: createAreaFill(CHART_COLORS[1]),
+                backgroundColor: createAreaFill(CHART_COMPARISON_COLOR),
             });
         }
 
