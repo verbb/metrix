@@ -3,11 +3,9 @@ namespace verbb\metrix\controllers;
 
 use verbb\metrix\Metrix;
 use verbb\metrix\base\Widget;
+use verbb\metrix\helpers\DashboardPermissions;
 use verbb\metrix\helpers\Options;
 use verbb\metrix\helpers\Plugin;
-use verbb\metrix\helpers\Schema;
-use verbb\metrix\models\View;
-use verbb\metrix\widgets;
 
 use Craft;
 use craft\helpers\ArrayHelper;
@@ -15,6 +13,7 @@ use craft\helpers\Json;
 use craft\web\Controller;
 
 use Throwable;
+use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
 class DashboardController extends Controller
@@ -35,8 +34,9 @@ class DashboardController extends Controller
 
     public function actionIndex(): Response
     {
-        $settings = Metrix::$plugin->getSettings();
+        DashboardPermissions::requireDashboardAccess();
 
+        $settings = Metrix::$plugin->getSettings();
         $view = Craft::$app->getView();
 
         Plugin::registerDashboardAssets();
@@ -44,11 +44,16 @@ class DashboardController extends Controller
         $periodOptions = Options::getGroupedPeriodOptions();
         $viewOptions = Options::getViewOptions();
         $widgetTypeOptions = Options::getEnabledWidgetTypeSchemaOptions();
-        $newWidget = Widget::getNewWigetConfig();
+        $newWidget = Widget::getNewWidgetConfig();
         $sources = Options::getSourceOptions();
         $presets = Options::getPresetOptions();
 
         $currentView = $this->request->getParam('view') ?? $viewOptions[0]['value'] ?? null;
+
+        if ($currentView) {
+            DashboardPermissions::requireViewHandleAccess($currentView);
+        }
+
         $widgets = Metrix::$plugin->getWidgets()->getWidgetsForView($currentView);
 
         $data = [
@@ -74,15 +79,7 @@ class DashboardController extends Controller
         $viewHandle = $this->request->getParam('view');
         $presetHandle = $this->request->getParam('preset');
 
-        if (!$viewHandle) {
-            return $this->asFailure(Craft::t('metrix', 'Provide a valid view.'));
-        }
-
-        $view = Metrix::$plugin->getViews()->getViewByHandle($viewHandle);
-
-        if (!$view) {
-            return $this->asFailure(Craft::t('metrix', 'Unable to find view.'));
-        }
+        $view = DashboardPermissions::requireViewHandleAccess($viewHandle);
 
         // Load up any presets
         if ($presetHandle) {
@@ -122,6 +119,7 @@ class DashboardController extends Controller
     public function actionPropertyOptions(): Response
     {
         $this->requireAcceptsJson();
+        DashboardPermissions::requireDashboardAccess();
 
         $sourceHandle = $this->request->getParam('source');
         $property = $this->request->getParam('property');
@@ -136,11 +134,11 @@ class DashboardController extends Controller
             return $this->asFailure(Craft::t('metrix', 'Unable to find source.'));
         }
 
+        $data = [];
+
         if ($property === 'dimensions') {
             $data = $source->getAvailableDimensions();
-        }
-
-        if ($property === 'metrics') {
+        } elseif ($property === 'metrics') {
             $data = $source->getAvailableMetrics();
         }
 
@@ -151,7 +149,7 @@ class DashboardController extends Controller
     {
         $this->requireAcceptsJson();
 
-        $id = $this->request->getParam('id');
+        $id = (int)$this->request->getParam('id');
         $widget = Metrix::$plugin->getWidgets()->getWidgetById($id);
 
         if (!$widget) {
@@ -159,16 +157,74 @@ class DashboardController extends Controller
         }
 
         try {
-            return $this->asJson($widget->getWidgetData());
+            DashboardPermissions::requireWidgetAccess($widget);
+
+            return $this->asJson($widget->getWidgetData(
+                $this->_getGlobalPeriodFromRequest(),
+                $this->_getRefreshFromRequest(),
+            ));
+        } catch (ForbiddenHttpException $e) {
+            return $this->asFailure($e->getMessage());
         } catch (Throwable $e) {
             return $this->asFailure($e->getMessage());
         }
+    }
+
+    public function actionBatchWidgetData(): Response
+    {
+        $this->requireAcceptsJson();
+        DashboardPermissions::requireDashboardAccess();
+
+        $ids = $this->request->getBodyParam('ids', []);
+
+        if (!is_array($ids) || $ids === []) {
+            return $this->asFailure(Craft::t('metrix', 'Provide one or more widget IDs.'));
+        }
+
+        $globalPeriod = $this->_getGlobalPeriodFromRequest();
+        $refreshCache = $this->_getRefreshFromRequest();
+        $results = [];
+
+        foreach ($ids as $id) {
+            $widgetId = (int)$id;
+            $widget = Metrix::$plugin->getWidgets()->getWidgetById($widgetId);
+
+            if (!$widget) {
+                $results[$widgetId] = [
+                    'success' => false,
+                    'error' => Craft::t('metrix', 'Unable to find widget {id}.', ['id' => $widgetId]),
+                ];
+                continue;
+            }
+
+            try {
+                DashboardPermissions::requireWidgetAccess($widget);
+
+                $results[$widgetId] = [
+                    'success' => true,
+                    'data' => $widget->getWidgetData($globalPeriod, $refreshCache),
+                ];
+            } catch (ForbiddenHttpException $e) {
+                $results[$widgetId] = [
+                    'success' => false,
+                    'error' => $e->getMessage(),
+                ];
+            } catch (Throwable $e) {
+                $results[$widgetId] = [
+                    'success' => false,
+                    'error' => $e->getMessage(),
+                ];
+            }
+        }
+
+        return $this->asJson($results);
     }
 
     public function actionSaveWidget(): Response
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
+        DashboardPermissions::requireDashboardAccess();
 
         $id = $this->request->getParam('id');
         $widgetData = $this->request->getParam('widget', []) ?? [];
@@ -180,6 +236,8 @@ class DashboardController extends Controller
             if (!$widget) {
                 return $this->asFailure(Craft::t('metrix', 'Unable to find widget {id}.', ['id' => $id]));
             }
+
+            DashboardPermissions::requireWidgetAccess($widget);
 
             // If we're changing the type of an existing widget, set things up
             if ($type && $widget::class !== $type) {
@@ -201,11 +259,27 @@ class DashboardController extends Controller
 
         if ($viewHandle = ArrayHelper::remove($widgetData, 'view')) {
             $view = Metrix::$plugin->getViews()->getViewByHandle($viewHandle);
-
+            DashboardPermissions::requireViewAccess($view);
             $widget->setView($view);
         }
 
+        $metric = ArrayHelper::remove($widgetData, 'metric');
+        $dimension = ArrayHelper::remove($widgetData, 'dimension');
+
+        if (array_key_exists('inheritPeriod', $widgetData)) {
+            $widget->inheritPeriod = (bool)ArrayHelper::remove($widgetData, 'inheritPeriod');
+
+            if ($widget->inheritPeriod) {
+                $widget->period = null;
+            }
+        }
+
+        ArrayHelper::remove($widgetData, 'metricLabel');
+        ArrayHelper::remove($widgetData, 'dimensionLabel');
+        ArrayHelper::remove($widgetData, 'periodLabel');
+
         $widget->setAttributes($widgetData);
+        $widget->normalizePropertyFields($metric, $dimension);
 
         if (!Metrix::$plugin->getWidgets()->saveWidget($widget)) {
             return $this->asFailure(Craft::t('metrix', 'Unable to save widget {errors}.', ['errors' => Json::encode($widget->getErrors())]));
@@ -218,8 +292,18 @@ class DashboardController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
+        DashboardPermissions::requireDashboardAccess();
 
         $widgetIds = $this->request->getRequiredBodyParam('ids');
+
+        foreach ($widgetIds as $widgetId) {
+            $widget = Metrix::$plugin->getWidgets()->getWidgetById((int)$widgetId);
+
+            if ($widget) {
+                DashboardPermissions::requireWidgetAccess($widget);
+            }
+        }
+
         Metrix::$plugin->getWidgets()->reorderWidgets($widgetIds);
 
         return $this->asSuccess();
@@ -229,26 +313,36 @@ class DashboardController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
+        DashboardPermissions::requireDashboardAccess();
 
-        $widgetId = $this->request->getRequiredBodyParam('id');
+        $widgetId = (int)$this->request->getRequiredBodyParam('id');
+        $widget = Metrix::$plugin->getWidgets()->getWidgetById($widgetId);
 
+        if (!$widget) {
+            return $this->asFailure(Craft::t('metrix', 'Widget not found.'));
+        }
+
+        DashboardPermissions::requireWidgetAccess($widget);
         Metrix::$plugin->getWidgets()->deleteWidgetById($widgetId);
 
         return $this->asSuccess();
-    }    
+    }
 
     public function actionDuplicateWidget(): Response
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
+        DashboardPermissions::requireDashboardAccess();
 
-        $widgetId = $this->request->getRequiredBodyParam('id');
+        $widgetId = (int)$this->request->getRequiredBodyParam('id');
 
         $originalWidget = Metrix::$plugin->getWidgets()->getWidgetById($widgetId);
 
         if (!$originalWidget) {
             return $this->asFailure(Craft::t('metrix', 'Widget not found.'));
         }
+
+        DashboardPermissions::requireWidgetAccess($originalWidget);
 
         $duplicatedWidget = clone $originalWidget;
         $duplicatedWidget->id = null;
@@ -260,5 +354,20 @@ class DashboardController extends Controller
         }
 
         return $this->asJson($duplicatedWidget->getFrontEndData());
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _getGlobalPeriodFromRequest(): ?string
+    {
+        return $this->request->getParam('globalPeriod')
+            ?? $this->request->getBodyParam('globalPeriod');
+    }
+
+    private function _getRefreshFromRequest(): bool
+    {
+        return (bool)($this->request->getParam('refresh') ?? $this->request->getBodyParam('refresh'));
     }
 }
