@@ -192,6 +192,7 @@ class Preset extends SavableComponent
             'widgetSettings' => $widgetTypeOptions,
             'newWidget' => $newWidget,
             'hasSource' => (bool)$firstSource,
+            'sources' => Options::getSourceOptions(),
         ];
     }
 }

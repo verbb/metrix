@@ -16,6 +16,7 @@ import { MetrixAppErrorBoundary } from '../components/MetrixAppErrorBoundary.jsx
 import { Presets } from '@presets/components/Presets.jsx';
 
 import useAppStore from '@presets/hooks/useAppStore';
+import useDashboardAppStore from '@dashboard/hooks/useAppStore';
 import useWidgetSettingsStore from '@dashboard/hooks/useWidgetSettingsStore';
 
 import MetrixConfig from '../MetrixConfig.js';
@@ -36,6 +37,7 @@ defineMetrixCpConstructor('Presets', (settings) => {
         widgetSettings,
         newWidget,
         hasSource,
+        sources = [],
     } = settings;
 
     if (!hasSource) {
@@ -57,6 +59,9 @@ defineMetrixCpConstructor('Presets', (settings) => {
 
     const { loadSettings } = useWidgetSettingsStore.getState();
     const { setNewWidget } = useAppStore.getState();
+
+    // Capability gating in widget settings reads the dashboard app store.
+    useDashboardAppStore.getState().setSources(sources);
 
     loadSettings(widgetSettings);
     setNewWidget(newWidget);

@@ -167,8 +167,13 @@ class DashboardController extends Controller
         } catch (ForbiddenHttpException $e) {
             return $this->asFailure($e->getMessage());
         } catch (Throwable $e) {
-            // Expand Guzzle's truncated body summary when the raw exception bubbles up.
-            return $this->asFailure(Source::formatExceptionMessage($e));
+            if ($source = $widget->getSource()) {
+                if (Source::isOAuthReconnectFailure($e)) {
+                    Source::apiError($source, $e, false);
+                }
+            }
+
+            return $this->asFailure(Source::formatDashboardExceptionMessage($e));
         }
     }
 
@@ -212,9 +217,16 @@ class DashboardController extends Controller
                     'error' => $e->getMessage(),
                 ];
             } catch (Throwable $e) {
+                // Widget data fetch already ran apiError for provider failures; map reconnect cleanly.
+                if ($source = $widget->getSource()) {
+                    if (Source::isOAuthReconnectFailure($e)) {
+                        Source::apiError($source, $e, false);
+                    }
+                }
+
                 $results[$widgetId] = [
                     'success' => false,
-                    'error' => Source::formatExceptionMessage($e),
+                    'error' => Source::formatDashboardExceptionMessage($e),
                 ];
             }
         }

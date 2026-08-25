@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { nanoid } from 'nanoid';
 import { arrayMove } from '@dnd-kit/sortable';
 
-import { api } from '@utils';
+import { api, getWidgetFetchFaceMessage } from '@utils';
 import { getWidgetDataParams } from '@utils/dashboardPeriod';
 import { zustandHmrFix } from '@utils/store';
 import useAppStore from '@dashboard/hooks/useAppStore';
@@ -68,12 +68,12 @@ const useWidgetStore = create((set, get) => {
                         error: null,
                     });
                 } catch (error) {
-                    // Short face message only — raw provider/API text lives in WidgetError Details.
+                    // Reconnect messages are face-worthy; other API dumps stay in Details.
                     get().updateWidgetState(widget, {
                         loading: false,
                         waitForData: false,
                         error: {
-                            message: Craft.t('metrix', 'Failed to fetch widget data. Please try again.'),
+                            message: getWidgetFetchFaceMessage(error),
                             error,
                         },
                     });
@@ -219,11 +219,10 @@ const useWidgetStore = create((set, get) => {
                     loading: false,
                 });
             } catch (error) {
-                // Short face message only — raw provider/API text lives in WidgetError Details.
                 get().updateWidgetState(widget, {
                     loading: false,
                     error: {
-                        message: Craft.t('metrix', 'Failed to fetch widget data. Please try again.'),
+                        message: getWidgetFetchFaceMessage(error),
                         error,
                     },
                 });

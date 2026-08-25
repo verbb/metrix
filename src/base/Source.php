@@ -13,6 +13,8 @@ use craft\helpers\UrlHelper;
 use craft\validators\HandleValidator;
 
 use verbb\auth\helpers\Provider as ProviderHelper;
+use verbb\auth\Auth;
+use verbb\auth\exceptions\OAuthTokenRefreshException;
 
 use DateTime;
 use Exception;
@@ -37,6 +39,27 @@ abstract class Source extends SavableComponent implements SourceInterface
 
     public static function apiError($source, $exception, $throwError = true): void
     {
+        // Permanent OAuth failure — flip Connected off and surface a reconnect message.
+        if (self::isOAuthReconnectFailure($exception)) {
+            self::disconnectOAuthAfterAuthFailure($source);
+
+            $messageText = self::reconnectExceptionMessage();
+            $message = Craft::t('metrix', 'API error: “{message}” {file}:{line}', [
+                'message' => $messageText,
+                'file' => $exception->getFile(),
+                'line' => $exception->getLine(),
+            ]);
+
+            Metrix::error($source->name . ': ' . $message);
+            Metrix::error($exception->getTraceAsString());
+
+            if ($throwError) {
+                throw new Exception($messageText, (int)$exception->getCode(), $exception);
+            }
+
+            return;
+        }
+
         $messageText = self::formatExceptionMessage($exception);
 
         $message = Craft::t('metrix', 'API error: “{message}” {file}:{line}', [
@@ -51,6 +74,39 @@ abstract class Source extends SavableComponent implements SourceInterface
         if ($throwError) {
             throw new Exception($message, (int)$exception->getCode(), $exception);
         }
+    }
+
+    /**
+     * Short user-facing message for dashboard JSON errors (reconnect vs raw API dump).
+     */
+    public static function formatDashboardExceptionMessage(Throwable $exception): string
+    {
+        if (self::isOAuthReconnectFailure($exception)) {
+            return self::reconnectExceptionMessage();
+        }
+
+        return self::formatExceptionMessage($exception);
+    }
+
+    public static function reconnectExceptionMessage(): string
+    {
+        return Craft::t('metrix', 'This source needs to be reconnected. Open Sources, edit the source, and connect again.');
+    }
+
+    /**
+     * Whether the exception means the OAuth refresh/access token is permanently unusable.
+     */
+    public static function isOAuthReconnectFailure(Throwable $exception): bool
+    {
+        if (class_exists(OAuthTokenRefreshException::class) && self::findException($exception, OAuthTokenRefreshException::class)) {
+            return true;
+        }
+
+        $haystack = strtolower(self::formatExceptionMessage($exception) . ' ' . $exception->getMessage());
+
+        return str_contains($haystack, 'invalid_grant')
+            || str_contains($haystack, 'token has been expired or revoked')
+            || (str_contains($haystack, 'unauthenticated') && str_contains($haystack, 'oauth'));
     }
 
     /**
@@ -93,11 +149,20 @@ abstract class Source extends SavableComponent implements SourceInterface
 
     private static function findRequestException(Throwable $exception): ?RequestException
     {
+        return self::findException($exception, RequestException::class);
+    }
+
+    /**
+     * @template T of Throwable
+     * @param class-string<T> $class
+     * @return T|null
+     */
+    private static function findException(Throwable $exception, string $class): ?Throwable
+    {
         $current = $exception;
 
-        // Walk the full previous chain — Auth/League often wrap the Guzzle exception.
         while ($current) {
-            if ($current instanceof RequestException) {
+            if ($current instanceof $class) {
                 return $current;
             }
 
@@ -105,6 +170,23 @@ abstract class Source extends SavableComponent implements SourceInterface
         }
 
         return null;
+    }
+
+    /**
+     * Drop a dead OAuth token when Auth did not already (older Auth, or 401 without invalid_grant on refresh).
+     */
+    private static function disconnectOAuthAfterAuthFailure($source): void
+    {
+        if (!$source instanceof OAuthSource || !$source->id) {
+            return;
+        }
+
+        // Auth 2.0.45+ already deletes on invalid_grant; this is a no-op then.
+        if ($source->getToken()) {
+            Auth::getInstance()->getTokens()->deleteTokenByOwnerReference('metrix', (string)$source->id);
+        }
+
+        Metrix::$plugin->getSources()->invalidateWidgetDataCache($source);
     }
 
 
@@ -221,9 +303,28 @@ abstract class Source extends SavableComponent implements SourceInterface
         return md5(Json::encode($settings));
     }
 
+    public function getCapabilities(): array
+    {
+        return [
+            'realtime' => $this->supportsRealtime(),
+            'dimensions' => $this->supportsDimensions(),
+            'connection' => static::supportsConnection(),
+            'oauth' => static::supportsOAuthConnection(),
+        ];
+    }
+
     public function supportsRealtime(): bool
     {
         return method_exists($this, 'fetchRealtimeData');
+    }
+
+    /**
+     * Whether this source can answer dimension-breakdown widgets (table/pie).
+     * Override to false for event-only providers (e.g. Mixpanel).
+     */
+    public function supportsDimensions(): bool
+    {
+        return true;
     }
 
     public function resolveCanonicalMetric(string $key): ?string

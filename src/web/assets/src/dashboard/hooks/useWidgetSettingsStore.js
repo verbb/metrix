@@ -2,6 +2,39 @@ import { create } from 'zustand';
 import { api } from '@utils';
 
 import { zustandHmrFix } from '@utils/store';
+import useAppStore from '@dashboard/hooks/useAppStore';
+
+const REALTIME_TYPE = 'verbb\\metrix\\widgets\\Realtime';
+const DIMENSION_WIDGET_TYPES = new Set([
+    'verbb\\metrix\\widgets\\Table',
+    'verbb\\metrix\\widgets\\Pie',
+]);
+
+function getSourceCapabilities(sourceHandle) {
+    const sources = useAppStore.getState().sources || [];
+    const match = sources.find((entry) => entry.value === sourceHandle);
+
+    return match?.capabilities || {
+        realtime: true,
+        dimensions: true,
+    };
+}
+
+function filterChartTypeOptions(options, capabilities) {
+    return (options || []).filter((option) => {
+        const value = String(option.value || '');
+
+        if (value === REALTIME_TYPE && !capabilities.realtime) {
+            return false;
+        }
+
+        if (DIMENSION_WIDGET_TYPES.has(value) && capabilities.dimensions === false) {
+            return false;
+        }
+
+        return true;
+    });
+}
 
 const useWidgetSettingsStore = create((set, get) => {
     return {
@@ -21,7 +54,7 @@ const useWidgetSettingsStore = create((set, get) => {
             set({ settings });
         },
 
-        // Get schema for a specific widget type
+        // Get schema for a specific widget type, gated by source capabilities.
         getSettingsByType: (type, source) => {
             const schema = get().settings[type];
 
@@ -29,27 +62,48 @@ const useWidgetSettingsStore = create((set, get) => {
                 return [];
             }
 
-            // Map over schema fields and dynamically modify metrics/dimensions
-            return schema.map((field) => {
-                if (field.name === 'metric') {
-                    return {
-                        ...field,
-                        // Eager-load full list on mount (Metrix EagerComboboxField), not typeahead async.
-                        loadKey: source || '',
-                        loadOptions: () => { return get().fetchMetrics(source); },
-                    };
-                }
+            const capabilities = getSourceCapabilities(source);
 
-                if (field.name === 'dimension') {
-                    return {
-                        ...field,
-                        loadKey: source || '',
-                        loadOptions: () => { return get().fetchDimensions(source); },
-                    };
-                }
+            return schema
+                .filter((field) => {
+                    // Hide dimension pickers when the source cannot answer breakdowns.
+                    if (field.name === 'dimension' && capabilities.dimensions === false) {
+                        return false;
+                    }
 
-                return field;
-            });
+                    if (field.name === 'limit' && capabilities.dimensions === false) {
+                        return false;
+                    }
+
+                    return true;
+                })
+                .map((field) => {
+                    if (field.name === 'metric') {
+                        return {
+                            ...field,
+                            // Eager-load full list on mount (Metrix EagerComboboxField), not typeahead async.
+                            loadKey: source || '',
+                            loadOptions: () => { return get().fetchMetrics(source); },
+                        };
+                    }
+
+                    if (field.name === 'dimension') {
+                        return {
+                            ...field,
+                            loadKey: source || '',
+                            loadOptions: () => { return get().fetchDimensions(source); },
+                        };
+                    }
+
+                    if (field.name === 'type' && field.capabilityFilter) {
+                        return {
+                            ...field,
+                            options: filterChartTypeOptions(field.options, capabilities),
+                        };
+                    }
+
+                    return field;
+                });
         },
 
         // Fetch metrics for a given source

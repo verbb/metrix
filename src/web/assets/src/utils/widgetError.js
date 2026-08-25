@@ -42,3 +42,19 @@ export function getWidgetErrorDetail(error) {
         traceAsString: traceAsArray.join('\n'),
     };
 }
+
+/**
+ * Face message for widget fetch failures. Reconnect errors are short enough to show inline;
+ * other provider dumps stay behind Details.
+ */
+export function getWidgetFetchFaceMessage(error) {
+    const serverMessage = error?.response?.data?.message
+        || getErrorMessage(error)?.text
+        || '';
+
+    if (typeof serverMessage === 'string' && serverMessage.includes('needs to be reconnected')) {
+        return serverMessage;
+    }
+
+    return Craft.t('metrix', 'Failed to fetch widget data. Please try again.');
+}

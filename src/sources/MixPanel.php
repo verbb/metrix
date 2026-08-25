@@ -38,6 +38,12 @@ class MixPanel extends CredentialsSource
     // Public Methods
     // =========================================================================
 
+    public function supportsDimensions(): bool
+    {
+        // Mixpanel is event-centric; Metrix dimension widgets are not supported.
+        return false;
+    }
+
     public function defineRules(): array
     {
         $rules = parent::defineRules();

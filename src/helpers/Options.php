@@ -16,7 +16,11 @@ class Options
         $options = [];
 
         foreach (Metrix::$plugin->getSources()->getAllConfiguredSources() as $source) {
-            $options[] = ['label' => $source->name, 'value' => $source->handle];
+            $options[] = [
+                'label' => $source->name,
+                'value' => $source->handle,
+                'capabilities' => $source->getCapabilities(),
+            ];
         }
 
         return $options;

@@ -49,6 +49,7 @@ class CpReactAsset extends AssetBundle
                 'Failed to delete widget. Please try again.' => 'Failed to delete widget. Please try again.',
                 'Failed to duplicate widget. Please try again.' => 'Failed to duplicate widget. Please try again.',
                 'Failed to fetch widget data. Please try again.' => 'Failed to fetch widget data. Please try again.',
+                'This source needs to be reconnected. Open Sources, edit the source, and connect again.' => 'This source needs to be reconnected. Open Sources, edit the source, and connect again.',
                 'Failed to load options. Please try again.' => 'Failed to load options. Please try again.',
                 'Failed to load preset widgets.' => 'Failed to load preset widgets.',
                 'Failed to load widgets.' => 'Failed to load widgets.',
