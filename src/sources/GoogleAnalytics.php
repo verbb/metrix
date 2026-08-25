@@ -95,8 +95,7 @@ class GoogleAnalytics extends OAuthSource
         return [
             'https://www.googleapis.com/auth/userinfo.profile',
             'https://www.googleapis.com/auth/userinfo.email',
-            'https://www.googleapis.com/auth/analytics',
-            'https://www.googleapis.com/auth/analytics.edit',
+            'https://www.googleapis.com/auth/analytics.readonly',
         ];
     }
 
@@ -248,6 +247,37 @@ class GoogleAnalytics extends OAuthSource
 
         return [
             Craft::t('metrix', 'Active users') => $results[0]['metricValues'][0]['value'] ?? null,
+        ];
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function getCanonicalMetricMap(): array
+    {
+        return [
+            'visitors' => 'activeUsers',
+            'pageviews' => 'screenPageViews',
+            'sessions' => 'sessions',
+            'bounce_rate' => 'bounceRate',
+            'avg_duration' => 'averageSessionDuration',
+            'events' => 'eventCount',
+        ];
+    }
+
+    protected function getCanonicalDimensionMap(): array
+    {
+        return [
+            'page' => 'pagePath',
+            'entry_page' => 'landingPage',
+            'source' => 'sessionSource',
+            'referrer' => 'sessionSource',
+            'country' => 'country',
+            'region' => 'region',
+            'device' => 'deviceCategory',
+            'browser' => 'browser',
+            'os' => 'operatingSystem',
         ];
     }
 

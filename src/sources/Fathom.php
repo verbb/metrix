@@ -201,6 +201,34 @@ class Fathom extends CredentialsSource
         ];
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function getCanonicalMetricMap(): array
+    {
+        return [
+            'visitors' => 'visitors',
+            'pageviews' => 'pageviews',
+            'bounce_rate' => 'bounce_rate',
+            'avg_duration' => 'avg_duration',
+        ];
+    }
+
+    protected function getCanonicalDimensionMap(): array
+    {
+        return [
+            'page' => 'page',
+            'referrer' => 'referrer',
+            'source' => 'utm_source',
+            'country' => 'country',
+            'region' => 'region',
+            'device' => 'device_type',
+            'browser' => 'browser',
+            'os' => 'operating_system',
+        ];
+    }
+
     public function fetchConnection(): bool
     {
         try {

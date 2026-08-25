@@ -1,7 +1,81 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-import { ComboboxInput, Spinner } from '@verbb/plugin-kit-react/components';
+import {
+    Combobox,
+    ComboboxInput,
+    Option,
+    OptionGroup,
+    Spinner,
+} from '@verbb/plugin-kit-react/components';
 import { FieldLayout, useEngineField } from '@verbb/plugin-kit-react/forms';
+
+const toStringValue = (value) => (value === undefined || value === null ? '' : String(value));
+
+/**
+ * Flat options with a `group` key become labelled option groups in the combobox panel.
+ */
+function buildGroupedOptions(options) {
+    const groups = [];
+    const groupIndex = new Map();
+
+    options.forEach((option) => {
+        const groupLabel = option.group || '';
+
+        if (!groupIndex.has(groupLabel)) {
+            const entry = { group: groupLabel, options: [] };
+            groupIndex.set(groupLabel, entry);
+            groups.push(entry);
+        }
+
+        groupIndex.get(groupLabel).options.push(option);
+    });
+
+    return groups;
+}
+
+function GroupedComboboxField({
+    options,
+    value,
+    onValueChange,
+    field,
+    isInvalid,
+    loading,
+}) {
+    const groupedOptions = useMemo(() => buildGroupedOptions(options), [options]);
+    const stringValue = toStringValue(value);
+
+    const handleChange = (event) => {
+        const raw = event.detail?.value;
+        const match = options.find((option) => toStringValue(option.value) === toStringValue(raw));
+        onValueChange(match ? match.value : raw ?? null);
+    };
+
+    return (
+        <Combobox
+            value={stringValue}
+            placeholder={field.placeholder}
+            emptyMessage={field.emptyMessage || Craft.t('metrix', 'No options found.')}
+            invalid={isInvalid}
+            disabled={field.disabled || loading}
+            width={field.width}
+            onPkChange={handleChange}
+        >
+            {groupedOptions.map((group) => (
+                <OptionGroup key={group.group || '__default__'} label={group.group}>
+                    {group.options.map((option) => (
+                        <Option
+                            key={toStringValue(option.value)}
+                            value={toStringValue(option.value)}
+                            disabled={option.disabled}
+                        >
+                            {option.label}
+                        </Option>
+                    ))}
+                </OptionGroup>
+            ))}
+        </Combobox>
+    );
+}
 
 /**
  * SchemaForm `$field: 'eagerCombobox'` — Metrix-owned.
@@ -21,6 +95,10 @@ export const EagerComboboxField = ({ form, field }) => {
     ));
     const [loading, setLoading] = useState(typeof field.loadOptions === 'function');
     const [loadError, setLoadError] = useState(null);
+
+    const hasGroupedOptions = useMemo(() => {
+        return options.some((option) => Boolean(option.group));
+    }, [options]);
 
     useEffect(() => {
         if (typeof field.loadOptions !== 'function') {
@@ -73,6 +151,11 @@ export const EagerComboboxField = ({ form, field }) => {
         ...(loadError ? [loadError] : []),
     ];
 
+    const handleValueChange = (nextValue) => {
+        setValue(nextValue);
+        setTouched();
+    };
+
     return (
         <FieldLayout
             name={field.name}
@@ -83,19 +166,27 @@ export const EagerComboboxField = ({ form, field }) => {
             errors={fieldErrors}
         >
             <div className="flex items-center gap-2">
-                <ComboboxInput
-                    options={options}
-                    value={value ?? ''}
-                    placeholder={field.placeholder}
-                    emptyMessage={field.emptyMessage || Craft.t('metrix', 'No options found.')}
-                    isInvalid={isInvalid || Boolean(loadError)}
-                    disabled={field.disabled || loading}
-                    width={field.width}
-                    onValueChange={(nextValue) => {
-                        setValue(nextValue);
-                        setTouched();
-                    }}
-                />
+                {hasGroupedOptions ? (
+                    <GroupedComboboxField
+                        options={options}
+                        value={value}
+                        onValueChange={handleValueChange}
+                        field={field}
+                        isInvalid={isInvalid || Boolean(loadError)}
+                        loading={loading}
+                    />
+                ) : (
+                    <ComboboxInput
+                        options={options}
+                        value={value ?? ''}
+                        placeholder={field.placeholder}
+                        emptyMessage={field.emptyMessage || Craft.t('metrix', 'No options found.')}
+                        isInvalid={isInvalid || Boolean(loadError)}
+                        disabled={field.disabled || loading}
+                        width={field.width}
+                        onValueChange={handleValueChange}
+                    />
+                )}
 
                 {loading ? <Spinner size="xs" /> : null}
             </div>

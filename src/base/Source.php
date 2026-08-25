@@ -2,6 +2,7 @@
 namespace verbb\metrix\base;
 
 use verbb\metrix\Metrix;
+use verbb\metrix\helpers\Canonical;
 
 use Craft;
 use craft\base\SavableComponent;
@@ -37,9 +38,27 @@ abstract class Source extends SavableComponent implements SourceInterface
     {
         $messageText = $exception->getMessage();
 
-        // Check for Guzzle errors, which are truncated in the exception `getMessage()`.
-        if ($exception instanceof RequestException && $exception->getResponse()) {
-            $messageText = (string)$exception->getResponse()->getBody();
+        // Guzzle truncates bodies in getMessage(); prefer the full response body when available.
+        $requestException = null;
+
+        if ($exception instanceof RequestException) {
+            $requestException = $exception;
+        } elseif ($exception->getPrevious() instanceof RequestException) {
+            $requestException = $exception->getPrevious();
+        }
+
+        if ($requestException && $requestException->getResponse()) {
+            $body = $requestException->getResponse()->getBody();
+
+            if ($body->isSeekable()) {
+                $body->rewind();
+            }
+
+            $responseBody = (string)$body;
+
+            if ($responseBody !== '') {
+                $messageText = $responseBody;
+            }
         }
 
         $message = Craft::t('metrix', 'API error: “{message}” {file}:{line}', [
@@ -170,14 +189,37 @@ abstract class Source extends SavableComponent implements SourceInterface
         return md5(Json::encode($settings));
     }
 
+    public function supportsRealtime(): bool
+    {
+        return method_exists($this, 'fetchRealtimeData');
+    }
+
+    public function resolveCanonicalMetric(string $key): ?string
+    {
+        return $this->getCanonicalMetricMap()[$key] ?? null;
+    }
+
+    public function resolveCanonicalDimension(string $key): ?string
+    {
+        return $this->getCanonicalDimensionMap()[$key] ?? null;
+    }
+
     public function getAvailableMetrics(): array
     {
-        return $this->fetchAvailableMetrics();
+        return Canonical::mergeGroupedPropertyOptions(
+            $this,
+            $this->fetchAvailableMetrics(),
+            'metrics',
+        );
     }
 
     public function getAvailableDimensions(): array
     {
-        return $this->fetchAvailableDimensions();
+        return Canonical::mergeGroupedPropertyOptions(
+            $this,
+            $this->fetchAvailableDimensions(),
+            'dimensions',
+        );
     }
 
     public function fetchAvailableMetrics(): array
@@ -207,5 +249,25 @@ abstract class Source extends SavableComponent implements SourceInterface
     protected function getSettingCache(string $key): mixed
     {
         return $this->cache[$key] ?? null;
+    }
+
+    /**
+     * Map curated canonical metric keys to this provider's native API values.
+     *
+     * @return array<string, string>
+     */
+    protected function getCanonicalMetricMap(): array
+    {
+        return [];
+    }
+
+    /**
+     * Map curated canonical dimension keys to this provider's native API values.
+     *
+     * @return array<string, string>
+     */
+    protected function getCanonicalDimensionMap(): array
+    {
+        return [];
     }
 }

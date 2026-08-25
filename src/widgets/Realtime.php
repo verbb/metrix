@@ -49,7 +49,7 @@ class Realtime extends Widget
     {
         $source = $this->getSource();
 
-        if (!$source || !method_exists($source, 'fetchRealtimeData')) {
+        if (!$source || !$source->supportsRealtime()) {
             throw new Exception(Craft::t('metrix', 'This source does not support realtime data.'));
         }
 

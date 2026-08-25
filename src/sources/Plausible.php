@@ -201,6 +201,34 @@ class Plausible extends CredentialsSource
     }
 
 
+    // Protected Methods
+    // =========================================================================
+
+    protected function getCanonicalMetricMap(): array
+    {
+        return [
+            'visitors' => 'visitors',
+            'pageviews' => 'pageviews',
+            'bounce_rate' => 'bounce_rate',
+            'avg_duration' => 'visit_duration',
+            'events' => 'events',
+        ];
+    }
+
+    protected function getCanonicalDimensionMap(): array
+    {
+        return [
+            'page' => 'visit:page',
+            'entry_page' => 'visit:entry_page',
+            'source' => 'visit:source',
+            'referrer' => 'visit:referrer',
+            'country' => 'visit:country',
+            'device' => 'visit:device',
+            'browser' => 'visit:browser',
+        ];
+    }
+
+
     // Private Methods
     // =========================================================================
 

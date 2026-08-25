@@ -102,17 +102,12 @@ class MixPanel extends CredentialsSource
 
         $data = $response['data'] ?? [];
         $series = $data['series'] ?? [];
-        $values = $data['values'] ?? [];
+        $values = $data['values'][$widgetData->metric] ?? [];
 
         $formattedData = [];
 
         foreach ($series as $index => $dimension) {
-            $metric = $values[$index] ?? 0;
-
-            $formattedData[] = [
-                'dimension' => $dimension,
-                'metric' => (int)$metric,
-            ];
+            $formattedData[$dimension] = (int)($values[$index] ?? 0);
         }
 
         return $formattedData;
@@ -141,6 +136,16 @@ class MixPanel extends CredentialsSource
             'base_uri' => 'https://mixpanel.com/api/query/',
             'auth' => [$this->getUsername(), $this->getPassword()],
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function getCanonicalMetricMap(): array
+    {
+        // Mixpanel metrics are event names; canonical keys resolve when an event name matches.
+        return [];
     }
 
 

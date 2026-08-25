@@ -165,6 +165,25 @@ class Cloudflare extends CredentialsSource
         return $data;
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function getCanonicalMetricMap(): array
+    {
+        return [
+            'pageviews' => 'pageViews',
+        ];
+    }
+
+    protected function getCanonicalDimensionMap(): array
+    {
+        return [
+            'country' => 'country',
+            'browser' => 'browser',
+        ];
+    }
+
     public function fetchConnection(): bool
     {
         try {

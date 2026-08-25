@@ -169,6 +169,30 @@ class Matomo extends CredentialsSource
         return $data;
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function getCanonicalMetricMap(): array
+    {
+        return [
+            'visitors' => 'nb_uniq_visitors',
+            'pageviews' => 'nb_pageviews',
+            'sessions' => 'nb_visits',
+            'bounce_rate' => 'bounce_rate',
+            'avg_duration' => 'avg_time_on_site',
+        ];
+    }
+
+    protected function getCanonicalDimensionMap(): array
+    {
+        return [
+            'referrer' => 'referrer',
+            'country' => 'country',
+            'browser' => 'browser',
+        ];
+    }
+
     public function fetchConnection(): bool
     {
         try {
