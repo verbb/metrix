@@ -54,8 +54,9 @@ class WeekToDate extends Period
 
     public static function generatePlotDimensions(WidgetData $widgetData, array $rawData): array
     {
-        $start = new DateTime('monday this week 00:00:00');
-        $end = new DateTime('monday next week 00:00:00');
+        $range = static::getCurrentDateRange();
+        $start = (clone $range['start'])->setTime(0, 0, 0);
+        $end = (clone $start)->modify('+1 week');
 
         $interval = new DateInterval('P1D');
         $period = new DatePeriod($start, $interval, $end);

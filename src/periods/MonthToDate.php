@@ -54,8 +54,9 @@ class MonthToDate extends Period
 
     public static function generatePlotDimensions(WidgetData $widgetData, array $rawData): array
     {
-        $start = new DateTime('first day of this month 00:00:00');
-        $end = new DateTime('first day of next month 00:00:00');
+        $range = static::getCurrentDateRange();
+        $start = (clone $range['start'])->setTime(0, 0, 0);
+        $end = (clone $start)->modify('first day of next month')->setTime(0, 0, 0);
 
         $interval = new DateInterval('P1D');
         $period = new DatePeriod($start, $interval, $end);

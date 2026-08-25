@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import { useRef } from 'react';
 
 import { WIDGET_ICONS } from '@icons/widgetIcons';
 
@@ -9,8 +9,26 @@ import { ChartTooltip } from '@dashboard/components/charts/ChartTooltip';
 import { WidgetLarge } from '@dashboard/components/widgets/WidgetLarge';
 
 import {
-    api, format, chartFormat, WIDGET_HEIGHT, CHART_COLORS, hexToRgba,
+    format, chartFormat, WIDGET_HEIGHT, CHART_COLORS, hexToRgba,
 } from '@utils';
+
+function createAreaFill(color) {
+    return (context) => {
+        const { chart } = context;
+        const { ctx, chartArea } = chart;
+
+        if (!chartArea) {
+            return null;
+        }
+
+        const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+
+        gradient.addColorStop(0, hexToRgba(color, '0.2'));
+        gradient.addColorStop(1, hexToRgba(color, '0'));
+
+        return gradient;
+    };
+}
 
 export const LineWidget = (props) => {
     const { widget } = props;
@@ -29,50 +47,61 @@ export const LineWidget = (props) => {
         // Prepare data for Chart.js
         const labels = data.rows.map((row) => { return row[0]; });
         const values = data.rows.map((row) => { return row[1]; });
+        const hasComparison = Boolean(data.comparisonRows?.length);
+        const comparisonValues = hasComparison
+            ? data.comparisonRows.map((row) => { return row[1]; })
+            : [];
+        const comparisonLabel = data.cols[2]?.label || Craft.t('metrix', 'Previous period');
 
         const xAxisFormat = chartFormat(data.cols[0], 'label');
         const xAxisTooltipFormat = chartFormat(data.cols[0], 'tooltip');
         const yAxisFormat = chartFormat(data.cols[1], 'label');
         const yAxisTooltipFormat = chartFormat(data.cols[1], 'tooltip');
 
+        const currentDataset = {
+            label: widget.data.metricLabel,
+            data: values,
+            borderColor: CHART_COLORS[0],
+            pointBackgroundColor: CHART_COLORS[0],
+            pointHoverBackgroundColor: CHART_COLORS[0],
+            yAxisID: 'y',
+            borderWidth: 3,
+            pointHoverBorderColor: 'white',
+            pointHoverBorderWidth: 2,
+            pointHoverRadius: 6,
+            fill: true,
+            tension: 0.4,
+            yAxisFormatter: yAxisTooltipFormat,
+            xAxisFormatter: xAxisTooltipFormat,
+            backgroundColor: createAreaFill(CHART_COLORS[0]),
+        };
+
+        const datasets = [currentDataset];
+
+        if (hasComparison) {
+            datasets.push({
+                label: comparisonLabel,
+                data: comparisonValues,
+                borderColor: CHART_COLORS[1],
+                pointBackgroundColor: CHART_COLORS[1],
+                pointHoverBackgroundColor: CHART_COLORS[1],
+                yAxisID: 'y',
+                borderWidth: 3,
+                pointHoverBorderColor: 'white',
+                pointHoverBorderWidth: 2,
+                pointHoverRadius: 5,
+                fill: true,
+                tension: 0.4,
+                yAxisFormatter: yAxisTooltipFormat,
+                xAxisFormatter: xAxisTooltipFormat,
+                backgroundColor: createAreaFill(CHART_COLORS[1]),
+            });
+        }
+
         const chartOptions = {
             data: {
                 labels,
-                datasets: [
-                    {
-                        data: values,
-                        borderColor: CHART_COLORS[0],
-                        pointBackgroundColor: CHART_COLORS[0],
-                        pointHoverBackgroundColor: CHART_COLORS[0],
-                        yAxisID: 'y',
-                        borderWidth: 3,
-                        pointHoverBorderColor: 'white',
-                        pointHoverBorderWidth: 2,
-                        pointHoverRadius: 6,
-                        fill: true,
-                        tension: 0.4,
-
-                        yAxisFormatter: yAxisTooltipFormat,
-                        xAxisFormatter: xAxisTooltipFormat,
-
-                        backgroundColor(context) {
-                            const { chart } = context;
-                            const { ctx, chartArea } = chart;
-
-                            // Only create gradient if chartArea is available
-                            if (!chartArea) {
-                                return null;
-                            }
-
-                            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-
-                            gradient.addColorStop(0, hexToRgba(CHART_COLORS[0], '0.2'));
-                            gradient.addColorStop(1, hexToRgba(CHART_COLORS[0], '0'));
-
-                            return gradient;
-                        },
-                    },
-                ],
+                datasets,
             },
             options: {
                 animation: false,
@@ -81,7 +110,35 @@ export const LineWidget = (props) => {
 
                 plugins: {
                     legend: {
-                        display: false,
+                        display: hasComparison,
+                        position: 'top',
+                        align: 'end',
+                        labels: {
+                            boxWidth: 10,
+                            boxHeight: 10,
+                            font: { size: 10 },
+                            // Filled swatches with a thin stroke — avoids thick/dashed line legend boxes.
+                            generateLabels(chart) {
+                                const hiddenOpacity = 0.5;
+
+                                return chart.data.datasets.map((dataset, datasetIndex) => {
+                                    const isVisible = chart.isDatasetVisible(datasetIndex);
+                                    const opacity = isVisible ? 1 : hiddenOpacity;
+                                    const borderColor = dataset.borderColor;
+
+                                    return {
+                                        text: dataset.label,
+                                        fillStyle: hexToRgba(borderColor, String(0.2 * opacity)),
+                                        strokeStyle: hexToRgba(borderColor, String(opacity)),
+                                        fontColor: `rgba(55, 65, 81, ${opacity})`,
+                                        lineWidth: 1,
+                                        // Keep false so Chart.js does not strikethrough — opacity shows "off" state.
+                                        hidden: false,
+                                        datasetIndex,
+                                    };
+                                });
+                            },
+                        },
                     },
 
                     tooltip: {

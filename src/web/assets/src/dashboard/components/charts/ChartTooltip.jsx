@@ -3,14 +3,13 @@ import { forwardRef } from 'react';
 import { cn, format } from '@utils';
 
 const ChartTooltip = forwardRef(({ data, position, visibility }, ref) => {
-    const dataPoint = data?.tooltipModel?.dataPoints.find((dataPoint) => {
-        return dataPoint.dataset.yAxisID == 'y';
-    });
+    const dataPoints = data?.tooltipModel?.dataPoints?.filter((point) => {
+        return point.dataset.yAxisID === 'y';
+    }) ?? [];
 
-    const metric = format(dataPoint?.label || '', dataPoint?.dataset?.xAxisFormatter);
+    const primaryPoint = dataPoints[0];
+    const metric = format(primaryPoint?.label || '', primaryPoint?.dataset?.xAxisFormatter);
     const label = data?.widget?.data?.metricLabel;
-    const value = format(dataPoint?.raw || '', dataPoint?.dataset?.yAxisFormatter);
-    const color = data?.tooltipModel?.labelColors[0].backgroundColor;
 
     return (
         <div
@@ -30,15 +29,31 @@ const ChartTooltip = forwardRef(({ data, position, visibility }, ref) => {
                     <span className="font-semibold mb-1 text-sm">{label}</span>
                 </div>
 
-                <div className="flex flex-col">
-                    <div className="flex flex-row justify-between items-center">
-                        <span className="flex items-center mr-4">
-                            <div className="w-3 h-3 mr-1 rounded-full" style={{ background: color }}></div>
-                            <span>{metric}</span>
-                        </span>
+                <div className="flex flex-col gap-1">
+                    <div className="text-[10px] text-gray-500">{metric}</div>
 
-                        <span className="text-base font-bold">{value}</span>
-                    </div>
+                    {dataPoints.map((point, index) => {
+                        const color = data?.tooltipModel?.labelColors?.[index]?.backgroundColor;
+                        const seriesLabel = point.dataset?.label || label;
+                        const value = format(point?.raw || '', point?.dataset?.yAxisFormatter);
+
+                        return (
+                            <div
+                                key={`${seriesLabel}-${index}`}
+                                className="flex flex-row justify-between items-center gap-4"
+                            >
+                                <span className="flex items-center">
+                                    <div
+                                        className="w-3 h-3 mr-1 rounded-full"
+                                        style={{ background: color }}
+                                    />
+                                    <span>{seriesLabel}</span>
+                                </span>
+
+                                <span className="text-base font-bold">{value}</span>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         </div>

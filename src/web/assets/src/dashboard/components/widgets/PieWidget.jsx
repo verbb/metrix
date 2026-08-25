@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 import { WIDGET_ICONS } from '@icons/widgetIcons';
 
@@ -9,7 +9,37 @@ import { WidgetLarge } from '@dashboard/components/widgets/WidgetLarge';
 
 import { useCustomTooltip } from '@dashboard/hooks/useCustomTooltip';
 
-import { api, chartFormat, CHART_COLORS } from '@utils';
+import { chartFormat, CHART_COLORS } from '@utils';
+
+function preprocessData(rows, thresholdPercentage = 1) {
+    const totalValue = rows.reduce((sum, row) => { return sum + row[1]; }, 0);
+    const threshold = (thresholdPercentage / 100) * totalValue;
+
+    const groupedRows = [];
+    let otherValue = 0;
+
+    rows.forEach((row) => {
+        if (row[1] < threshold) {
+            otherValue += row[1];
+        } else {
+            groupedRows.push(row);
+        }
+    });
+
+    if (otherValue > 0) {
+        groupedRows.push([Craft.t('metrix', 'Other'), otherValue]);
+    }
+
+    return groupedRows;
+}
+
+function buildLegendItems(rows) {
+    return rows.map((row, index) => ({
+        text: String(row[0]),
+        fillStyle: CHART_COLORS[index % CHART_COLORS.length],
+        hidden: false,
+    }));
+}
 
 export const PieWidget = (props) => {
     const { widget } = props;
@@ -26,34 +56,31 @@ export const PieWidget = (props) => {
         customTooltip,
     } = useCustomTooltip();
 
-    const afterFetchData = useCallback((data) => {
-        setLegend(chartRef?.current?.legend?.legendItems || []);
-    }, []);
-
-    function handleLegendToggle(index) {
-        setLegend(chartRef?.current?.legend?.legendItems || []);
-    }
-
-    function preprocessData(rows, thresholdPercentage = 1) {
-        const totalValue = rows.reduce((sum, row) => { return sum + row[1]; }, 0); // Sum of all values
-        const threshold = (thresholdPercentage / 100) * totalValue;
-
-        const groupedRows = [];
-        let otherValue = 0;
-
-        rows.forEach((row) => {
-            if (row[1] < threshold) {
-                otherValue += row[1];
-            } else {
-                groupedRows.push(row);
-            }
-        });
-
-        if (otherValue > 0) {
-            groupedRows.push([Craft.t('metrix', 'Other'), otherValue]); // Add "Other" category
+    // Parallel dashboard hydration sets chartData without Widget's afterFetchData hook.
+    useEffect(() => {
+        if (!widget.chartData?.rows?.length) {
+            setLegend([]);
+            return;
         }
 
-        return groupedRows;
+        const processedRows = preprocessData(widget.chartData.rows, 1);
+        setLegend(buildLegendItems(processedRows));
+    }, [widget.chartData]);
+
+    function syncLegendVisibility() {
+        if (!chartRef.current) {
+            return;
+        }
+
+        setLegend((prev) => prev.map((item, index) => ({
+            ...item,
+            hidden: !chartRef.current.getDataVisibility(index),
+        })));
+    }
+
+    function handleLegendToggle() {
+        // ChartLegend already toggles visibility — sync React legend state for opacity.
+        syncLegendVisibility();
     }
 
     function renderContent(data) {
@@ -136,7 +163,7 @@ export const PieWidget = (props) => {
         );
     }
 
-    return <WidgetLarge className="h-widget-2" afterFetchData={afterFetchData} renderContent={renderContent} {...props} />;
+    return <WidgetLarge className="h-widget-2" renderContent={renderContent} {...props} />;
 };
 
 PieWidget.meta = {

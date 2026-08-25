@@ -54,8 +54,9 @@ class Last12Months extends Period
 
     public static function generatePlotDimensions(WidgetData $widgetData, array $rawData): array
     {
-        $start = new DateTime('-12 months 00:00:00');
-        $end = new DateTime('tomorrow 00:00:00');
+        $range = static::getCurrentDateRange();
+        $start = (clone $range['start'])->setTime(0, 0, 0);
+        $end = (clone $range['end'])->modify('+1 day')->setTime(0, 0, 0);
 
         $interval = new DateInterval('P1M');
         $period = new DatePeriod($start, $interval, $end);
