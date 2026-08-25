@@ -10,7 +10,7 @@ import {
     api, cn, format, chartFormat, WIDGET_HEIGHT, sort, TABLE_ROW_BAR_COLOR,
 } from '@utils';
 
-const MAX_ITEMS = WIDGET_HEIGHT - 5;
+const BASE_MAX_ITEMS = WIDGET_HEIGHT - 5;
 
 export const TableWidget = (props) => {
     const { widget } = props;
@@ -18,9 +18,15 @@ export const TableWidget = (props) => {
     const [currentPage, setCurrentPage] = useState(0);
     const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
+    // Extra header lines (subtitle) steal vertical room from rows + pagination.
+    const maxItems = widget.data?.subtitle
+        ? Math.max(1, BASE_MAX_ITEMS - 1)
+        : BASE_MAX_ITEMS;
+
     function renderContent(data) {
-        const totalPages = Math.ceil(data.rows.length / MAX_ITEMS);
-        const hasPagination = data.rows.length > MAX_ITEMS;
+        const totalPages = Math.ceil(data.rows.length / maxItems) || 1;
+        const hasPagination = data.rows.length > maxItems;
+        const safePage = Math.min(currentPage, totalPages - 1);
 
         function sortRows(rows) {
             if (!sortConfig.key) {
@@ -45,8 +51,8 @@ export const TableWidget = (props) => {
 
         function getPaginatedRows() {
             const sortedRows = sortRows(data.rows);
-            const start = currentPage * MAX_ITEMS;
-            const end = start + MAX_ITEMS;
+            const start = safePage * maxItems;
+            const end = start + maxItems;
 
             return sortedRows.slice(start, end);
         }
@@ -155,10 +161,10 @@ export const TableWidget = (props) => {
                 </div>
 
                 {hasPagination && (
-                    <div className="flex gap-2 mx-auto">
+                    <div className="flex gap-2 mx-auto flex-shrink-0">
                         <Button
                             variant="outline"
-                            disabled={currentPage === 0}
+                            disabled={safePage === 0}
                             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
                         >
                             <Icon icon="chevron-left" />
@@ -166,7 +172,7 @@ export const TableWidget = (props) => {
 
                         <Button
                             variant="outline"
-                            disabled={currentPage >= totalPages - 1}
+                            disabled={safePage >= totalPages - 1}
                             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1))}
                         >
                             <Icon icon="chevron-right" />

@@ -1,6 +1,6 @@
 {
-  "_MetrixConfig-C6GeHT34.js": {
-    "file": "assets/MetrixConfig-C6GeHT34.js",
+  "_MetrixConfig-MCZ2jx1F.js": {
+    "file": "assets/MetrixConfig-MCZ2jx1F.js",
     "name": "MetrixConfig",
     "imports": [
       "_plugin-kit-DR6xm7cN.js",
@@ -79,7 +79,7 @@
     "src": "src/dashboard/metrix-dashboard.js",
     "isEntry": true,
     "imports": [
-      "_MetrixConfig-C6GeHT34.js",
+      "_MetrixConfig-MCZ2jx1F.js",
       "_react-vendor-DjYJI7Ii.js",
       "_plugin-kit-DR6xm7cN.js",
       "_dndkit-BNC6iOvR.js",
@@ -95,7 +95,7 @@
     "src": "src/presets/metrix-presets.js",
     "isEntry": true,
     "imports": [
-      "_MetrixConfig-C6GeHT34.js",
+      "_MetrixConfig-MCZ2jx1F.js",
       "_react-vendor-DjYJI7Ii.js",
       "_dndkit-BNC6iOvR.js",
       "_plugin-kit-DR6xm7cN.js",
