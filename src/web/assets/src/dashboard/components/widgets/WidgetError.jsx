@@ -28,13 +28,18 @@ export function WidgetError({ error, className }) {
     const errorDetail = error?.error ? getWidgetErrorDetail(error.error) : null;
     const traceLines = errorDetail?.traceAsArray ?? [];
 
-    const errorDetailText = errorDetail
-        ? [errorDetail.heading, errorDetail.text, traceLines.join('\n')].filter(Boolean).join('\n')
-        : '';
-
-    const displayMessage = errorDetail?.text
-        || error?.message
+    // Keep the widget face short — full API/provider text belongs in Details only.
+    const displayMessage = error?.message
         || Craft.t('metrix', 'Failed to fetch widget data. Please try again.');
+
+    const detailBody = [
+        errorDetail?.text,
+        traceLines.length ? traceLines.join('\n') : '',
+    ].filter(Boolean).join('\n\n');
+
+    const errorDetailText = errorDetail
+        ? [errorDetail.heading, detailBody].filter(Boolean).join('\n\n')
+        : '';
 
     return (
         <div
@@ -47,7 +52,7 @@ export function WidgetError({ error, className }) {
                 {displayMessage}
             </div>
 
-            {errorDetail && (
+            {errorDetail && detailBody && (
                 <div className="text-center">
                     <Popover
                         placement="bottom"
@@ -75,20 +80,15 @@ export function WidgetError({ error, className }) {
                                 </span>
                             </CopyButton>
 
-                            <strong className="block mb-1 text-left">{errorDetail.heading}</strong>
-                            <small className="block mb-1 text-left break-words">{errorDetail.text}</small>
-
-                            {traceLines.length > 0 && (
-                                <small className="metrix-widget-error-trace block font-mono text-[9px] text-left">
-                                    {traceLines.map((str) => (
-                                        <span key={str}>{str}</span>
-                                    ))}
-                                </small>
+                            {errorDetail.heading && (
+                                <strong className="block mb-2 text-left">{errorDetail.heading}</strong>
                             )}
+
+                            <pre className="metrix-widget-error-pre">{detailBody}</pre>
                         </div>
                     </Popover>
                 </div>
             )}
         </div>
     );
-};
+}

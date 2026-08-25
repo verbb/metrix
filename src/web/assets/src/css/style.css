@@ -287,15 +287,19 @@
 .metrix-widget-error-popover::part(panel) {
     width: min(92vw, 500px);
     min-width: 320px;
+    max-height: min(70vh, 28rem);
     padding: 0;
     text-align: left;
+    overflow: hidden;
 }
 
 .metrix-widget-error-details {
     position: relative;
     box-sizing: border-box;
+    max-height: min(70vh, 28rem);
     padding: 0.625rem 2rem 0.625rem 0.625rem;
     text-align: left;
+    overflow: auto;
 }
 
 .metrix-widget-error-copy {
@@ -306,15 +310,23 @@
     margin: 0.25rem;
 }
 
-/* Stack trace — one line per entry, horizontal scroll (legacy whitespace-nowrap + overflow-auto) */
-.metrix-widget-error-trace {
-    overflow-x: auto;
-    overflow-y: hidden;
-    white-space: nowrap;
-}
-
-.metrix-widget-error-trace > span {
-    display: block;
+/* Full provider/API text — monospace, wrap long lines, scroll inside the popover */
+.metrix-widget-error-pre {
+    margin: 0;
+    padding: 0.5rem 0.625rem;
+    max-height: 16rem;
+    overflow: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    background: #f8fafc;
+    color: #0f172a;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 11px;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    text-align: left;
 }
 
 /* Line/bar/pie chart tooltip — legacy Tailwind slate-800/100 (not PK gray or translucent slate tokens) */
