@@ -1,9 +1,9 @@
 {
-  "_MetrixConfig-D3hW-Ets.js": {
-    "file": "assets/MetrixConfig-D3hW-Ets.js",
+  "_MetrixConfig-CGmQGr18.js": {
+    "file": "assets/MetrixConfig-CGmQGr18.js",
     "name": "MetrixConfig",
     "imports": [
-      "_plugin-kit-CAoxvf3o.js",
+      "_plugin-kit-qsOg4q9C.js",
       "_react-vendor-DjYJI7Ii.js",
       "_plugin-kit-forms-Brt9hHxU.js",
       "_plugin-kit-core-BeOK_nld.js",
@@ -30,8 +30,16 @@
     "file": "assets/plugin-kit-FfAT0HnB.css",
     "src": "_plugin-kit-!~{002}~.js"
   },
-  "_plugin-kit-CAoxvf3o.js": {
-    "file": "assets/plugin-kit-CAoxvf3o.js",
+  "_plugin-kit-core-BeOK_nld.js": {
+    "file": "assets/plugin-kit-core-BeOK_nld.js",
+    "name": "plugin-kit-core"
+  },
+  "_plugin-kit-forms-Brt9hHxU.js": {
+    "file": "assets/plugin-kit-forms-Brt9hHxU.js",
+    "name": "plugin-kit-forms"
+  },
+  "_plugin-kit-qsOg4q9C.js": {
+    "file": "assets/plugin-kit-qsOg4q9C.js",
     "name": "plugin-kit",
     "imports": [
       "_react-vendor-DjYJI7Ii.js",
@@ -42,14 +50,6 @@
     "css": [
       "assets/plugin-kit-FfAT0HnB.css"
     ]
-  },
-  "_plugin-kit-core-BeOK_nld.js": {
-    "file": "assets/plugin-kit-core-BeOK_nld.js",
-    "name": "plugin-kit-core"
-  },
-  "_plugin-kit-forms-Brt9hHxU.js": {
-    "file": "assets/plugin-kit-forms-Brt9hHxU.js",
-    "name": "plugin-kit-forms"
   },
   "_react-vendor-DjYJI7Ii.js": {
     "file": "assets/react-vendor-DjYJI7Ii.js",
@@ -79,9 +79,9 @@
     "src": "src/dashboard/metrix-dashboard.js",
     "isEntry": true,
     "imports": [
-      "_MetrixConfig-D3hW-Ets.js",
+      "_MetrixConfig-CGmQGr18.js",
       "_react-vendor-DjYJI7Ii.js",
-      "_plugin-kit-CAoxvf3o.js",
+      "_plugin-kit-qsOg4q9C.js",
       "_dndkit-BNC6iOvR.js",
       "_plugin-kit-forms-Brt9hHxU.js",
       "_plugin-kit-core-BeOK_nld.js",
@@ -95,10 +95,10 @@
     "src": "src/presets/metrix-presets.js",
     "isEntry": true,
     "imports": [
-      "_MetrixConfig-D3hW-Ets.js",
+      "_MetrixConfig-CGmQGr18.js",
       "_react-vendor-DjYJI7Ii.js",
       "_dndkit-BNC6iOvR.js",
-      "_plugin-kit-CAoxvf3o.js",
+      "_plugin-kit-qsOg4q9C.js",
       "_plugin-kit-forms-Brt9hHxU.js",
       "_plugin-kit-core-BeOK_nld.js",
       "_chartjs-BKHhuD4B.js",
@@ -111,7 +111,7 @@
     "src": "src/sources/metrix-sources.js",
     "isEntry": true,
     "imports": [
-      "_plugin-kit-CAoxvf3o.js",
+      "_plugin-kit-qsOg4q9C.js",
       "_react-vendor-DjYJI7Ii.js",
       "_lit-vh8rfySC.js",
       "_plugin-kit-forms-Brt9hHxU.js",
