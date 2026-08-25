@@ -81,7 +81,7 @@ class Matomo extends CredentialsSource
                 $sites = $this->request('POST', '', [
                     'form_params' => [
                         'module' => 'API',
-                        'method' => 'SitesManager.getAllSites',
+                        'method' => 'SitesManager.getSitesWithAtLeastViewAccess',
                         'format' => 'json',
                         'token_auth' => $this->getApiToken(),
                     ],
