@@ -2,8 +2,6 @@
 namespace verbb\metrix\widgets\data;
 
 use verbb\metrix\base\WidgetData;
-use verbb\metrix\Metrix;
-
 use Craft;
 
 class CounterData extends WidgetData
@@ -42,22 +40,21 @@ class CounterData extends WidgetData
     {
         $previousPeriodRange = $this->period::getPreviousDateRange();
         $originalRange = $this->period::$currentDateRange;
-        $cacheDuration = Metrix::$plugin->getSettings()->getCacheDuration();
         $previousWidgetData = new static([
             'widget' => $this->widget,
             'source' => $this->source,
             'period' => $this->period,
             'metric' => $this->metric,
             'dimension' => $this->dimension,
+            'limit' => $this->limit,
         ]);
 
         try {
             $this->period::$currentDateRange = $previousPeriodRange;
 
-            $previousData = Craft::$app->getCache()->getOrSet(
-                $previousWidgetData->getCacheKey('previous'),
+            $previousData = $previousWidgetData->remember(
+                'previous',
                 fn() => $this->source->fetchData($previousWidgetData),
-                $cacheDuration,
             );
         } finally {
             $this->period::$currentDateRange = $originalRange;

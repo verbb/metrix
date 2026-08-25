@@ -103,6 +103,8 @@ class AuthController extends Controller
             // Save the token to the Auth plugin, with a reference to this source
             $token->reference = $source->id;
             Auth::getInstance()->getTokens()->upsertToken($token);
+
+            Metrix::$plugin->getSources()->invalidateWidgetDataCache($source);
         } catch (Throwable $e) {
             $error = Craft::t('metrix', 'Unable to process callback for “{source}”: “{message}” {file}:{line}', [
                 'source' => $sourceHandle,
@@ -135,6 +137,8 @@ class AuthController extends Controller
 
         // Delete all tokens for this source
         Auth::getInstance()->getTokens()->deleteTokenByOwnerReference('metrix', $source->id);
+
+        Metrix::$plugin->getSources()->invalidateWidgetDataCache($source);
 
         return $this->asModelSuccess($source, Craft::t('metrix', '{provider} disconnected.', ['provider' => $source->providerName]), 'source');
     }

@@ -17,6 +17,7 @@ use craft\helpers\Json;
 
 use yii\base\Component;
 use yii\base\InvalidConfigException;
+use yii\caching\TagDependency;
 
 use Exception;
 use Throwable;
@@ -199,6 +200,9 @@ class Sources extends Component
             $source->id = $sourceRecord->id;
         }
 
+        // Settings/token changes can leave stale widget payloads under old keys.
+        $this->invalidateWidgetDataCache($source);
+
         // Fire an 'afterSaveSource' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_SOURCE)) {
             $this->trigger(self::EVENT_AFTER_SAVE_SOURCE, new SourceEvent([
@@ -264,6 +268,8 @@ class Sources extends Component
             ->delete('{{%metrix_sources}}', ['id' => $source->id])
             ->execute();
 
+        $this->invalidateWidgetDataCache($source);
+
         // Fire an 'afterDeleteSource' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_SOURCE)) {
             $this->trigger(self::EVENT_AFTER_DELETE_SOURCE, new SourceEvent([
@@ -275,6 +281,25 @@ class Sources extends Component
         $this->_sources = null;
 
         return true;
+    }
+
+    /**
+     * Bust tagged widget-data cache entries for a source (or all Metrix tags).
+     */
+    public function invalidateWidgetDataCache(?SourceInterface $source = null): void
+    {
+        $tags = $source
+            ? array_values(array_filter([
+                $source->handle ? 'metrix.source.' . $source->handle : null,
+                $source->id ? 'metrix.source.id.' . $source->id : null,
+            ]))
+            : ['metrix'];
+
+        if ($tags === []) {
+            $tags = ['metrix'];
+        }
+
+        TagDependency::invalidate(Craft::$app->getCache(), $tags);
     }
 
 

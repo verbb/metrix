@@ -2,7 +2,6 @@
 namespace verbb\metrix\widgets\data;
 
 use verbb\metrix\base\WidgetData;
-use verbb\metrix\Metrix;
 
 use Craft;
 
@@ -104,21 +103,20 @@ class PlotData extends WidgetData
     private function _fetchPreviousPeriodData(): array
     {
         $previousPeriodRange = $this->period::getPreviousDateRange();
-        $cacheDuration = Metrix::$plugin->getSettings()->getCacheDuration();
         $previousWidgetData = new static([
             'widget' => $this->widget,
             'source' => $this->source,
             'period' => $this->period,
             'metric' => $this->metric,
             'dimension' => $this->dimension,
+            'limit' => $this->limit,
         ]);
 
         return $this->period::withDateRange(
             $previousPeriodRange,
-            fn() => Craft::$app->getCache()->getOrSet(
-                $previousWidgetData->getCacheKey('previous'),
+            fn() => $previousWidgetData->remember(
+                'previous',
                 fn() => $this->source->fetchData($previousWidgetData),
-                $cacheDuration,
             ),
         );
     }

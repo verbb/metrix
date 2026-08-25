@@ -21,6 +21,9 @@ use craft\services\Utilities;
 use craft\web\UrlManager;
 use craft\web\twig\variables\CraftVariable;
 
+use verbb\auth\events\TokenEvent;
+use verbb\auth\services\Tokens;
+
 use yii\base\Event;
 
 class Metrix extends Plugin
@@ -62,6 +65,9 @@ class Metrix extends Plugin
         if (Craft::$app->getEdition() === Craft::Pro) {
             $this->_registerPermissions();
         }
+
+        // Bust widget caches when Auth deletes a Metrix OAuth token (expired refresh, disconnect, etc.).
+        $this->_registerAuthTokenListeners();
 
         $this->hasCpSection = $this->getSettings()->hasCpSection;
     }
@@ -198,6 +204,24 @@ class Metrix extends Plugin
 
         Event::on(ProjectConfig::class, ProjectConfig::EVENT_REBUILD, function(RebuildConfigEvent $event) {
             $event->config['metrix'] = ProjectConfigHelper::rebuildProjectConfig();
+        });
+    }
+
+    private function _registerAuthTokenListeners(): void
+    {
+        // When Auth drops a dead refresh token (or any Metrix token is deleted), clear widget caches.
+        Event::on(Tokens::class, Tokens::EVENT_AFTER_DELETE_TOKEN, function(TokenEvent $event) {
+            $token = $event->token;
+
+            if (!$token || $token->ownerHandle !== 'metrix' || !$token->reference) {
+                return;
+            }
+
+            $source = $this->getSources()->getSourceById((int)$token->reference);
+
+            if ($source) {
+                $this->getSources()->invalidateWidgetDataCache($source);
+            }
         });
     }
 }

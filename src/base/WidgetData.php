@@ -6,6 +6,8 @@ use verbb\metrix\Metrix;
 use Craft;
 use craft\base\Model;
 
+use yii\caching\TagDependency;
+
 class WidgetData extends Model implements WidgetDataInterface
 {
     // Properties
@@ -16,6 +18,7 @@ class WidgetData extends Model implements WidgetDataInterface
     public ?string $period = null;
     public ?string $metric = null;
     public ?string $dimension = null;
+    public ?int $limit = null;
 
 
     // Public Methods
@@ -40,10 +43,15 @@ class WidgetData extends Model implements WidgetDataInterface
 
         $fromCache = $cacheDuration > 1 && $cache->exists($cacheKey);
 
-        // Retrieve raw API data from the cache
-        $rawData = $cache->getOrSet($cacheKey, function() {
-            return $this->widget->fetchData($this);
-        }, $cacheDuration);
+        // Tag so source save/reconnect can bust all related widget entries.
+        $rawData = $cache->getOrSet(
+            $cacheKey,
+            function() {
+                return $this->widget->fetchData($this);
+            },
+            $cacheDuration,
+            $this->getCacheDependency(),
+        );
 
         // Always apply `formatData` to the cached raw data
         $formatted = $this->formatData($rawData);
@@ -71,6 +79,7 @@ class WidgetData extends Model implements WidgetDataInterface
             $this->metric,
             $this->dimension,
             $this->period,
+            $this->getRowLimit(),
         ];
 
         if ($suffix !== '') {
@@ -78,6 +87,53 @@ class WidgetData extends Model implements WidgetDataInterface
         }
 
         return implode('.', $cacheKey);
+    }
+
+    public function getRowLimit(): int
+    {
+        if ($this->limit !== null && $this->limit > 0) {
+            return min((int)$this->limit, 500);
+        }
+
+        return $this->widget?->getRowLimit() ?? 10;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getCacheTags(): array
+    {
+        $tags = ['metrix'];
+
+        if ($this->source?->handle) {
+            $tags[] = 'metrix.source.' . $this->source->handle;
+        }
+
+        if ($this->source?->id) {
+            $tags[] = 'metrix.source.id.' . $this->source->id;
+        }
+
+        return $tags;
+    }
+
+    public function getCacheDependency(): TagDependency
+    {
+        return new TagDependency(['tags' => $this->getCacheTags()]);
+    }
+
+    /**
+     * Cache a related fetch (e.g. previous-period) under the same source tags.
+     */
+    public function remember(string $suffix, callable $callback, ?int $duration = null): mixed
+    {
+        $duration ??= Metrix::$plugin->getSettings()->getCacheDuration();
+
+        return Craft::$app->getCache()->getOrSet(
+            $this->getCacheKey($suffix),
+            $callback,
+            $duration,
+            $this->getCacheDependency(),
+        );
     }
 
 
