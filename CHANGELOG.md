@@ -1,9 +1,13 @@
 # Changelog
 
-## Unreleased
+## 2.0.7 - 2026-08-29
 
 ### Fixed
 - Fix Matomo Site ID dropdown failing for API tokens without superuser access.
+- Fix presets not always creating correctly on first install.
+- Fix an error when viewing presets when invalid.
+- Fix source status indicator.
+- Fix source index status indicator.
 
 ## 2.0.6 - 2026-08-20
 
