@@ -71,7 +71,7 @@ use verbb\metrix\events\ViewEvent;
 use verbb\metrix\services\Views;
 use yii\base\Event;
 
-Event::on(Views::class, Views::EVENT_BEFORE_SAVE_SOURCE, function(ViewEvent $event) {
+Event::on(Views::class, Views::EVENT_BEFORE_SAVE_VIEW, function(ViewEvent $event) {
     $view = $event->view;
     $isNew = $event->isNew;
     // ...
@@ -86,7 +86,7 @@ use verbb\metrix\events\ViewEvent;
 use verbb\metrix\services\Views;
 use yii\base\Event;
 
-Event::on(Views::class, Views::EVENT_AFTER_SAVE_SOURCE, function(ViewEvent $event) {
+Event::on(Views::class, Views::EVENT_AFTER_SAVE_VIEW, function(ViewEvent $event) {
     $view = $event->view;
     $isNew = $event->isNew;
     // ...
@@ -101,7 +101,7 @@ use verbb\metrix\events\ViewEvent;
 use verbb\metrix\services\Views;
 use yii\base\Event;
 
-Event::on(Views::class, Views::EVENT_BEFORE_DELETE_SOURCE, function(ViewEvent $event) {
+Event::on(Views::class, Views::EVENT_BEFORE_DELETE_VIEW, function(ViewEvent $event) {
     $view = $event->view;
     // ...
 });
@@ -115,7 +115,7 @@ use verbb\metrix\events\ViewEvent;
 use verbb\metrix\services\Views;
 use yii\base\Event;
 
-Event::on(Views::class, Views::EVENT_AFTER_DELETE_SOURCE, function(ViewEvent $event) {
+Event::on(Views::class, Views::EVENT_AFTER_DELETE_VIEW, function(ViewEvent $event) {
     $view = $event->view;
     // ...
 });
@@ -131,7 +131,7 @@ use verbb\metrix\events\PresetEvent;
 use verbb\metrix\services\Presets;
 use yii\base\Event;
 
-Event::on(Presets::class, Presets::EVENT_BEFORE_SAVE_SOURCE, function(PresetEvent $event) {
+Event::on(Presets::class, Presets::EVENT_BEFORE_SAVE_PRESET, function(PresetEvent $event) {
     $preset = $event->preset;
     $isNew = $event->isNew;
     // ...
@@ -146,7 +146,7 @@ use verbb\metrix\events\PresetEvent;
 use verbb\metrix\services\Presets;
 use yii\base\Event;
 
-Event::on(Presets::class, Presets::EVENT_AFTER_SAVE_SOURCE, function(PresetEvent $event) {
+Event::on(Presets::class, Presets::EVENT_AFTER_SAVE_PRESET, function(PresetEvent $event) {
     $preset = $event->preset;
     $isNew = $event->isNew;
     // ...
@@ -161,7 +161,7 @@ use verbb\metrix\events\PresetEvent;
 use verbb\metrix\services\Presets;
 use yii\base\Event;
 
-Event::on(Presets::class, Presets::EVENT_BEFORE_DELETE_SOURCE, function(PresetEvent $event) {
+Event::on(Presets::class, Presets::EVENT_BEFORE_DELETE_PRESET, function(PresetEvent $event) {
     $preset = $event->preset;
     // ...
 });
@@ -175,7 +175,7 @@ use verbb\metrix\events\PresetEvent;
 use verbb\metrix\services\Presets;
 use yii\base\Event;
 
-Event::on(Presets::class, Presets::EVENT_AFTER_DELETE_SOURCE, function(PresetEvent $event) {
+Event::on(Presets::class, Presets::EVENT_AFTER_DELETE_PRESET, function(PresetEvent $event) {
     $preset = $event->preset;
     // ...
 });
@@ -191,7 +191,7 @@ use verbb\metrix\events\WidgetEvent;
 use verbb\metrix\services\Widgets;
 use yii\base\Event;
 
-Event::on(Widgets::class, Widgets::EVENT_BEFORE_SAVE_SOURCE, function(WidgetEvent $event) {
+Event::on(Widgets::class, Widgets::EVENT_BEFORE_SAVE_WIDGET, function(WidgetEvent $event) {
     $widget = $event->widget;
     $isNew = $event->isNew;
     // ...
@@ -206,7 +206,7 @@ use verbb\metrix\events\WidgetEvent;
 use verbb\metrix\services\Widgets;
 use yii\base\Event;
 
-Event::on(Widgets::class, Widgets::EVENT_AFTER_SAVE_SOURCE, function(WidgetEvent $event) {
+Event::on(Widgets::class, Widgets::EVENT_AFTER_SAVE_WIDGET, function(WidgetEvent $event) {
     $widget = $event->widget;
     $isNew = $event->isNew;
     // ...
@@ -221,7 +221,7 @@ use verbb\metrix\events\WidgetEvent;
 use verbb\metrix\services\Widgets;
 use yii\base\Event;
 
-Event::on(Widgets::class, Widgets::EVENT_BEFORE_DELETE_SOURCE, function(WidgetEvent $event) {
+Event::on(Widgets::class, Widgets::EVENT_BEFORE_DELETE_WIDGET, function(WidgetEvent $event) {
     $widget = $event->widget;
     // ...
 });
@@ -235,7 +235,7 @@ use verbb\metrix\events\WidgetEvent;
 use verbb\metrix\services\Widgets;
 use yii\base\Event;
 
-Event::on(Widgets::class, Widgets::EVENT_AFTER_DELETE_SOURCE, function(WidgetEvent $event) {
+Event::on(Widgets::class, Widgets::EVENT_AFTER_DELETE_WIDGET, function(WidgetEvent $event) {
     $widget = $event->widget;
     // ...
 });

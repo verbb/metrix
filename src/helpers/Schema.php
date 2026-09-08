@@ -58,7 +58,7 @@ class Schema
         return array_merge([
             'type' => 'text',
             'label' => Craft::t('metrix', 'Title'),
-            'instructions' => Craft::t('metrix', 'Optional custom title. Leave blank to use the metric/dimension labels.'),
+            'instructions' => Craft::t('metrix', 'Set a custom title. Leave blank to use the metric/dimension labels.'),
             'name' => 'title',
             'placeholder' => Craft::t('metrix', 'Auto'),
         ], $config);
@@ -69,7 +69,7 @@ class Schema
         return array_merge([
             'type' => 'text',
             'label' => Craft::t('metrix', 'Subtitle'),
-            'instructions' => Craft::t('metrix', 'Optional supporting text shown under the title.'),
+            'instructions' => Craft::t('metrix', 'Add supporting text shown under the title.'),
             'name' => 'subtitle',
         ], $config);
     }

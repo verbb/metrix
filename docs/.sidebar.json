@@ -12,7 +12,8 @@
         "title": "Feature Tour",
         "collapsable": false,
         "children": [
-            "feature-tour/dashboard"
+            "feature-tour/dashboard",
+            "feature-tour/sources"
         ]
     },
     {
@@ -21,10 +22,14 @@
         "children": [
             "providers/cloudflare",
             "providers/fathom",
+            "providers/goat-counter",
             "providers/google-analytics",
             "providers/matomo",
             "providers/mix-panel",
-            "providers/plausible"
+            "providers/pirsch",
+            "providers/plausible",
+            "providers/simple-analytics",
+            "providers/umami"
         ]
     },
     {

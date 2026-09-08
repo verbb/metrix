@@ -15,11 +15,12 @@ return [
         'realtimeInterval' => 10,
         'defaultWidgetConfig' => [
             'type' => 'verbb\\metrix\\widgets\\Line',
-            'period' => 'verbb\\metrix\\periods\\Today',
+            'inheritPeriod' => true,
             'width' => 1,
         ],
         'enabledWidgetTypes' => '*',
         'enabledPeriods' => [],
+        'periodSettings' => [],
     ]
 ];
 ```
@@ -29,10 +30,11 @@ return [
 - `hasCpSection` - Whether to enable Metrix in the main sidebar navigation.
 - `enableCache` - Whether to cache API requests.
 - `cacheDuration` - The cache duration for API requests. Accepts a [Date Interval](https://www.php.net/manual/en/dateinterval.construct.php) or a number of seconds.
-- `realtimeInterval` - Number of seconds between requests for real-time data.
-- `defaultWidgetConfig` - Default configuration for new widgets, including type, period, and width.
+- `realtimeInterval` - Number of seconds between requests for real-time data (the dashboard multiplies this to milliseconds for the client poller).
+- `defaultWidgetConfig` - Default configuration for new widgets. Empty config is filled with a Line widget, `inheritPeriod` true, and width `1`.
 - `enabledWidgetTypes` - The widget types available to create. Use `'*'` to enable all widget types.
-- `enabledPeriods` - The periods available for widgets, grouped as nested arrays.
+- `enabledPeriods` - Restrict which periods are available (empty = all registered periods, subject to `periodSettings`).
+- `periodSettings` - Optional ordering / enablement rows for periods in the CP.
 
 ## Control Panel
 You can also manage configuration settings through the Control Panel by visiting Settings → Metrix.

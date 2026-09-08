@@ -68,16 +68,33 @@
     warning: macros.configWarning('defaultWidgetConfig.type', 'metrix'),
 }) }}
 
-{{ forms.selectField({
-    label: 'Default Widget Period' | t('metrix'),
-    instructions: 'Select the type of widget selected by default when creating a new one.' | t('metrix'),
-    id: 'defaultWidgetConfig-period',
-    name: 'defaultWidgetConfig[period]',
-    value: settings.defaultWidgetConfig.period,
-    options: settings.getWidgetPeriodOptions(),
-    errors: settings.getErrors('defaultWidgetConfig.period'),
-    warning: macros.configWarning('defaultWidgetConfig.period', 'metrix'),
+{% set defaultInheritPeriod = settings.defaultWidgetConfig.inheritPeriod ?? true %}
+
+{{ forms.lightswitchField({
+    label: 'Inherit Dashboard Period' | t('metrix'),
+    instructions: 'Whether new widgets follow the dashboard period by default, instead of using their own.' | t('metrix'),
+    id: 'defaultWidgetConfig-inheritPeriod',
+    name: 'defaultWidgetConfig[inheritPeriod]',
+    on: defaultInheritPeriod,
+    toggle: '#default-widget-period',
+    reverseToggle: true,
+    errors: settings.getErrors('defaultWidgetConfig.inheritPeriod'),
+    warning: macros.configWarning('defaultWidgetConfig.inheritPeriod', 'metrix'),
 }) }}
+
+{# Only relevant when new widgets keep their own period rather than inheriting the dashboard's. #}
+<div id="default-widget-period" class="{{ defaultInheritPeriod ? 'hidden' }}">
+    {{ forms.selectField({
+        label: 'Default Widget Period' | t('metrix'),
+        instructions: 'Select the period selected by default when creating a new widget.' | t('metrix'),
+        id: 'defaultWidgetConfig-period',
+        name: 'defaultWidgetConfig[period]',
+        value: settings.defaultWidgetConfig.period ?? null,
+        options: settings.getWidgetPeriodOptions(),
+        errors: settings.getErrors('defaultWidgetConfig.period'),
+        warning: macros.configWarning('defaultWidgetConfig.period', 'metrix'),
+    }) }}
+</div>
 
 {{ forms.selectField({
     label: 'Default Widget Width' | t('metrix'),
