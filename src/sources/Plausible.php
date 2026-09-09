@@ -218,8 +218,16 @@ class Plausible extends CredentialsSource
 
         // Plausible site_id is already a domain — path filters are the useful View scope.
         if ($path = $scope->getResolvedPathPrefix()) {
-            $operator = $scope->getPathMatch() === AnalyticsScope::MATCH_EXACT ? 'is' : 'contains';
-            $filters[] = [$operator, 'event:page', [$path]];
+            $match = $scope->getPathMatch();
+
+            if ($match === AnalyticsScope::MATCH_EXACT) {
+                $filters[] = ['is', 'event:page', [$path]];
+            } elseif ($match === AnalyticsScope::MATCH_CONTAINS) {
+                $filters[] = ['contains', 'event:page', [$path]];
+            } else {
+                // begins_with — Stats API `matches` with a anchored regex (not substring contains).
+                $filters[] = ['matches', 'event:page', ['^' . preg_quote($path, '/')]];
+            }
         }
 
         if ($filters !== []) {

@@ -42,6 +42,12 @@
 - Fix empty widgets treating `rows: []` as populated content.
 - Fix counter comparison colour treating `0%` as a decrease.
 - Fix empty-dashboard states missing CTAs for sources/views.
+- Enforce `metrix-sources` / `metrix-views` / admin on Sources, Views, Presets, and Settings controllers (not only CP nav / Twig).
+- OAuth connect is no longer anonymous; connect/disconnect require `metrix-sources` + POST (callback remains anonymous).
+- Widget data fetches ignore stale responses after a newer dashboard-wide period/view refresh.
+- Plausible analytics scope `begins_with` now uses Stats API `matches` with an anchored regex (not substring `contains`).
+- Saving widgets only accepts registered, settings-enabled widget types.
+- Provider API error messages redact secret-looking query parameters in request URIs.
 
 ## 2.0.5 - 2026-05-03
 

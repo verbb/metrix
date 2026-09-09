@@ -17,6 +17,17 @@ class ViewsController extends Controller
     // Public Methods
     // =========================================================================
 
+    public function beforeAction($action): bool
+    {
+        if (!parent::beforeAction($action)) {
+            return false;
+        }
+
+        $this->requirePermission('metrix-views');
+
+        return true;
+    }
+
     public function actionIndex(): Response
     {
         $views = Metrix::$plugin->getViews()->getAllViews();

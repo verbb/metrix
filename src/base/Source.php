@@ -112,6 +112,7 @@ abstract class Source extends SavableComponent implements SourceInterface
 
     /**
      * Prefer the full HTTP response body over Guzzle's truncated getMessage() summary.
+     * Redact secret-looking query parameters from request URIs before returning to the CP.
      */
     public static function formatExceptionMessage(Throwable $exception): string
     {
@@ -138,14 +139,29 @@ abstract class Source extends SavableComponent implements SourceInterface
                 return sprintf(
                     "%s %s resulted in %s:\n%s",
                     $request->getMethod(),
-                    (string)$request->getUri(),
+                    self::redactUri((string)$request->getUri()),
                     $status,
                     $prettyBody
                 );
             }
         }
 
-        return $exception->getMessage();
+        return self::redactUri($exception->getMessage());
+    }
+
+    /**
+     * Strip credential-like query values from URIs / error strings shown in the CP.
+     */
+    public static function redactUri(string $value): string
+    {
+        // Query keys commonly carrying tokens/secrets in analytics provider URLs.
+        $secretKeys = 'access_token|api_key|apikey|token|secret|password|key|auth|authorization|client_secret|refresh_token';
+
+        return (string)preg_replace_callback(
+            '/([?&](?:' . $secretKeys . ')=)([^&]*)/i',
+            static fn(array $m) => $m[1] . '***',
+            $value,
+        );
     }
 
     private static function findRequestException(Throwable $exception): ?RequestException

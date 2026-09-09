@@ -24,6 +24,18 @@ class PresetsController extends Controller
     // Public Methods
     // =========================================================================
 
+    public function beforeAction($action): bool
+    {
+        if (!parent::beforeAction($action)) {
+            return false;
+        }
+
+        // Presets live under Settings; templates already use {% requireAdmin %}.
+        $this->requireAdmin();
+
+        return true;
+    }
+
     public function actionIndex(): Response
     {
         $presets = Metrix::$plugin->getPresets()->getAllPresets();

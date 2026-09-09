@@ -255,13 +255,20 @@ class DashboardController extends Controller
 
             // If we're changing the type of an existing widget, set things up
             if ($type && $widget::class !== $type) {
-                $currentWidget = $widget;
+                if (!Metrix::$plugin->getWidgets()->isAllowedWidgetType($type)) {
+                    return $this->asFailure(Craft::t('metrix', 'Invalid widget type.'));
+                }
 
-                $widget = new $type;
+                $currentWidget = $widget;
+                $widget = Metrix::$plugin->getWidgets()->createWidget(['type' => $type]);
                 $widget->setAttributes($currentWidget->getAttributes(), false);
             }
         } else {
-            $widget = new $type;
+            if (!is_string($type) || !Metrix::$plugin->getWidgets()->isAllowedWidgetType($type)) {
+                return $this->asFailure(Craft::t('metrix', 'Invalid widget type.'));
+            }
+
+            $widget = Metrix::$plugin->getWidgets()->createWidget(['type' => $type]);
         }
 
         // Replace some handles with classes

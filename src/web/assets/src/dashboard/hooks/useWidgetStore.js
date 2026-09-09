@@ -10,6 +10,8 @@ import useAppStore from '@dashboard/hooks/useAppStore';
 const useWidgetStore = create((set, get) => {
     return {
         widgets: [],
+        /** Bumped on each dashboard-wide fetch so stale responses cannot overwrite newer period/view state. */
+        fetchGeneration: 0,
 
         loadWidgets: (widgetData) => {
             const widgets = widgetData.map((widget) => {
@@ -39,6 +41,9 @@ const useWidgetStore = create((set, get) => {
                 return;
             }
 
+            const generation = get().fetchGeneration + 1;
+            set({ fetchGeneration: generation });
+
             set((state) => {
                 return {
                     widgets: state.widgets.map((widget) => {
@@ -61,6 +66,10 @@ const useWidgetStore = create((set, get) => {
                     const payload = getWidgetDataParams(widget, { refresh });
                     const response = await api.get('widget-data', payload);
 
+                    if (get().fetchGeneration !== generation) {
+                        return;
+                    }
+
                     get().updateWidgetState(widget, {
                         chartData: response.data,
                         loading: false,
@@ -68,6 +77,10 @@ const useWidgetStore = create((set, get) => {
                         error: null,
                     });
                 } catch (error) {
+                    if (get().fetchGeneration !== generation) {
+                        return;
+                    }
+
                     // Reconnect messages are face-worthy; other API dumps stay in Details.
                     get().updateWidgetState(widget, {
                         loading: false,
@@ -205,6 +218,8 @@ const useWidgetStore = create((set, get) => {
                 return;
             }
 
+            const generation = get().fetchGeneration;
+
             // Update state to indicate loading
             get().updateWidgetState(widget, { loading: true, error: null });
 
@@ -213,12 +228,20 @@ const useWidgetStore = create((set, get) => {
 
                 const response = await api.get('widget-data', payload);
 
+                if (get().fetchGeneration !== generation) {
+                    return;
+                }
+
                 // Update with fetched data
                 get().updateWidgetState(widget, {
                     chartData: response.data, // Store fetched chart data
                     loading: false,
                 });
             } catch (error) {
+                if (get().fetchGeneration !== generation) {
+                    return;
+                }
+
                 get().updateWidgetState(widget, {
                     loading: false,
                     error: {

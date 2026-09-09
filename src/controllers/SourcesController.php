@@ -21,6 +21,18 @@ class SourcesController extends Controller
     // Public Methods
     // =========================================================================
 
+    public function beforeAction($action): bool
+    {
+        if (!parent::beforeAction($action)) {
+            return false;
+        }
+
+        // Match CP nav: sources management is not covered by dashboard-only grants.
+        $this->requirePermission('metrix-sources');
+
+        return true;
+    }
+
     public function actionIndex(): Response
     {
         $sources = Metrix::$plugin->getSources()->getAllSources();

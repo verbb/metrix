@@ -18,7 +18,8 @@ class AuthController extends Controller
     // Properties
     // =========================================================================
 
-    protected array|int|bool $allowAnonymous = ['connect', 'callback'];
+    // Only the OAuth provider callback is anonymous — connect/disconnect require CP auth.
+    protected array|int|bool $allowAnonymous = ['callback'];
 
 
     // Public Methods
@@ -36,6 +37,9 @@ class AuthController extends Controller
 
     public function actionConnect(): ?Response
     {
+        $this->requirePermission('metrix-sources');
+        $this->requirePostRequest();
+
         $sourceHandle = $this->request->getRequiredParam('source');
 
         try {
@@ -129,6 +133,9 @@ class AuthController extends Controller
 
     public function actionDisconnect(): ?Response
     {
+        $this->requirePermission('metrix-sources');
+        $this->requirePostRequest();
+
         $sourceHandle = $this->request->getRequiredParam('source');
 
         if (!($source = Metrix::$plugin->getSources()->getSourceByHandle($sourceHandle))) {

@@ -30,7 +30,6 @@ class WidgetData extends Model implements WidgetDataInterface
     {
         $cacheDuration = Metrix::$plugin->getSettings()->getCacheDuration();
         $cacheKey = $this->getCacheKey();
-        $fetchedAt = time();
 
         // Some widgets can define not to be cachable (realtime)
         if ($this->widget && !$this->widget::supportsCache()) {
@@ -43,25 +42,45 @@ class WidgetData extends Model implements WidgetDataInterface
             $cache->delete($cacheKey);
         }
 
-        $fromCache = $cacheDuration > 1 && $cache->exists($cacheKey);
+        $fromCache = false;
+        $fetchedAt = time();
+        $rawData = null;
 
-        // Tag so source save/reconnect can bust all related widget entries.
-        $rawData = $cache->getOrSet(
-            $cacheKey,
-            function() {
-                return $this->widget->fetchData($this);
-            },
-            $cacheDuration,
-            $this->getCacheDependency(),
-        );
+        // Prefer an envelope that stores provider fetch time with the payload so
+        // “Updated …” reflects freshness, not merely delivery time (Astra).
+        if ($cacheDuration > 1 && !$refreshCache) {
+            $cached = $cache->get($cacheKey);
+
+            if ($cached !== false) {
+                [$rawData, $fetchedAt] = $this->unwrapCacheEnvelope($cached);
+                $fromCache = true;
+            }
+        }
+
+        if ($rawData === null) {
+            $rawData = $this->widget->fetchData($this);
+            $fetchedAt = time();
+
+            if ($cacheDuration > 1) {
+                $cache->set(
+                    $cacheKey,
+                    [
+                        'raw' => $rawData,
+                        'fetchedAt' => $fetchedAt,
+                    ],
+                    $cacheDuration,
+                    $this->getCacheDependency(),
+                );
+            }
+        }
 
         // Always apply `formatData` to the cached raw data
-        $formatted = $this->formatData($rawData);
+        $formatted = $this->formatData(is_array($rawData) ? $rawData : []);
 
         return array_merge($formatted, [
             '_meta' => [
                 'fetchedAt' => $fetchedAt,
-                'fromCache' => $fromCache && !$refreshCache,
+                'fromCache' => $fromCache,
             ],
         ]);
     }
@@ -83,6 +102,8 @@ class WidgetData extends Model implements WidgetDataInterface
             $this->period,
             $this->getRowLimit(),
             $this->scope?->cacheKey() ?? 'scope:none',
+            // Bump when envelope shape changes so legacy raw blobs are ignored.
+            'v2',
         ];
 
         if ($suffix !== '') {
@@ -156,5 +177,22 @@ class WidgetData extends Model implements WidgetDataInterface
     protected function formatData(array $rawData): array
     {
         return $rawData;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * @return array{0: mixed, 1: int}
+     */
+    private function unwrapCacheEnvelope(mixed $cached): array
+    {
+        if (is_array($cached) && array_key_exists('raw', $cached) && array_key_exists('fetchedAt', $cached)) {
+            return [$cached['raw'], (int)$cached['fetchedAt']];
+        }
+
+        // Legacy bare payload (pre-envelope) — treat as just-fetched for honesty.
+        return [$cached, time()];
     }
 }

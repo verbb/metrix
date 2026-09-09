@@ -1,6 +1,6 @@
 {
-  "_MetrixConfig-CGmQGr18.js": {
-    "file": "assets/MetrixConfig-CGmQGr18.js",
+  "_MetrixConfig-BgMPsjRl.js": {
+    "file": "assets/MetrixConfig-BgMPsjRl.js",
     "name": "MetrixConfig",
     "imports": [
       "_plugin-kit-qsOg4q9C.js",
@@ -79,7 +79,7 @@
     "src": "src/dashboard/metrix-dashboard.js",
     "isEntry": true,
     "imports": [
-      "_MetrixConfig-CGmQGr18.js",
+      "_MetrixConfig-BgMPsjRl.js",
       "_react-vendor-DjYJI7Ii.js",
       "_plugin-kit-qsOg4q9C.js",
       "_dndkit-BNC6iOvR.js",
@@ -95,7 +95,7 @@
     "src": "src/presets/metrix-presets.js",
     "isEntry": true,
     "imports": [
-      "_MetrixConfig-CGmQGr18.js",
+      "_MetrixConfig-BgMPsjRl.js",
       "_react-vendor-DjYJI7Ii.js",
       "_dndkit-BNC6iOvR.js",
       "_plugin-kit-qsOg4q9C.js",

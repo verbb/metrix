@@ -64,6 +64,18 @@ class Widgets extends Component
         return $event->types;
     }
 
+    /**
+     * Whether `$type` is a registered, settings-enabled widget class (not arbitrary).
+     */
+    public function isAllowedWidgetType(mixed $type): bool
+    {
+        if (!is_string($type) || $type === '') {
+            return false;
+        }
+
+        return in_array($type, Metrix::$plugin->getSettings()->getEnabledWidgetTypes(), true);
+    }
+
     public function createWidget(mixed $config): WidgetInterface
     {
         try {
