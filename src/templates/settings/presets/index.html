@@ -7,20 +7,14 @@
 
 {% requireAdmin %}
 
-{% set crumbs = [
-    { label: craft.metrix.getPluginName() | t('metrix'), url: url('metrix') },
-    { label: 'Settings' | t('app'), url: url('metrix/settings') },
-] %}
-
-{% set fullPageForm = true %}
-{% set selectedNavItem = 'presets' %}
-{% set selectedSubnavItem = 'settings' %}
+{% set selectedTab = 'presets' %}
+{% set pageTitle = 'Presets' | t('metrix') %}
 
 {% block actionButton %}
     <a href="{{ url('metrix/settings/presets/new') }}" class="btn submit add icon">{{ 'New Preset' | t('metrix') }}</a>
 {% endblock %}
 
-{% block content %}
+{% block settingsContent %}
     <div id="presets-vue-admin-table"></div>
 {% endblock %}
 
