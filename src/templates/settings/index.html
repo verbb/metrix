@@ -5,43 +5,32 @@
 
 {% requireAdmin %}
 
-{% set crumbs = [
-    { label: craft.metrix.getPluginName() | t('metrix'), url: url('metrix') },
-    { label: 'Settings' | t('app'), url: url('metrix/settings') },
-] %}
-
 {% set fullPageForm = true %}
-{% set selectedNavItem = 'general' %}
-{% set selectedSubnavItem = 'settings' %}
+{% set selectedTab = 'general' %}
+{% set pageTitle = 'General Settings' | t('metrix') %}
+{% set pageAction = 'metrix/settings/save-settings' %}
+{% set pageUrl = 'metrix/settings' %}
 
-{% block blockContent %}
+{% block settingsContent %}
+    {{ forms.textField({
+        label: 'Plugin Name' | t('app'),
+        instructions: 'Plugin name for the end user.' | t('metrix'),
+        id: 'pluginName',
+        name: 'pluginName',
+        value: settings.pluginName,
+        autofocus: true,
+        required: true,
+        errors: settings.getErrors('pluginName'),
+        warning: macros.configWarning('pluginName', 'metrix'),
+    }) }}
 
-<input type="hidden" name="action" value="metrix/settings/save-settings">
-
-{% namespace 'settings' %}
-
-{{ forms.textField({
-    first: true,
-    label: 'Plugin Name' | t('app'),
-    instructions: 'Plugin name for the end user.' | t('metrix'),
-    id: 'pluginName',
-    name: 'pluginName',
-    value: settings.pluginName,
-    autofocus: true,
-    errors: settings.getErrors('pluginName'),
-    warning: macros.configWarning('pluginName', 'metrix'),
-}) }}
-
-{{ forms.lightswitchField({
-    label: 'Enable CP Section' | t('metrix'),
-    instructions: 'Whether to enable Metrix in the main sidebar navigation.' | t('metrix'),
-    id: 'hasCpSection',
-    name: 'hasCpSection',
-    on: settings.hasCpSection,
-    errors: settings.getErrors('hasCpSection'),
-    warning: macros.configWarning('hasCpSection', 'metrix'),
-}) }}
-
-{% endnamespace %}
-
+    {{ forms.lightswitchField({
+        label: 'Enable CP Section' | t('metrix'),
+        instructions: 'Whether to enable Metrix in the main sidebar navigation.' | t('metrix'),
+        id: 'hasCpSection',
+        name: 'hasCpSection',
+        on: settings.hasCpSection,
+        errors: settings.getErrors('hasCpSection'),
+        warning: macros.configWarning('hasCpSection', 'metrix'),
+    }) }}
 {% endblock %}

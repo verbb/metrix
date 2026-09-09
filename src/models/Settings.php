@@ -214,4 +214,18 @@ class Settings extends Model
     {
         return $this->realtimeInterval * 1000;
     }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['pluginName'], 'trim'];
+        $rules[] = [['pluginName'], 'required'];
+
+        return $rules;
+    }
 }
