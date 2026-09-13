@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fix the presets admin table after settings normalization.
+
 ## 2.0.8 - 2026-09-13
 
 ### Changed

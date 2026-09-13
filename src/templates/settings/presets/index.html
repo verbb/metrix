@@ -8,7 +8,7 @@
 {% requireAdmin %}
 
 {% set selectedTab = 'presets' %}
-{% set pageTitle = 'Presets' | t('metrix') %}
+{% set title = 'Presets' | t('metrix') %}
 
 {% block actionButton %}
     <a href="{{ url('metrix/settings/presets/new') }}" class="btn submit add icon">{{ 'New Preset' | t('metrix') }}</a>
@@ -47,7 +47,7 @@ var columns = [
 
 new Craft.VueAdminTable({
     columns: columns,
-    container: '#presets-vue-admin-table',
+    container: '#{{ 'presets-vue-admin-table' | namespaceInputId('settings') }}',
     emptyMessage: Craft.t('metrix', 'No presets exist yet.'),
     tableData: {{ tableData | json_encode | raw }},
 
