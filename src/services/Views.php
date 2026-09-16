@@ -112,6 +112,7 @@ class Views extends Component
 
         // Clear caches
         $this->_views = null;
+        Metrix::$plugin->getWidgets()->clearCachedWidgets();
         $this->invalidateWidgetDataCache($view);
 
         // Fire an 'afterSaveView' event
@@ -143,6 +144,8 @@ class Views extends Component
             throw $e;
         }
 
+        $this->_views = null;
+
         return true;
     }
 
@@ -168,16 +171,17 @@ class Views extends Component
 
         Db::delete('{{%metrix_views}}', ['id' => $view->id]);
 
+        // Clear caches
+        $this->_views = null;
+        Metrix::$plugin->getWidgets()->clearCachedWidgets();
+        $this->invalidateWidgetDataCache($view);
+
         // Fire an 'afterDeleteView' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_VIEW)) {
             $this->trigger(self::EVENT_AFTER_DELETE_VIEW, new ViewEvent([
                 'view' => $view,
             ]));
         }
-
-        // Clear caches
-        $this->_views = null;
-        $this->invalidateWidgetDataCache($view);
 
         return true;
     }

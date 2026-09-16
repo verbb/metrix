@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix stale source, view and widget data after saving, reordering or deleting records in the same request.
 - Fix Mixpanel event selection, series counts, and service account connection checks.
 - Fix Fathom date filtering, visitor metrics, aggregate counters, and All Time queries.
 - Fix Plausible aggregate totals, page dimensions, All Time queries, and scoped realtime counts.

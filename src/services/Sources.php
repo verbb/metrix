@@ -200,6 +200,9 @@ class Sources extends Component
             $source->id = $sourceRecord->id;
         }
 
+        $this->_sources = null;
+        Metrix::$plugin->getWidgets()->clearCachedWidgets();
+
         // Settings/token changes can leave stale widget payloads under old keys.
         $this->invalidateWidgetDataCache($source);
 
@@ -231,6 +234,8 @@ class Sources extends Component
 
             throw $e;
         }
+
+        $this->_sources = null;
 
         return true;
     }
@@ -268,6 +273,8 @@ class Sources extends Component
             ->delete('{{%metrix_sources}}', ['id' => $source->id])
             ->execute();
 
+        $this->_sources = null;
+        Metrix::$plugin->getWidgets()->clearCachedWidgets();
         $this->invalidateWidgetDataCache($source);
 
         // Fire an 'afterDeleteSource' event
@@ -276,9 +283,6 @@ class Sources extends Component
                 'source' => $source,
             ]));
         }
-
-        // Clear caches
-        $this->_sources = null;
 
         return true;
     }

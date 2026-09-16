@@ -94,6 +94,11 @@ class Widgets extends Component
         }
     }
 
+    public function clearCachedWidgets(): void
+    {
+        $this->_widgets = null;
+    }
+
     public function getAllWidgets(): array
     {
         return $this->_widgets()->all();
@@ -203,6 +208,8 @@ class Widgets extends Component
 
             throw $e;
         }
+
+        $this->_widgets = null;
 
         return true;
     }
