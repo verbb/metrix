@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/bootstrap.php';
-$app = Craft::$app ?? (require CRAFT_VENDOR_PATH . '/craftcms/cms/bootstrap/console.php');
+$app = class_exists(Craft::class, false) && Craft::$app
+    ? Craft::$app
+    : require CRAFT_VENDOR_PATH . '/craftcms/cms/bootstrap/console.php';
 $app->setEdition(\craft\enums\CmsEdition::Pro);
 $package = json_decode(file_get_contents(dirname(__DIR__, 2) . '/composer.json'), true);
 $handle = $package['extra']['handle'];
