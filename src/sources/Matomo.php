@@ -283,7 +283,7 @@ class Matomo extends CredentialsSource
 
     private function _fetchSummaryData(WidgetDataInterface $widgetData): array
     {
-        $intervalDimension = $widgetData->widget::getDataType() === PlotData::class
+        $intervalDimension = is_a($widgetData->widget::getDataType(), PlotData::class, true)
             ? $this->_getIntervalDimension($widgetData)
             : 'range';
         $dateRange = $widgetData->period::getCurrentDateRange();

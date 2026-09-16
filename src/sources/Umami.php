@@ -164,7 +164,7 @@ class Umami extends CredentialsSource
             return $this->_fetchDimensionData($widgetData);
         }
 
-        if ($widgetData->widget::getDataType() === PlotData::class) {
+        if (is_a($widgetData->widget::getDataType(), PlotData::class, true)) {
             return $this->_fetchPlotData($widgetData);
         }
 

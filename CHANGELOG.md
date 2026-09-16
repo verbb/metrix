@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix custom plot data transformers receiving aggregate reports instead of time series.
 - Fix Matomo aggregate counters, pageview reports, percentage values, and API error reporting.
 - Fix missing widget sources or views causing server errors when saving.
 - Fix registered custom periods missing from date-range options and settings.

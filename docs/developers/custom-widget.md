@@ -65,19 +65,19 @@ class Heatmap extends Widget
 `getSettingsSchema()` returns the fields shown when an editor configures the Widget. The classes returned by `getDataType()` and `getAssetBundle()` are defined below in the same module namespace.
 
 ## Widget Data
-Create `HeatmapData.php` to transform the provider response into the rows required by the component:
+Create `HeatmapData.php` to transform the provider response into the rows required by the component. Extend `PlotData` for a custom time-series presentation so Sources request dated buckets instead of aggregate totals. Override `formatData()` to supply your component’s own response shape:
 
 ```php
 <?php
 namespace modules\sitemodule;
 
-use verbb\metrix\base\WidgetData;
+use verbb\metrix\widgets\data\PlotData;
 
 use Craft;
 
 use DateTime;
 
-class HeatmapData extends WidgetData
+class HeatmapData extends PlotData
 {
     // Protected Methods
     // =========================================================================
