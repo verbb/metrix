@@ -4,6 +4,7 @@ namespace verbb\metrix\base;
 use verbb\metrix\Metrix;
 use verbb\metrix\helpers\Canonical;
 use verbb\metrix\models\AnalyticsScope;
+use verbb\metrix\records\Source as SourceRecord;
 
 use Craft;
 use craft\base\SavableComponent;
@@ -12,6 +13,7 @@ use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\validators\HandleValidator;
+use craft\validators\UniqueValidator;
 
 use DateTime;
 use Exception;
@@ -224,7 +226,10 @@ abstract class Source extends SavableComponent implements SourceInterface
     {
         $rules = parent::defineRules();
 
+        $rules[] = [['name', 'handle'], 'trim'];
         $rules[] = [['name', 'handle'], 'required'];
+        $rules[] = [['name', 'handle'], 'string', 'max' => 255];
+        $rules[] = [['name', 'handle'], UniqueValidator::class, 'targetClass' => SourceRecord::class];
         $rules[] = [['id'], 'number', 'integerOnly' => true];
 
         $rules[] = [
@@ -235,6 +240,7 @@ abstract class Source extends SavableComponent implements SourceInterface
                 'dateUpdated',
                 'edit',
                 'id',
+                'new',
                 'title',
                 'uid',
             ],

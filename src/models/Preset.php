@@ -56,14 +56,15 @@ class Preset extends SavableComponent
 
         $rules[] = [['name', 'handle'], 'trim'];
         $rules[] = [['name', 'handle'], 'required'];
-        $rules[] = [['name', 'handle'], 'string', 'max' => 255];
+        $rules[] = [['name'], 'string', 'max' => 255];
+        $rules[] = [['handle'], 'string', 'max' => 64];
         $rules[] = [
             ['handle'],
             HandleValidator::class,
             'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title'],
         ];
         $rules[] = [
-            ['handle'],
+            ['name', 'handle'],
             UniqueValidator::class,
             'targetClass' => PresetRecord::class,
             'filter' => $this->id ? ['not', ['id' => $this->id]] : null,

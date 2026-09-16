@@ -1,8 +1,12 @@
 <?php
 namespace verbb\metrix\models;
 
+use verbb\metrix\records\View as ViewRecord;
+
 use craft\base\Model;
 use craft\helpers\Json;
+use craft\validators\HandleValidator;
+use craft\validators\UniqueValidator;
 
 use DateTime;
 
@@ -23,6 +27,18 @@ class View extends Model
 
     // Public Methods
     // =========================================================================
+
+    public function defineRules(): array
+    {
+        $rules = parent::defineRules();
+        $rules[] = [['name', 'handle'], 'trim'];
+        $rules[] = [['name', 'handle'], 'required'];
+        $rules[] = [['name', 'handle'], 'string', 'max' => 255];
+        $rules[] = [['handle'], HandleValidator::class, 'reservedWords' => ['new', 'edit', 'title']];
+        $rules[] = [['name', 'handle'], UniqueValidator::class, 'targetClass' => ViewRecord::class];
+
+        return $rules;
+    }
 
     public function __construct($config = [])
     {
