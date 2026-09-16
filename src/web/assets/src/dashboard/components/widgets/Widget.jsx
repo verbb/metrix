@@ -42,13 +42,13 @@ export function Widget({
         });
     }, [__id, data.id, data.type, waitForData, chartData, error, fetchWidgetData, afterFetchData]);
 
-    // Poll realtime widgets until data loads; stop while errored so we don't spam the API.
+    // Schedule the next realtime poll after the current request completes.
     useEffect(() => {
         if (data.type !== 'verbb\\metrix\\widgets\\Realtime') {
             return;
         }
 
-        if (error) {
+        if (error || waitForData) {
             return;
         }
 
