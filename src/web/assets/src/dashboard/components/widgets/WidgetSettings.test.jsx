@@ -2,6 +2,9 @@ import React from 'react';
 import { beforeEach, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
+    currentView: 'news',
+    collectionGeneration: 1,
+    cleanup: null,
     post: vi.fn(),
     addWidget: vi.fn(),
     updateWidgetState: vi.fn(),
@@ -10,9 +13,15 @@ const mocks = vi.hoisted(() => ({
     setFormErrors: vi.fn(),
 }));
 
+vi.mock('react', async(importOriginal) => ({
+    ...await importOriginal(),
+    useRef: (value) => ({ current: value }),
+    useEffect: (effect) => { mocks.cleanup = effect(); },
+}));
+
 vi.mock('@components/WidgetSettingsShell', () => ({ WidgetSettingsShell: () => null }));
-vi.mock('@dashboard/hooks/useAppStore', () => ({ default: (selector) => selector({ currentView: 'news' }) }));
-vi.mock('@dashboard/hooks/useWidgetStore', () => ({ default: (selector) => selector(mocks) }));
+vi.mock('@dashboard/hooks/useAppStore', () => ({ default: Object.assign((selector) => selector(mocks), { getState: () => mocks }) }));
+vi.mock('@dashboard/hooks/useWidgetStore', () => ({ default: Object.assign((selector) => selector(mocks), { getState: () => mocks }) }));
 vi.mock('@hooks/useWidgetSettingsForm', () => ({
     useWidgetSettingsForm: () => ({
         mergeFormData: (data) => data,
@@ -27,6 +36,8 @@ import { WidgetSettings } from './WidgetSettings.jsx';
 
 beforeEach(() => {
     vi.clearAllMocks();
+    mocks.currentView = 'news';
+    mocks.collectionGeneration = 1;
     globalThis.React = React;
 });
 
@@ -60,4 +71,30 @@ it('applies saved settings locally and invalidates chart data without another sa
         chartData: null,
         waitForData: false,
     }));
+});
+
+
+it.each(['another view', 'reloaded same view'])('ignores a delayed creation after navigating to %s', async(destination) => {
+    let resolve;
+    mocks.post.mockReturnValue(new Promise((done) => { resolve = done; }));
+    const form = WidgetSettings({ isNew: true });
+    const pending = form.props.onSubmit({ type: 'Line', metric: 'pageviews' });
+    if (destination === 'another view') mocks.currentView = 'other';
+    mocks.collectionGeneration++;
+    resolve({ data: { id: 42, type: 'Line', view: 'news' } });
+    await pending;
+    expect(mocks.addWidget).not.toHaveBeenCalled();
+});
+
+it('does not close a newly opened dialog when a dismissed save completes', async() => {
+    let resolve;
+    mocks.post.mockReturnValue(new Promise((done) => { resolve = done; }));
+    const onClose = vi.fn();
+    const form = WidgetSettings({ isNew: true, onClose });
+    const pending = form.props.onSubmit({ type: 'Line' });
+    mocks.cleanup?.();
+    resolve({ data: { id: 42, type: 'Line', view: 'news' } });
+    await pending;
+    expect(mocks.addWidget).toHaveBeenCalledOnce();
+    expect(onClose).not.toHaveBeenCalled();
 });

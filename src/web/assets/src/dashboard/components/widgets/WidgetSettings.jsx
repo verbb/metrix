@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { isEqual } from 'lodash-es';
 
 import { WidgetSettingsShell } from '@components/WidgetSettingsShell';
@@ -15,6 +16,12 @@ export function WidgetSettings({
     isNew = false,
     newWidget,
 }) {
+    const active = useRef(true);
+    useEffect(() => {
+        active.current = true;
+        return () => { active.current = false; };
+    }, []);
+
     const currentView = useAppStore((state) => state.currentView);
 
     const addWidget = useWidgetStore((state) => state.addWidget);
@@ -35,6 +42,7 @@ export function WidgetSettings({
 
     const handleFormSubmit = async(data) => {
         const mergedData = mergeFormData(data);
+        const collectionGeneration = useWidgetStore.getState().collectionGeneration;
 
         const payload = {
             id: mergedData.id,
@@ -55,8 +63,13 @@ export function WidgetSettings({
         try {
             const response = await api.post('save-widget', payload);
 
+            if (useAppStore.getState().currentView !== currentView
+                || useWidgetStore.getState().collectionGeneration !== collectionGeneration) {
+                return;
+            }
+
             if (response.errors) {
-                setFormErrors(response.errors);
+                if (active.current) setFormErrors(response.errors);
             } else {
                 const preloadedWidget = preloadWidget(response.data);
 
@@ -72,7 +85,7 @@ export function WidgetSettings({
                     });
                 }
 
-                onClose?.();
+                if (active.current) onClose?.();
             }
         } catch (error) {
             console.error('Failed to save widget:', error);
@@ -80,9 +93,9 @@ export function WidgetSettings({
             const generalError = error.response?.data?.message
                 || 'An unexpected error occurred. Please try again later.';
 
-            setFormErrors({ general: generalError });
+            if (active.current) setFormErrors({ general: generalError });
         } finally {
-            setLoading(false);
+            if (active.current) setLoading(false);
         }
     };
 
