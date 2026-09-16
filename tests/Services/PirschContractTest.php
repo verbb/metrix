@@ -82,3 +82,25 @@ it('requests a complete Pirsch date range for All Time', function() {
 
     expect($data)->toBe(['total' => 42])->and($query['from'])->toBe('1970-01-01')->and($query['to'])->toBe(date('Y-m-d'));
 });
+
+it('refreshes a rejected Pirsch access token and retries once', function() {
+    $history = [];
+    $source = pirschFixture([
+        new \GuzzleHttp\Psr7\Response(401, [], '{"error":"expired"}'),
+        ['access_token' => 'replacement', 'expires_at' => (new DateTime('+1 hour'))->format(DATE_ATOM)],
+        ['visitors' => 42],
+    ], $history);
+    $data = $source->fetchData(new WidgetData(['widget' => new Counter(), 'period' => Last7Days::class, 'metric' => 'visitors']));
+
+    expect($data)->toBe(['total' => 42])->and(count($history))->toBe(3)
+        ->and($history[1]['request']->getUri()->getPath())->toBe('/api/v1/token')
+        ->and($history[2]['request']->getHeaderLine('Authorization'))->toBe('Bearer replacement')
+        ->and($source->cache['accessToken'])->toBe('replacement');
+});
+
+it('returns empty Pirsch domain options when the API returns null', function() {
+    $history = [];
+    $source = pirschFixture([null], $history);
+
+    expect($source->fetchSourceSettings('domainId'))->toBe([]);
+});

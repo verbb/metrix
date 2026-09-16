@@ -10,9 +10,11 @@ use Craft;
 use craft\helpers\App;
 
 use DateTime;
+use Exception;
 use Throwable;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 
 class Pirsch extends CredentialsSource
 {
@@ -79,7 +81,7 @@ class Pirsch extends CredentialsSource
                 $options = [];
                 $response = $this->request('GET', 'api/v1/domain');
 
-                foreach ($response as $domain) {
+                foreach ($response ?? [] as $domain) {
                     $options[] = [
                         'label' => $domain['display_name'] ?? $domain['hostname'] ?? $domain['id'],
                         'value' => $domain['id'],
@@ -178,7 +180,18 @@ class Pirsch extends CredentialsSource
             'Accept' => 'application/json',
         ]);
 
-        return parent::request($method, $url, $options);
+        try {
+            return parent::request($method, $url, $options);
+        } catch (ClientException $e) {
+            if ($e->getResponse()->getStatusCode() !== 401) {
+                throw $e;
+            }
+
+            $this->setSettingCache(['accessToken' => null, 'accessTokenExpires' => null]);
+            $options['headers']['Authorization'] = 'Bearer ' . $this->_getAccessToken();
+
+            return parent::request($method, $url, $options);
+        }
     }
 
     public function getClient(): Client
@@ -336,27 +349,19 @@ class Pirsch extends CredentialsSource
             return $cachedToken;
         }
 
-        $client = Craft::createGuzzleClient([
-            'base_uri' => 'https://api.pirsch.io/',
-            'headers' => [
-                'Accept' => 'application/json',
-                'Content-Type' => 'application/json',
-            ],
-        ]);
-
-        $response = $client->request('POST', 'api/v1/token', [
+        $payload = parent::request('POST', 'api/v1/token', [
+            'headers' => ['Accept' => 'application/json'],
             'json' => [
                 'client_id' => $this->getClientId(),
                 'client_secret' => $this->getClientSecret(),
             ],
         ]);
 
-        $payload = json_decode($response->getBody()->getContents(), true);
         $token = $payload['access_token'] ?? null;
         $expiresAt = $payload['expires_at'] ?? null;
 
         if (!$token) {
-            throw new \Exception(Craft::t('metrix', 'Unable to authenticate with Pirsch.'));
+            throw new Exception(Craft::t('metrix', 'Unable to authenticate with Pirsch.'));
         }
 
         $this->setSettingCache([
