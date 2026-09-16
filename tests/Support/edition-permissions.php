@@ -15,11 +15,17 @@ foreach ($app->getUserPermissions()->getAllPermissions() as $group) {
 
 $teamGranted = null;
 if ($edition === \craft\enums\CmsEdition::Team) {
-    $group = $app->getUserGroups()->getTeamGroup();
-    $app->getUserGroups()->saveGroup($group);
-    $app->getUserPermissions()->saveGroupPermissions($group->id, ['accessPlugin-metrix', 'metrix-dashboard']);
-    $app->getProjectConfig()->flush();
-    $teamGranted = $app->getUserPermissions()->doesGroupHavePermission($group->id, 'metrix-dashboard');
+    $transaction = $app->getDb()->beginTransaction();
+    try {
+        $group = $app->getUserGroups()->getTeamGroup();
+        $app->getUserGroups()->saveGroup($group);
+        $app->getUserPermissions()->saveGroupPermissions($group->id, ['accessPlugin-metrix', 'metrix-dashboard']);
+        $app->getProjectConfig()->saveModifiedConfigData();
+        $teamGranted = $app->getUserPermissions()->doesGroupHavePermission($group->id, 'metrix-dashboard');
+    } finally {
+        $transaction->rollBack();
+        $app->getProjectConfig()->reset();
+    }
 }
 
 echo json_encode(['edition' => $app->edition->handle(), 'permissions' => $names, 'teamGranted' => $teamGranted], JSON_THROW_ON_ERROR);

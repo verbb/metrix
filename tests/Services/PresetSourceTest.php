@@ -11,6 +11,8 @@ use verbb\metrix\widgets\Counter;
 
 it('loads presets after their source is renamed or deleted', function(string $change) {
     $transaction = Craft::$app->getDb()->beginTransaction();
+    $projectConfig = Craft::$app->getProjectConfig();
+    $configVersion = Craft::$app->getInfo()->configVersion;
     $originalSources = Metrix::$plugin->getSources();
     Metrix::$plugin->set('sources', $sources = new Sources());
 
@@ -35,7 +37,10 @@ it('loads presets after their source is renamed or deleted', function(string $ch
             ->and($loaded->getWidgets()[0]->title)->toBe('Retained title')
             ->and($loaded->getWidgets()[0]->getSource())->toBeNull();
     } finally {
+        $projectConfig->saveModifiedConfigData();
         $transaction->rollBack();
+        $projectConfig->reset();
+        Craft::$app->getInfo()->configVersion = $configVersion;
         Metrix::$plugin->set('sources', $originalSources);
     }
 })->with(['rename', 'delete']);
