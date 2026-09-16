@@ -129,11 +129,8 @@ class Cloudflare extends CredentialsSource
     public function fetchData(WidgetDataInterface $widgetData): array
     {
         $intervalDimension = $this->_getIntervalDimension($widgetData);
-        $dateRange = $widgetData->period::getCurrentDateRange();
         $hourly = $widgetData->period::getIntervalDimension() === Period::INTERVAL_HOUR;
         $timeDimension = $hourly ? 'datetime' : 'date';
-        $startDate = Json::encode($dateRange['start']->format($hourly ? DATE_ATOM : 'Y-m-d'));
-        $endDate = Json::encode($dateRange['end']->format($hourly ? DATE_ATOM : 'Y-m-d'));
         $zone = Json::encode($this->getZoneId());
         $metric = match ($widgetData->metric) {
             'bandwidth' => 'bytes',
@@ -150,56 +147,61 @@ class Cloudflare extends CredentialsSource
             default => throw new Exception(Craft::t('metrix', 'Unsupported Cloudflare dimension.')),
         };
 
-        $query = <<<GRAPHQL
-        query {
-            viewer {
-                zones(filter: {zoneTag: $zone}) {
-                    {$intervalDimension}(limit: 1000, filter: {{$timeDimension}_geq: $startDate, {$timeDimension}_leq: $endDate}) {
-                        $dimensions
-                        sum { $sum }
+        $data = [];
+
+        foreach ($this->_getDateRanges($widgetData, $intervalDimension) as $dateRange) {
+            $startDate = Json::encode($dateRange['start']->format($hourly ? DATE_ATOM : 'Y-m-d'));
+            $endDate = Json::encode($dateRange['end']->format($hourly ? DATE_ATOM : 'Y-m-d'));
+            $limit = $dateRange['limit'] ?? 1000;
+            $query = <<<GRAPHQL
+            query {
+                viewer {
+                    zones(filter: {zoneTag: $zone}) {
+                        {$intervalDimension}(limit: $limit, filter: {{$timeDimension}_geq: $startDate, {$timeDimension}_leq: $endDate}) {
+                            $dimensions
+                            sum { $sum }
+                        }
                     }
                 }
             }
-        }
-        GRAPHQL;
+            GRAPHQL;
 
-        $response = $this->request('POST', 'graphql', [
-            'json' => [
-                'query' => $query,
-            ],
-        ]);
+            $response = $this->request('POST', 'graphql', [
+                'json' => [
+                    'query' => $query,
+                ],
+            ]);
 
-        $groups = $response['data']['viewer']['zones'][0][$intervalDimension] ?? [];
+            $groups = $response['data']['viewer']['zones'][0][$intervalDimension] ?? [];
 
-        $data = [];
+            foreach ($groups as $group) {
+                if ($dimension) {
+                    $map = $dimension === 'country' ? 'countryMap' : 'browserMap';
+                    $labelField = $dimension === 'country' ? 'clientCountryName' : 'uaBrowserFamily';
 
-        foreach ($groups as $group) {
-            if ($dimension) {
-                $map = $dimension === 'country' ? 'countryMap' : 'browserMap';
-                $labelField = $dimension === 'country' ? 'clientCountryName' : 'uaBrowserFamily';
+                    foreach ($group['sum'][$map] ?? [] as $row) {
+                        $label = $row[$labelField] ?? '';
+                        $data[$label] = ($data[$label] ?? 0) + ($row[$metric] ?? 0);
+                    }
 
-                foreach ($group['sum'][$map] ?? [] as $row) {
-                    $label = $row[$labelField] ?? '';
-                    $data[$label] = ($data[$label] ?? 0) + ($row[$metric] ?? 0);
+                    continue;
                 }
 
-                continue;
-            }
-
-            $key = 'total';
-            if ($plot) {
-                $date = new DateTime($group['dimensions'][$timeDimension]);
-                if ($hourly) {
-                    $date->setTimezone(new DateTimeZone(Craft::$app->getTimeZone()));
+                $key = 'total';
+                if ($plot) {
+                    $date = new DateTime($group['dimensions'][$timeDimension]);
+                    if ($hourly) {
+                        $date->setTimezone(new DateTimeZone(Craft::$app->getTimeZone()));
+                    }
+                    $key = match ($widgetData->period::getIntervalDimension()) {
+                        Period::INTERVAL_HOUR => $date->format('Y-m-d H:00:00'),
+                        Period::INTERVAL_MONTH => $date->format('Y-m-01'),
+                        default => $date->format('Y-m-d'),
+                    };
                 }
-                $key = match ($widgetData->period::getIntervalDimension()) {
-                    Period::INTERVAL_HOUR => $date->format('Y-m-d H:00:00'),
-                    Period::INTERVAL_MONTH => $date->format('Y-m-01'),
-                    default => $date->format('Y-m-d'),
-                };
-            }
 
-            $data[$key] = ($data[$key] ?? 0) + ($group['sum'][$metric] ?? 0);
+                $data[$key] = ($data[$key] ?? 0) + ($group['sum'][$metric] ?? 0);
+            }
         }
 
         return $data;
@@ -263,6 +265,45 @@ class Cloudflare extends CredentialsSource
 
     // Private Methods
     // =========================================================================
+
+    private function _getDateRanges(WidgetDataInterface $widgetData, string $dataset): array
+    {
+        if ($range = $widgetData->period::getCurrentDateRange()) {
+            return [$range];
+        }
+
+        $zone = Json::encode($this->getZoneId());
+        $response = $this->request('POST', 'graphql', ['json' => ['query' => <<<GRAPHQL
+            query {
+                viewer {
+                    zones(filter: {zoneTag: $zone}) {
+                        settings { $dataset { enabled notOlderThan maxDuration maxPageSize } }
+                    }
+                }
+            }
+            GRAPHQL,
+        ]]);
+        $settings = $response['data']['viewer']['zones'][0]['settings'][$dataset] ?? [];
+        $retention = (int)($settings['notOlderThan'] ?? 0);
+        $daysPerQuery = min(1000, (int)($settings['maxPageSize'] ?? 0), (int)floor(($settings['maxDuration'] ?? 0) / 86400));
+
+        if (empty($settings['enabled']) || $retention <= 0 || $daysPerQuery < 1) {
+            throw new Exception(Craft::t('metrix', 'Cloudflare did not provide an available history range for this zone.'));
+        }
+
+        // Daily datasets use UTC dates. The oldest partial day falls outside the retention window.
+        $start = new DateTime('@' . ((int)ceil((microtime(true) - $retention) / 86400) * 86400));
+        $end = new DateTime('today', new DateTimeZone('UTC'));
+        $ranges = [];
+
+        while ($start <= $end) {
+            $chunkEnd = min((clone $start)->modify('+' . ($daysPerQuery - 1) . ' days'), $end);
+            $ranges[] = ['start' => clone $start, 'end' => clone $chunkEnd, 'limit' => min(1000, (int)$settings['maxPageSize'])];
+            $start = (clone $chunkEnd)->modify('+1 day');
+        }
+
+        return $ranges;
+    }
 
     private function _getIntervalDimension(WidgetDataInterface $widgetData): string
     {

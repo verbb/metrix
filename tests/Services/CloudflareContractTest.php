@@ -70,3 +70,27 @@ it('paginates Cloudflare zone options within the API page size', function() {
 
     expect($options)->toBe([['label' => 'A', 'value' => 'a'], ['label' => 'B', 'value' => 'b']])->and((int)$query['per_page'])->toBe(50);
 });
+
+it('queries available Cloudflare history in bounded non-overlapping daily ranges', function() {
+    $source = new Cloudflare(['apiToken' => 'fixture', 'zoneId' => 'fixture']);
+    $history = [];
+    $zone = static fn(array $data) => ['data' => ['viewer' => ['zones' => [$data]]]];
+    ProviderHttp::mock($source, [
+        $zone(['settings' => ['httpRequests1dGroups' => ['enabled' => true, 'notOlderThan' => 259200, 'maxDuration' => 86400, 'maxPageSize' => 2]]]),
+        $zone(['httpRequests1dGroups' => [['sum' => ['requests' => 10]]]]),
+        $zone(['httpRequests1dGroups' => [['sum' => ['requests' => 20]]]]),
+        $zone(['httpRequests1dGroups' => [['sum' => ['requests' => 30]]]]),
+    ], $history);
+    $data = $source->fetchData(new WidgetData(['widget' => new Counter(), 'period' => \verbb\metrix\periods\AllTime::class, 'metric' => 'requests']));
+
+    expect($data)->toBe(['total' => 60])->and($history)->toHaveCount(4);
+    $dates = [];
+    foreach (array_slice($history, 1) as $entry) {
+        $query = json_decode((string)$entry['request']->getBody(), true)['query'];
+        preg_match('/date_geq: "([0-9-]+)", date_leq: "([0-9-]+)"/', $query, $matches);
+        expect($matches[1])->toBe($matches[2])->and($query)->toContain('limit: 2');
+        $dates[] = $matches[1];
+    }
+    expect((new DateTimeImmutable($dates[0]))->modify('+1 day')->format('Y-m-d'))->toBe($dates[1])
+        ->and((new DateTimeImmutable($dates[1]))->modify('+1 day')->format('Y-m-d'))->toBe($dates[2]);
+});
