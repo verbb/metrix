@@ -145,7 +145,7 @@ Returns the provider-native dimension after resolving a canonical dimension for 
 
 **Returns:** `string|null`
 
-Returns the global period when the Widget inherits its View period, otherwise the Widget's configured period.
+Returns the supplied global period when the Widget inherits the dashboard range, otherwise the Widget's configured period. An inheriting Widget with neither value uses Last 30 Days.
 :::
 
 ::: reference

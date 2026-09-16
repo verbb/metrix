@@ -28,13 +28,13 @@ Returns the display name of the previous period.
 ::: reference
 ### `getDateRange(): array`
 
-Returns `start` and `end` `DateTime` values for the period.
+Returns `start` and `end` `DateTime` values for the period. All Time returns an empty array; providers determine the available history for that range.
 :::
 
 ::: reference
 ### `getPreviousDateRange(): array`
 
-Returns `start` and `end` `DateTime` values for the comparison period.
+Returns `start` and `end` `DateTime` values for the comparison period. All Time returns an empty array and has no comparison period.
 :::
 
 ::: reference
