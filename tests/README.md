@@ -48,7 +48,7 @@ The initial runtime is PHP 8.3 and MySQL 8.0. This environment is not a claim of
 complete coverage for every supported Craft/PHP/database version. Compatibility
 matrix expansion must validate the actual runtime and fixture behavior.
 
-The test application's dependency baseline is versioned in `tests/runtime/composer.lock`.
+The test application's dependency baseline is versioned in `tests/runtime/composer.lock` and resolves against PHP 8.2, the minimum supported version, so updating it on a newer runtime does not break the compatibility matrix.
 Use `ddev test --update-lock` when intentionally updating that baseline, and review
 the lock diff alongside the test results. This does not update the plugin's root lock.
 JUnit results are available in `.cache/verbb-tests/junit.xml`. Tests exceeding 60 seconds
