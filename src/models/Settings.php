@@ -191,7 +191,14 @@ class Settings extends Model
 
     public function getNewWidgetConfig(): array
     {
-        $defaultWidget = Metrix::$plugin->getWidgets()->createWidget($this->defaultWidgetConfig);
+        $config = $this->defaultWidgetConfig;
+        $enabledTypes = $this->getEnabledWidgetTypes();
+
+        if ($enabledTypes && !in_array($config['type'] ?? null, $enabledTypes, true)) {
+            $config['type'] = $enabledTypes[0];
+        }
+
+        $defaultWidget = Metrix::$plugin->getWidgets()->createWidget($config);
 
         $firstSource = Metrix::$plugin->getSources()->getAllConfiguredSources()[0] ?? null;
 

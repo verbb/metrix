@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix new widget forms failing to load when the default widget type is disabled.
 - Fix Fathom connection checks rejecting read-only API tokens.
 - Fix removed provider options returning after a successful empty refresh.
 - Fix deleting sources and views from their edit pages.
