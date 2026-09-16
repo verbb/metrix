@@ -22,10 +22,8 @@ const cpBundleDirectories = {
 
 const getCpBundleDirectory = (bundleName) => cpBundleDirectories[bundleName] ?? null;
 
-// Canonical kit chunking, mirrored from Formie's `createManualChunkName`. Splitting the
-// kit React facades / WC components / register across chunks produces reciprocal import
-// cycles (static: PHP ManifestHelper hangs; dynamic: CP spinner never clears), so they
-// must resolve into a single `plugin-kit` chunk.
+// Keep broad third-party libraries stable while allowing Plugin Kit's built-in schema
+// fields to retain their package-authored dynamic import boundaries.
 const createManualChunkName = (id) => {
     const isKitPackagePath = id.includes('plugin-kit-repo/') || id.includes('@verbb/plugin-kit-');
 
@@ -33,30 +31,8 @@ const createManualChunkName = (id) => {
         return null;
     }
 
-    if (
-        (
-            (id.includes('plugin-kit-web') || id.includes('plugin-kit-repo/plugin-kit-web'))
-            && (
-                id.includes('/components/')
-                || id.includes('/register')
-                || id.includes('/plugin-kit')
-            )
-        )
-        || id.includes('/node_modules/@verbb/plugin-kit-react/')
-        || id.includes('plugin-kit-repo/plugin-kit-react')
-    ) {
-        return 'plugin-kit';
-    }
-
-    if (id.includes('/node_modules/@verbb/plugin-kit-forms/')) {
-        return 'plugin-kit-forms';
-    }
-
-    if (
-        id.includes('/node_modules/@verbb/plugin-kit-core/')
-        || id.includes('plugin-kit-repo/plugin-kit-core')
-    ) {
-        return 'plugin-kit-core';
+    if (isKitPackagePath) {
+        return null;
     }
 
     if (id.includes('/node_modules/lit/')) {

@@ -1,10 +1,7 @@
 import { Fragment, useMemo } from 'react';
 
-import {
-    Option,
-    Select,
-    Separator,
-} from '@verbb/plugin-kit-react/components';
+import { Option, Select } from '@verbb/plugin-kit-react/components/Select';
+import { Separator } from '@verbb/plugin-kit-react/components/Separator';
 
 import { normalizePeriodOptionGroups, toPeriodOptionValue } from '@utils/periodOptions';
 

@@ -10,37 +10,43 @@
         "dev": "vite --config src/web/assets/vite.config.js --port 4040",
         "build": "vite build --config src/web/assets/vite.config.js",
         "watch": "vite build --config src/web/assets/vite.config.js --watch",
+        "test:frontend": "vitest run",
         "dev:plugin-docs": "npm run docs:dev --prefix docs",
         "docs:screenshots": "npm --prefix docs run docs:screenshots --"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.2.4",
-        "@vitejs/plugin-react": "^4.3.3",
+        "@vitejs/plugin-react": "^6.1.1",
         "rollup-plugin-analyzer": "^4.0.0",
         "tailwindcss": "^4.2.4",
-        "vite": "^5.4.10",
+        "vite": "^8.0.10",
         "vite-plugin-compression": "^0.5.1",
-        "vite-plugin-tailwind-shadowdom": "^1.1.1"
+        "vite-plugin-tailwind-shadowdom": "^1.1.1",
+        "vitest": "^5.0.0"
     },
     "dependencies": {
         "@dnd-kit/core": "^6.2.0",
         "@dnd-kit/modifiers": "^8.0.0",
         "@dnd-kit/sortable": "^9.0.0",
         "@lit/react": "^1.0.8",
-        "@verbb/plugin-kit-core": "^2.0.14",
-        "@verbb/plugin-kit-forms": "^2.0.14",
-        "@verbb/plugin-kit-icons": "^2.0.14",
-        "@verbb/plugin-kit-react": "^2.0.14",
-        "@verbb/plugin-kit-web": "^2.0.14",
+        "@verbb/plugin-kit-core": "^2.0.16",
+        "@verbb/plugin-kit-forms": "^2.0.16",
+        "@verbb/plugin-kit-icons": "^2.0.16",
+        "@verbb/plugin-kit-react": "^2.0.16",
+        "@verbb/plugin-kit-web": "^2.0.16",
         "chart.js": "^4.4.6",
         "dayjs": "^1.11.13",
-        "framer-motion": "^11.12.0",
         "lit": "^3.3.0",
-        "lodash-es": "^4.17.21",
+        "lodash-es": "^4.18.1",
         "nanoid": "^5.0.9",
         "react": "^19.2.5",
         "react-chartjs-2": "^5.2.0",
         "react-dom": "^19.2.5",
         "zustand": "^5.0.1"
+    },
+    "overrides": {
+        "vitepress": {
+            "vite": "6.4.3"
+        }
     }
 }

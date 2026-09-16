@@ -1,0 +1,2 @@
+var e=`rgba(96, 125, 159, 0.6)`,t=`#f0fdf4`;function n(e,t){let[n,r,i]=e.match(/\w\w/g).map(e=>parseInt(e,16));return`rgba(${n}, ${r}, ${i}, ${t})`}export{t as n,n as r,e as t};
+//# sourceMappingURL=theme-CV1kDR6b.js.map

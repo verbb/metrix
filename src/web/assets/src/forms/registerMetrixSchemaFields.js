@@ -1,4 +1,4 @@
-import { registerFormFields } from '@verbb/plugin-kit-react/forms';
+import { registerFormFields } from '@verbb/plugin-kit-react/forms/registry';
 
 import { EagerComboboxField } from './EagerComboboxField.jsx';
 

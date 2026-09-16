@@ -34,9 +34,6 @@ export function WidgetSettings({
     } = useWidgetSettingsForm({ widget, isNew, newWidget });
 
     const handleFormSubmit = async(data) => {
-        setLoading(true);
-        setFormErrors(null);
-
         const mergedData = mergeFormData(data);
 
         const payload = {
@@ -52,13 +49,10 @@ export function WidgetSettings({
             return;
         }
 
-        const typeChanged = mergedData.type !== widget.data.type;
+        setLoading(true);
+        setFormErrors(null);
 
-        updateWidgetState(widget, {
-            waitForData: true,
-            // Bar → Line keeps stale Chart.js state on the same canvas; drop cached rows until refetch.
-            ...(typeChanged && { chartData: null }),
-        });
+        const typeChanged = mergedData.type !== widget.data.type;
 
         try {
             const response = await api.post('save-widget', payload);

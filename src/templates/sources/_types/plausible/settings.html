@@ -2,6 +2,8 @@
 {% import 'verbb-base/_macros' as macros %}
 {% import 'metrix/_macros' as customForms %}
 
+{% include 'metrix/sources/_provider-guide' %}
+
 {{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'API Key' | t('metrix'),
     instructions: 'Enter your {name} {label} here.' | t('metrix'),

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 
-import { Button, Dialog, Icon } from '@verbb/plugin-kit-react/components';
+import { Button } from '@verbb/plugin-kit-react/components/Button';
+import { Dialog } from '@verbb/plugin-kit-react/components/Dialog';
+import { Icon } from '@verbb/plugin-kit-react/components/Icon';
 
 import { PresetSettings } from '@presets/components/PresetSettings';
 

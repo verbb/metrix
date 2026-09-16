@@ -203,10 +203,6 @@ class Plausible extends CredentialsSource
         ]);
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
     public function supportsAnalyticsScope(): bool
     {
         return true;
@@ -234,6 +230,10 @@ class Plausible extends CredentialsSource
             $request['filters'] = $filters;
         }
     }
+
+
+    // Protected Methods
+    // =========================================================================
 
     protected function getCanonicalMetricMap(): array
     {

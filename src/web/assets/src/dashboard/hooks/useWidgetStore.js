@@ -108,6 +108,7 @@ const useWidgetStore = create((set, get) => {
 
         updateWidget: async(widget, updates, fetchData = true) => {
             // Merge updates into the current widget data
+            const originalData = widget.data;
             const updatedData = { ...widget.data, ...updates };
 
             // Update client-side state with conditional loading and error reset
@@ -138,6 +139,7 @@ const useWidgetStore = create((set, get) => {
 
                 // Update client-side state to reflect the error
                 get().updateWidgetState(widget, {
+                    data: originalData,
                     loading: false,
                     error: {
                         message: Craft.t('metrix', 'Failed to update widget. Please try again.'),
@@ -197,6 +199,11 @@ const useWidgetStore = create((set, get) => {
                     data: { ...newWidget.data, ...response.data },
                     waitForData: false,
                 });
+
+                // The duplication endpoint returns widget settings, not chart rows.
+                // Resolve the placeholder through the same data lifecycle as every
+                // other widget so it cannot remain behind its loading overlay.
+                await get().fetchWidgetData(newWidgetId);
             } catch (error) {
                 console.error('Error duplicating widget:', error);
 
@@ -275,6 +282,11 @@ const useWidgetStore = create((set, get) => {
                 });
             } catch (error) {
                 console.error('Error saving widget order:', error);
+                set({ widgets });
+
+                Craft.cp?.displayError?.(
+                    Craft.t('metrix', 'Failed to save widget order. Please try again.'),
+                );
             }
         },
 

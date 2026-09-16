@@ -7,10 +7,12 @@ use Tests\Support\CpRequestContext;
 use Tests\Support\NonAdminUser;
 use verbb\metrix\Metrix;
 use verbb\metrix\controllers\PresetsController;
+use verbb\metrix\controllers\DashboardController;
 use verbb\metrix\controllers\SettingsController;
 use verbb\metrix\controllers\SourcesController;
 use verbb\metrix\controllers\ViewsController;
 use yii\web\ForbiddenHttpException;
+use yii\web\MethodNotAllowedHttpException;
 
 describe('Metrix plugin boot', function() {
     it('installs and exposes the plugin instance', function() {
@@ -77,5 +79,30 @@ describe('CP permission gates', function() {
         $action = $controller->createAction('index');
 
         expect($controller->beforeAction($action))->toBeTrue();
+    });
+
+    it('rejects GET requests that could apply a dashboard preset', function() {
+        AdminUser::login();
+        CpRequestContext::activate('actions/metrix/dashboard/apply-preset', 'GET');
+
+        $controller = new DashboardController('dashboard', Metrix::$plugin);
+        $controller->enableCsrfValidation = false;
+
+        expect(fn() => $controller->runAction('apply-preset'))
+            ->toThrow(MethodNotAllowedHttpException::class);
+    });
+
+    it('rejects preset application before lookup for users without dashboard access', function() {
+        NonAdminUser::login();
+        CpRequestContext::activate('actions/metrix/dashboard/apply-preset', 'POST');
+        Craft::$app->getRequest()->setBodyParams([
+            'view' => 'does-not-matter',
+            'preset' => 'does-not-matter',
+        ]);
+        $controller = new DashboardController('dashboard', Metrix::$plugin);
+        $controller->enableCsrfValidation = false;
+
+        expect(fn() => $controller->runAction('apply-preset'))
+            ->toThrow(ForbiddenHttpException::class);
     });
 });

@@ -8,10 +8,10 @@ use craft\web\Controller;
 
 use yii\web\Response;
 
+use Throwable;
+
 use verbb\auth\Auth;
 use verbb\auth\helpers\Session;
-
-use Throwable;
 
 class AuthController extends Controller
 {

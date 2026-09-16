@@ -1,4 +1,4 @@
-import { Spinner } from '@verbb/plugin-kit-react/components';
+import { Spinner } from '@verbb/plugin-kit-react/components/Spinner';
 
 import { cn } from '@utils';
 

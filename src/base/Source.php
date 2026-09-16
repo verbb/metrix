@@ -13,15 +13,14 @@ use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\validators\HandleValidator;
 
-use verbb\auth\helpers\Provider as ProviderHelper;
-use verbb\auth\Auth;
-use verbb\auth\exceptions\OAuthTokenRefreshException;
-
 use DateTime;
 use Exception;
 use Throwable;
 
 use GuzzleHttp\Exception\RequestException;
+use verbb\auth\Auth;
+use verbb\auth\exceptions\OAuthTokenRefreshException;
+use verbb\auth\helpers\Provider as ProviderHelper;
 
 abstract class Source extends SavableComponent implements SourceInterface
 {
@@ -42,7 +41,7 @@ abstract class Source extends SavableComponent implements SourceInterface
     {
         // Permanent OAuth failure — flip Connected off and surface a reconnect message.
         if (self::isOAuthReconnectFailure($exception)) {
-            self::disconnectOAuthAfterAuthFailure($source);
+            self::_disconnectOAuthAfterAuthFailure($source);
 
             $messageText = self::reconnectExceptionMessage();
             $message = Craft::t('metrix', 'API error: “{message}” {file}:{line}', [
@@ -99,7 +98,7 @@ abstract class Source extends SavableComponent implements SourceInterface
      */
     public static function isOAuthReconnectFailure(Throwable $exception): bool
     {
-        if (class_exists(OAuthTokenRefreshException::class) && self::findException($exception, OAuthTokenRefreshException::class)) {
+        if (class_exists(OAuthTokenRefreshException::class) && self::_findException($exception, OAuthTokenRefreshException::class)) {
             return true;
         }
 
@@ -116,7 +115,7 @@ abstract class Source extends SavableComponent implements SourceInterface
      */
     public static function formatExceptionMessage(Throwable $exception): string
     {
-        $requestException = self::findRequestException($exception);
+        $requestException = self::_findRequestException($exception);
 
         if ($requestException && ($response = $requestException->getResponse())) {
             $body = $response->getBody();
@@ -164,17 +163,13 @@ abstract class Source extends SavableComponent implements SourceInterface
         );
     }
 
-    private static function findRequestException(Throwable $exception): ?RequestException
+    private static function _findRequestException(Throwable $exception): ?RequestException
     {
-        return self::findException($exception, RequestException::class);
+        return self::_findException($exception, RequestException::class);
     }
 
-    /**
-     * @template T of Throwable
-     * @param class-string<T> $class
-     * @return T|null
-     */
-    private static function findException(Throwable $exception, string $class): ?Throwable
+    /** Walk the exception chain to find the first instance of the requested class. */
+    private static function _findException(Throwable $exception, string $class): ?Throwable
     {
         $current = $exception;
 
@@ -192,7 +187,7 @@ abstract class Source extends SavableComponent implements SourceInterface
     /**
      * Drop a dead OAuth token when Auth did not already (older Auth, or 401 without invalid_grant on refresh).
      */
-    private static function disconnectOAuthAfterAuthFailure($source): void
+    private static function _disconnectOAuthAfterAuthFailure($source): void
     {
         if (!$source instanceof OAuthSource || !$source->id) {
             return;
@@ -361,22 +356,6 @@ abstract class Source extends SavableComponent implements SourceInterface
         // No-op by default — providers opt in via supportsAnalyticsScope() + override.
     }
 
-    /**
-     * Apply the widget’s View scope to a request when active and supported.
-     *
-     * @param array<string, mixed> $request
-     */
-    protected function applyWidgetAnalyticsScope(array &$request, WidgetDataInterface $widgetData): void
-    {
-        $scope = $widgetData->scope ?? null;
-
-        if (!$scope instanceof AnalyticsScope || !$scope->isActive() || !$this->supportsAnalyticsScope()) {
-            return;
-        }
-
-        $this->applyAnalyticsScope($request, $scope);
-    }
-
     public function resolveCanonicalMetric(string $key): ?string
     {
         return $this->getCanonicalMetricMap()[$key] ?? null;
@@ -419,6 +398,18 @@ abstract class Source extends SavableComponent implements SourceInterface
     // Protected Methods
     // =========================================================================
 
+    /** Apply the widget’s View scope to a request when active and supported. */
+    protected function applyWidgetAnalyticsScope(array &$request, WidgetDataInterface $widgetData): void
+    {
+        $scope = $widgetData->scope ?? null;
+
+        if (!$scope instanceof AnalyticsScope || !$scope->isActive() || !$this->supportsAnalyticsScope()) {
+            return;
+        }
+
+        $this->applyAnalyticsScope($request, $scope);
+    }
+
     protected function setSettingCache(array $values): void
     {
         $this->cache = array_merge($this->cache, $values);
@@ -434,21 +425,13 @@ abstract class Source extends SavableComponent implements SourceInterface
         return $this->cache[$key] ?? null;
     }
 
-    /**
-     * Map curated canonical metric keys to this provider's native API values.
-     *
-     * @return array<string, string>
-     */
+    /** Map curated canonical metric keys to this provider's native API values. */
     protected function getCanonicalMetricMap(): array
     {
         return [];
     }
 
-    /**
-     * Map curated canonical dimension keys to this provider's native API values.
-     *
-     * @return array<string, string>
-     */
+    /** Map curated canonical dimension keys to this provider's native API values. */
     protected function getCanonicalDimensionMap(): array
     {
         return [];

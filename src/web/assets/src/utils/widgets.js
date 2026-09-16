@@ -1,9 +1,11 @@
-import { BarWidget } from '@dashboard/components/widgets/BarWidget';
-import { CounterWidget } from '@dashboard/components/widgets/CounterWidget';
-import { LineWidget } from '@dashboard/components/widgets/LineWidget';
-import { PieWidget } from '@dashboard/components/widgets/PieWidget';
-import { RealtimeWidget } from '@dashboard/components/widgets/RealtimeWidget';
-import { TableWidget } from '@dashboard/components/widgets/TableWidget';
+import { lazy } from 'react';
+
+const BarWidget = lazy(() => import('@dashboard/components/widgets/BarWidget').then((module) => ({ default: module.BarWidget })));
+const CounterWidget = lazy(() => import('@dashboard/components/widgets/CounterWidget').then((module) => ({ default: module.CounterWidget })));
+const LineWidget = lazy(() => import('@dashboard/components/widgets/LineWidget').then((module) => ({ default: module.LineWidget })));
+const PieWidget = lazy(() => import('@dashboard/components/widgets/PieWidget').then((module) => ({ default: module.PieWidget })));
+const RealtimeWidget = lazy(() => import('@dashboard/components/widgets/RealtimeWidget').then((module) => ({ default: module.RealtimeWidget })));
+const TableWidget = lazy(() => import('@dashboard/components/widgets/TableWidget').then((module) => ({ default: module.TableWidget })));
 
 const typeToComponentMap = {
     'verbb\\metrix\\widgets\\Line': LineWidget,

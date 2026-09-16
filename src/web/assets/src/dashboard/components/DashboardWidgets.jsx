@@ -1,4 +1,4 @@
-import { AnimatePresence } from 'framer-motion';
+import { Suspense } from 'react';
 
 import { cn } from '@utils';
 import { getWidgetComponent } from '@utils/widgets';
@@ -11,24 +11,28 @@ export const DashboardWidgets = ({ widgets, loading }) => {
                 loading ? 'opacity-10' : '',
             )}
         >
-            <AnimatePresence>
-                {widgets.map((widget) => {
+            {widgets.map((widget) => {
                     // Always derive from data.type so chart type changes apply without a grid remount key.
                     const Component = getWidgetComponent(widget.data?.type) ?? widget.component;
 
+                    const wrapperClassName = cn(
+                        'col-span-1',
+                        widget.data.width === '2' ? 'lg:col-span-2' : '',
+                        widget.data.width === '3' ? 'lg:col-span-3' : '',
+                    );
+
                     return Component !== null ? (
-                        <Component
+                        <Suspense
                             key={widget.__id}
-                            widget={widget}
-                            wrapperClassName={cn(
-                                'col-span-1',
-                                widget.data.width === '2' ? 'lg:col-span-2' : '',
-                                widget.data.width === '3' ? 'lg:col-span-3' : '',
-                            )}
-                        />
+                            fallback={<div className={wrapperClassName} aria-busy="true" />}
+                        >
+                            <Component
+                                widget={widget}
+                                wrapperClassName={wrapperClassName}
+                            />
+                        </Suspense>
                     ) : '';
                 })}
-            </AnimatePresence>
         </div>
     );
 };

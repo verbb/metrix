@@ -1,4 +1,4 @@
-import { Button } from '@verbb/plugin-kit-react/components';
+import { Button } from '@verbb/plugin-kit-react/components/Button';
 
 import { WidgetSettingsForm } from '@components/WidgetSettingsForm';
 

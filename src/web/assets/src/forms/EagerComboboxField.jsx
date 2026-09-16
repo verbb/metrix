@@ -1,13 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import {
-    Combobox,
-    ComboboxInput,
-    Option,
-    OptionGroup,
-    Spinner,
-} from '@verbb/plugin-kit-react/components';
-import { FieldLayout, useEngineField } from '@verbb/plugin-kit-react/forms';
+import { Combobox } from '@verbb/plugin-kit-react/components/Combobox';
+import { ComboboxInput } from '@verbb/plugin-kit-react/components/ComboboxInput';
+import { Option, OptionGroup } from '@verbb/plugin-kit-react/components/Select';
+import { Spinner } from '@verbb/plugin-kit-react/components/Spinner';
+import { FieldLayout } from '@verbb/plugin-kit-react/forms/Field';
+import { useEngineField } from '@verbb/plugin-kit-react/forms/useEngineField';
 
 const toStringValue = (value) => (value === undefined || value === null ? '' : String(value));
 

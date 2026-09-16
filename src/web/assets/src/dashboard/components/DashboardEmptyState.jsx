@@ -1,8 +1,5 @@
-import {
-    Button,
-    DropdownItem,
-    DropdownMenu,
-} from '@verbb/plugin-kit-react/components';
+import { Button } from '@verbb/plugin-kit-react/components/Button';
+import { DropdownItem, DropdownMenu } from '@verbb/plugin-kit-react/components/DropdownMenu';
 
 import useAppStore from '@dashboard/hooks/useAppStore';
 

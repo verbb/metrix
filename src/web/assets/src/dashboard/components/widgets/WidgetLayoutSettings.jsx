@@ -22,11 +22,9 @@ import {
 
 import { CSS } from '@dnd-kit/utilities';
 
-import {
-    Button,
-    Icon,
-    Popover,
-} from '@verbb/plugin-kit-react/components';
+import { Button } from '@verbb/plugin-kit-react/components/Button';
+import { Icon } from '@verbb/plugin-kit-react/components/Icon';
+import { Popover } from '@verbb/plugin-kit-react/components/Popover';
 
 import { WidthPicker } from '@components/WidthPicker';
 

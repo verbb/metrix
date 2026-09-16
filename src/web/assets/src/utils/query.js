@@ -13,3 +13,9 @@ export const setQueryParam = (key, value) => {
 
     window.history.pushState({}, '', newUrl);
 };
+
+export const resolveQueryOption = (value, options = []) => {
+    return options.some((option) => option.value === value)
+        ? value
+        : options[0]?.value;
+};

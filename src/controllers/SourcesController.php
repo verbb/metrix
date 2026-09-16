@@ -62,7 +62,7 @@ class SourcesController extends Controller
         $sourceOptions = [];
 
         foreach ($allSourceTypes as $sourceType) {
-            /** @var SourceInterface $sourceInstance */
+            /* @var SourceInterface $sourceInstance */
             $sourceInstance = Craft::createObject($sourceType);
 
             if ($source === null) {

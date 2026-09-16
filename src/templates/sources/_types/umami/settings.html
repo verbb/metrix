@@ -2,6 +2,8 @@
 {% import 'verbb-base/_macros' as macros %}
 {% import 'metrix/_macros' as customForms %}
 
+{% include 'metrix/sources/_provider-guide' %}
+
 {{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Base URL' | t('metrix'),
     instructions: 'Enter your {name} {label} here. Use https://api.umami.is for Umami Cloud, or your self-hosted instance URL (without /api).' | t('metrix'),

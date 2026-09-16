@@ -1,8 +1,6 @@
-import {
-    Button,
-    CopyButton,
-    Popover,
-} from '@verbb/plugin-kit-react/components';
+import { Button } from '@verbb/plugin-kit-react/components/Button';
+import { CopyButton } from '@verbb/plugin-kit-react/components/CopyButton';
+import { Popover } from '@verbb/plugin-kit-react/components/Popover';
 
 import { cn, getWidgetErrorDetail } from '@utils';
 

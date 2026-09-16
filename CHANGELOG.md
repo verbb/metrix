@@ -19,6 +19,9 @@
 - Add View **analytics scope** (Craft site, path prefix, or hostname) to filter widget data for multi-site installs.
 
 ### Changed
+- Link every source setup screen to its provider guide.
+- Reduce the dashboard’s initial JavaScript by lazy-loading chart renderers, widget settings, and schema field controls.
+- Update Plugin Kit and lodash dependencies to their patched releases.
 - Rebuild the Dashboard UI on [Plugin Kit](https://docs.verbb.io/plugin-kit/react/).
 - Widget settings can store `canonicalMetric` / `canonicalDimension`; resolved to provider-native API values at fetch time.
 - Source option lists prepend mapped Common metrics/dimensions before the provider’s full native catalog.
@@ -31,8 +34,16 @@
 - Google Analytics OAuth default scope reduced to `analytics.readonly`.
 - Matomo dimension widgets use Reporting API breakdown methods (browsers, country, city, referrers) instead of VisitsSummary.
 - Require `verbb/auth` `^2.0.45` for OAuth reconnect handling when refresh tokens are permanently rejected.
+- Expand dashboard setup, provider prerequisites and custom extension examples, and clarify configuration.
+- Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix duplicated dashboard widgets remaining in a loading state instead of fetching their chart data.
+- Roll back failed widget edits and reorders instead of leaving unsaved dashboard state in the UI.
+- Fall back to the first permitted dashboard view when the URL contains an unknown view handle.
+- Apply dashboard presets through an idempotent, CSRF-protected POST transaction instead of mutating state through GET requests.
+- Coalesce concurrent cold-cache widget requests so identical provider queries only run once.
+- Keep analytics-scope cache identities limited to the hostname/path match modes they actually use.
 - Fix Google Analytics (and other OAuth) sources staying “Connected” after a dead refresh token (e.g. Google Testing-mode 7-day expiry). Dashboard widgets now show a reconnect message instead of a raw API 401, and the source flips to Not Connected so you can reconnect from Sources.
 - Fix dashboard index crashing when resolving native metric/dimension labels against a dead OAuth source.
 - Fix lack of validation for Presets when saving.

@@ -122,13 +122,19 @@ class AnalyticsScope extends Model
             return 'scope:none';
         }
 
-        return 'scope:' . implode(':', array_filter([
-            $this->mode,
-            $this->getResolvedHostname(),
-            $this->getResolvedPathPrefix(),
-            $this->getHostnameMatch(),
-            $this->getPathMatch(),
-        ], fn($v) => $v !== null && $v !== ''));
+        $parts = [$this->mode];
+
+        if ($hostname = $this->getResolvedHostname()) {
+            $parts[] = $hostname;
+            $parts[] = $this->getHostnameMatch();
+        }
+
+        if ($pathPrefix = $this->getResolvedPathPrefix()) {
+            $parts[] = $pathPrefix;
+            $parts[] = $this->getPathMatch();
+        }
+
+        return 'scope:' . implode(':', $parts);
     }
 
     public function getResolvedHostname(): ?string

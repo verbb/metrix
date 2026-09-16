@@ -1,4 +1,4 @@
-import { SelectInput } from '@verbb/plugin-kit-react/components';
+import { SelectInput } from '@verbb/plugin-kit-react/components/SelectInput';
 
 import { GroupedPeriodSelect } from '@components/GroupedPeriodSelect';
 import { WidgetNew } from '@dashboard/components/widgets/WidgetNew';

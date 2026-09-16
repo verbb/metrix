@@ -1,16 +1,15 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 
+import { Button } from '@verbb/plugin-kit-react/components/Button';
+import { Dialog } from '@verbb/plugin-kit-react/components/Dialog';
 import {
-    Button,
-    Dialog,
     DropdownItem,
     DropdownMenu,
     DropdownSeparator,
-    Icon,
-} from '@verbb/plugin-kit-react/components';
+} from '@verbb/plugin-kit-react/components/DropdownMenu';
+import { Icon } from '@verbb/plugin-kit-react/components/Icon';
 
 import { GroupedPeriodSelect } from '@components/GroupedPeriodSelect';
-import { WidgetSettings } from '@dashboard/components/widgets/WidgetSettings';
 import { WidthPicker } from '@components/WidthPicker';
 
 import useAppStore from '@dashboard/hooks/useAppStore';
@@ -18,6 +17,10 @@ import useWidgetStore from '@dashboard/hooks/useWidgetStore';
 import useWidgetSettingsStore from '@dashboard/hooks/useWidgetSettingsStore';
 
 import { widgetInheritsDashboardPeriod } from '@utils/dashboardPeriod';
+
+const WidgetSettings = lazy(() => import('./WidgetSettings.jsx').then((module) => ({
+    default: module.WidgetSettings,
+})));
 
 function formatFreshness(meta) {
     if (!meta?.fetchedAt) {
@@ -233,10 +236,12 @@ export function WidgetHeader({ widget }) {
                     }}
                 >
                     {isDialogOpen ? (
-                        <WidgetSettings
-                            widget={widget}
-                            onClose={() => setIsDialogOpen(false)}
-                        />
+                        <Suspense fallback={<div role="status">{Craft.t('metrix', 'Loading…')}</div>}>
+                            <WidgetSettings
+                                widget={widget}
+                                onClose={() => setIsDialogOpen(false)}
+                            />
+                        </Suspense>
                     ) : null}
                 </Dialog>
             </div>

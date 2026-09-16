@@ -5,7 +5,7 @@ import {
     useMemo,
 } from 'react';
 
-import { SchemaFormEngine, useSchemaFormEngine } from '@verbb/plugin-kit-react/forms';
+import { SchemaFormEngine, useSchemaFormEngine } from '@verbb/plugin-kit-react/forms/SchemaFormEngine';
 
 import { getErrorMessage } from '@utils';
 import {

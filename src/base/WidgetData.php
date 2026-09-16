@@ -52,25 +52,47 @@ class WidgetData extends Model implements WidgetDataInterface
             $cached = $cache->get($cacheKey);
 
             if ($cached !== false) {
-                [$rawData, $fetchedAt] = $this->unwrapCacheEnvelope($cached);
+                [$rawData, $fetchedAt] = $this->_unwrapCacheEnvelope($cached);
                 $fromCache = true;
             }
         }
 
         if ($rawData === null) {
-            $rawData = $this->widget->fetchData($this);
-            $fetchedAt = time();
+            $mutex = Craft::$app->getMutex();
+            $mutexName = 'metrix:widget-data:' . hash('sha256', serialize($cacheKey));
+            $hasLock = $cacheDuration > 1 && $mutex->acquire($mutexName, 10);
 
-            if ($cacheDuration > 1) {
-                $cache->set(
-                    $cacheKey,
-                    [
-                        'raw' => $rawData,
-                        'fetchedAt' => $fetchedAt,
-                    ],
-                    $cacheDuration,
-                    $this->getCacheDependency(),
-                );
+            try {
+                // Another request may have filled the cache while this one waited.
+                if ($hasLock && !$refreshCache) {
+                    $cached = $cache->get($cacheKey);
+
+                    if ($cached !== false) {
+                        [$rawData, $fetchedAt] = $this->_unwrapCacheEnvelope($cached);
+                        $fromCache = true;
+                    }
+                }
+
+                if ($rawData === null) {
+                    $rawData = $this->widget->fetchData($this);
+                    $fetchedAt = time();
+
+                    if ($cacheDuration > 1) {
+                        $cache->set(
+                            $cacheKey,
+                            [
+                                'raw' => $rawData,
+                                'fetchedAt' => $fetchedAt,
+                            ],
+                            $cacheDuration,
+                            $this->getCacheDependency(),
+                        );
+                    }
+                }
+            } finally {
+                if ($hasLock) {
+                    $mutex->release($mutexName);
+                }
             }
         }
 
@@ -122,9 +144,6 @@ class WidgetData extends Model implements WidgetDataInterface
         return $this->widget?->getRowLimit() ?? 10;
     }
 
-    /**
-     * @return string[]
-     */
     public function getCacheTags(): array
     {
         $tags = ['metrix'];
@@ -183,10 +202,7 @@ class WidgetData extends Model implements WidgetDataInterface
     // Private Methods
     // =========================================================================
 
-    /**
-     * @return array{0: mixed, 1: int}
-     */
-    private function unwrapCacheEnvelope(mixed $cached): array
+    private function _unwrapCacheEnvelope(mixed $cached): array
     {
         if (is_array($cached) && array_key_exists('raw', $cached) && array_key_exists('fetchedAt', $cached)) {
             return [$cached['raw'], (int)$cached['fetchedAt']];

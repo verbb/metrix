@@ -2,7 +2,8 @@ import { useState, useCallback } from 'react';
 
 import { WIDGET_ICONS } from '@icons/widgetIcons';
 
-import { Button, Icon } from '@verbb/plugin-kit-react/components';
+import { Button } from '@verbb/plugin-kit-react/components/Button';
+import { Icon } from '@verbb/plugin-kit-react/components/Icon';
 
 import { WidgetLarge } from '@dashboard/components/widgets/WidgetLarge';
 

@@ -173,6 +173,8 @@ class Widgets extends Component
             $widget->id = $widgetRecord->id;
         }
 
+        $this->_widgets = null;
+
         // Fire an 'afterSaveWidget' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_WIDGET)) {
             $this->trigger(self::EVENT_AFTER_SAVE_WIDGET, new WidgetEvent([

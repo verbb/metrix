@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-import { Spinner } from '@verbb/plugin-kit-react/components';
+import { Spinner } from '@verbb/plugin-kit-react/components/Spinner';
 
 import { DashboardHeader } from '@dashboard/components/DashboardHeader';
 import { DashboardWidgets } from '@dashboard/components/DashboardWidgets';
@@ -14,6 +14,7 @@ import {
     api,
     getErrorMessage,
     getQueryParam,
+    resolveQueryOption,
     setQueryParam,
 } from '@utils';
 
@@ -42,10 +43,9 @@ export const Dashboard = () => {
     // Load currentView from query string on initial mount
     useEffect(() => {
         const viewFromQuery = getQueryParam('view');
-        const defaultView = viewOptions[0]?.value;
 
         if (viewOptions.length > 0) {
-            const initialView = viewFromQuery || defaultView;
+            const initialView = resolveQueryOption(viewFromQuery, viewOptions);
             setCurrentView(initialView);
 
             if (viewFromQuery !== initialView) {
@@ -59,7 +59,7 @@ export const Dashboard = () => {
         setErrorPresets(null);
 
         try {
-            const { data: presetWidgets } = await api.get('widgets', { view: currentView, preset });
+            const { data: presetWidgets } = await api.post('apply-preset', { view: currentView, preset });
             const preloadedWidgets = preloadWidgets(presetWidgets);
 
             loadWidgets(preloadedWidgets);

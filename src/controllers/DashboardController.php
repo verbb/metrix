@@ -13,9 +13,10 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\Controller;
 
-use Throwable;
 use yii\web\ForbiddenHttpException;
 use yii\web\Response;
+
+use Throwable;
 
 class DashboardController extends Controller
 {
@@ -49,7 +50,10 @@ class DashboardController extends Controller
         $sources = Options::getSourceOptions();
         $presets = Options::getPresetOptions();
 
-        $currentView = $this->request->getParam('view') ?? $viewOptions[0]['value'] ?? null;
+        $currentView = Options::resolveViewHandle(
+            $this->request->getParam('view'),
+            $viewOptions,
+        );
 
         if ($currentView) {
             DashboardPermissions::requireViewHandleAccess($currentView);
@@ -75,46 +79,82 @@ class DashboardController extends Controller
 
     public function actionWidgets(): Response
     {
+        $this->requirePostRequest();
         $this->requireAcceptsJson();
 
         $viewHandle = $this->request->getParam('view');
-        $presetHandle = $this->request->getParam('preset');
+        DashboardPermissions::requireViewHandleAccess($viewHandle);
 
+        $widgets = Metrix::$plugin->getWidgets()->getWidgetsForView($viewHandle);
+
+        return $this->asJson($widgets);
+    }
+
+    public function actionApplyPreset(): Response
+    {
+        $this->requirePostRequest();
+        $this->requireAcceptsJson();
+
+        $viewHandle = $this->request->getRequiredParam('view');
+        $presetHandle = $this->request->getRequiredParam('preset');
         $view = DashboardPermissions::requireViewHandleAccess($viewHandle);
+        $widgetsService = Metrix::$plugin->getWidgets();
+        $mutex = Craft::$app->getMutex();
+        $mutexName = 'metrix:apply-preset:' . hash('sha256', $viewHandle);
 
-        // Load up any presets
-        if ($presetHandle) {
+        if (!$mutex->acquire($mutexName, 10)) {
+            return $this->asFailure(Craft::t('metrix', 'The dashboard is busy. Please try again.'));
+        }
+
+        try {
+            // Presets initialise an empty view. The per-view lock makes concurrent
+            // retries idempotent instead of creating duplicate dashboards.
+            if ($widgetsService->getWidgetsForView($viewHandle)) {
+                return $this->asFailure(Craft::t('metrix', 'Presets can only be applied to an empty dashboard.'));
+            }
+
             $preset = Metrix::$plugin->getPresets()->getPresetByHandle($presetHandle);
 
             if (!$preset) {
                 return $this->asFailure(Craft::t('metrix', 'Unable to find preset.'));
             }
 
-            // Presets often have no source set, because they can be saved at the project config level before
-            // any sources exist. But when converting to widgets, they must have a source.
+            // Presets can be stored in project config before any source exists, but saved
+            // widgets require one.
             $firstSource = Metrix::$plugin->getSources()->getAllConfiguredSources()[0] ?? null;
 
             if (!$firstSource) {
                 return $this->asFailure(Craft::t('metrix', 'You must have at least one source enabled.'));
             }
 
-            foreach ($preset->getWidgets() as $widget) {
-                $widget->setView($view);
+            $transaction = Craft::$app->getDb()->beginTransaction();
 
-                // Set a default source, if not already set
-                if (!$widget->getSource()) {
-                    $widget->setSource($firstSource);
+            try {
+                foreach ($preset->getWidgets() as $widget) {
+                    $widget->setView($view);
+
+                    if (!$widget->getSource()) {
+                        $widget->setSource($firstSource);
+                    }
+
+                    if (!$widgetsService->saveWidget($widget)) {
+                        $transaction->rollBack();
+
+                        return $this->asFailure(Craft::t('metrix', 'Unable to save widget.'));
+                    }
                 }
 
-                if (!Metrix::$plugin->getWidgets()->saveWidget($widget)) {
-                    return $this->asFailure(Craft::t('metrix', 'Unable to save widget.'));
-                }
+                $transaction->commit();
+            } catch (Throwable $e) {
+                $transaction->rollBack();
+
+                throw $e;
             }
+
+            return $this->asJson($widgetsService->getWidgetsForView($viewHandle));
+        } finally {
+            $mutex->release($mutexName);
         }
-
-        $widgets = Metrix::$plugin->getWidgets()->getWidgetsForView($viewHandle);
-
-        return $this->asJson($widgets);
     }
 
     public function actionPropertyOptions(): Response

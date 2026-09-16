@@ -143,4 +143,13 @@ class Options
         return $options;
     }
 
+    public static function resolveViewHandle(?string $requestedHandle, array $viewOptions): ?string
+    {
+        $handles = array_column($viewOptions, 'value');
+
+        return in_array($requestedHandle, $handles, true)
+            ? $requestedHandle
+            : ($handles[0] ?? null);
+    }
+
 }

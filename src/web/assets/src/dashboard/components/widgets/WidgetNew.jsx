@@ -1,10 +1,14 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 
-import { Button, Dialog, Icon } from '@verbb/plugin-kit-react/components';
-
-import { WidgetSettings } from '@dashboard/components/widgets/WidgetSettings';
+import { Button } from '@verbb/plugin-kit-react/components/Button';
+import { Dialog } from '@verbb/plugin-kit-react/components/Dialog';
+import { Icon } from '@verbb/plugin-kit-react/components/Icon';
 
 import useAppStore from '@dashboard/hooks/useAppStore';
+
+const WidgetSettings = lazy(() => import('./WidgetSettings.jsx').then((module) => ({
+    default: module.WidgetSettings,
+})));
 
 export function WidgetNew({ buttonSize }) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -31,11 +35,13 @@ export function WidgetNew({ buttonSize }) {
                 }}
             >
                 {isDialogOpen ? (
-                    <WidgetSettings
-                        isNew
-                        newWidget={newWidget}
-                        onClose={() => setIsDialogOpen(false)}
-                    />
+                    <Suspense fallback={<div role="status">{Craft.t('metrix', 'Loading…')}</div>}>
+                        <WidgetSettings
+                            isNew
+                            newWidget={newWidget}
+                            onClose={() => setIsDialogOpen(false)}
+                        />
+                    </Suspense>
                 ) : null}
             </Dialog>
         </>
