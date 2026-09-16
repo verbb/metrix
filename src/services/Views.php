@@ -1,6 +1,8 @@
 <?php
 namespace verbb\metrix\services;
 
+use verbb\metrix\Metrix;
+
 use verbb\metrix\events\ViewEvent;
 use verbb\metrix\models\View;
 use verbb\metrix\records\View as ViewRecord;

@@ -1,6 +1,8 @@
 <?php
 namespace verbb\metrix\services;
 
+use verbb\metrix\Metrix;
+
 use verbb\metrix\sources as sourceTypes;
 use verbb\metrix\base\SourceInterface;
 use verbb\metrix\events\SourceEvent;
