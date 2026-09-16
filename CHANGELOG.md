@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix Save and continue editing redirecting to a missing page for views.
 - Fix invalid or duplicate source, view and preset names and handles causing save errors or inaccessible views.
 - Fix Website Overview and Content Performance presets missing from fresh installations.
 - Fix previous-period comparisons ignoring the view’s analytics scope and cache refresh settings.
