@@ -59,6 +59,7 @@ export const ChartLegend = ({
                 {totalPages > 1 && (
                     <Button
                         variant="outline"
+                        aria-label={Craft.t('metrix', 'Previous legend page')}
                         disabled={currentPage === 0}
                         onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
                     >
@@ -82,8 +83,10 @@ export const ChartLegend = ({
                         }}
                     >
                         {legendItems.map((item, index) => (
-                            <div
+                            <button
                                 key={item.text}
+                                type="button"
+                                aria-pressed={!item.hidden}
                                 className={cn(
                                     'flex text-xs items-center gap-1.5 shrink-0 cursor-pointer',
                                     item.hidden ? 'opacity-50' : '',
@@ -98,7 +101,7 @@ export const ChartLegend = ({
                                     style={{ background: item.fillStyle }}
                                 />
                                 {item.text}
-                            </div>
+                            </button>
                         ))}
                     </div>
                 </div>
@@ -106,6 +109,7 @@ export const ChartLegend = ({
                 {totalPages > 1 && (
                     <Button
                         variant="outline"
+                        aria-label={Craft.t('metrix', 'Next legend page')}
                         disabled={currentPage >= totalPages - 1}
                         onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1))}
                     >

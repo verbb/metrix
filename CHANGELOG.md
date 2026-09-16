@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix pie chart legend controls being unavailable to keyboard and screen-reader users.
 - Fix Cloudflare All Time reports failing instead of querying the zone’s available history.
 - Fix inherited widgets losing their date range and data after reloading the dashboard.
 - Fix missing accessible names on widget metric and dimension selectors.
