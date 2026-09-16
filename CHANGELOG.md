@@ -77,6 +77,7 @@
 - Fix delayed view responses replacing the currently selected dashboard’s widgets.
 - Fix switching dashboard views failing to load their widgets.
 - Fix missing widget sources or views causing server errors when saving.
+- Fix presets failing to load after their source is renamed or deleted.
 - Fix widget deletion event listeners receiving stale cached records.
 - Fix stale source, view and widget data after saving, reordering or deleting records in the same request.
 - Fixed new widgets failing to save, and widget edits failing to refresh the displayed data.

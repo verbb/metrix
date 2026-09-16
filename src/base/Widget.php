@@ -115,7 +115,8 @@ abstract class Widget extends SavableComponent implements WidgetInterface
         }
 
         $this->_source = $source;
-        $this->sourceId = $source->id;
+        // Preset handles can outlive a source or be deployed before it exists.
+        $this->sourceId = $source?->id;
     }
 
     public function getView(): ?View
