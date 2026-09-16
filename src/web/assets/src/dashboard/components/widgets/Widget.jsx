@@ -31,7 +31,7 @@ export function Widget({
     } = widget;
 
     useEffect(() => {
-        if (waitForData || chartData || !data.id) {
+        if (waitForData || chartData || error || !data.id) {
             return;
         }
 
@@ -40,7 +40,7 @@ export function Widget({
                 afterFetchData(responseData);
             }
         });
-    }, [__id, data.id, data.type, waitForData, chartData, fetchWidgetData, afterFetchData]);
+    }, [__id, data.id, data.type, waitForData, chartData, error, fetchWidgetData, afterFetchData]);
 
     // Poll realtime widgets until data loads; stop while errored so we don't spam the API.
     useEffect(() => {
