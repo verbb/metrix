@@ -5,11 +5,13 @@ use verbb\metrix\base\CredentialsSource;
 use verbb\metrix\base\Period;
 use verbb\metrix\base\WidgetDataInterface;
 use verbb\metrix\models\AnalyticsScope;
+use verbb\metrix\widgets\data\PlotData;
 
 use Craft;
 use craft\helpers\App;
 
 use Throwable;
+use Exception;
 
 use GuzzleHttp\Client;
 
@@ -188,6 +190,17 @@ class Matomo extends CredentialsSource
         ]);
     }
 
+    public function request(string $method, string $url, array $options = []): mixed
+    {
+        $response = parent::request($method, $url, $options);
+
+        if (is_array($response) && ($response['result'] ?? null) === 'error') {
+            throw new Exception('Matomo could not provide the requested report. Check the site, token and report settings.');
+        }
+
+        return $response;
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -270,18 +283,21 @@ class Matomo extends CredentialsSource
 
     private function _fetchSummaryData(WidgetDataInterface $widgetData): array
     {
-        $intervalDimension = $this->_getIntervalDimension($widgetData);
+        $intervalDimension = $widgetData->widget::getDataType() === PlotData::class
+            ? $this->_getIntervalDimension($widgetData)
+            : 'range';
         $dateRange = $widgetData->period::getCurrentDateRange();
         $startDate = $dateRange['start']->format('Y-m-d');
         $endDate = $dateRange['end']->format('Y-m-d');
 
         $params = [
             'module' => 'API',
-            'method' => 'VisitsSummary.get',
+            'method' => $widgetData->metric === 'nb_pageviews' ? 'Actions.get' : 'VisitsSummary.get',
             'idSite' => $this->getSiteId(),
             'period' => $intervalDimension,
             'date' => "$startDate,$endDate",
             'format' => 'json',
+            'format_metrics' => 0,
             'token_auth' => $this->getApiToken(),
         ];
 
@@ -293,13 +309,22 @@ class Matomo extends CredentialsSource
         foreach ($response as $key => $result) {
             // Single-day summary may be a flat metric map rather than date => metrics.
             if (is_array($result) && array_key_exists($widgetData->metric, $result)) {
-                $data[$key] = $result[$widgetData->metric];
+                $data[$key] = $this->_numericValue($result[$widgetData->metric]);
             } elseif ($key === $widgetData->metric) {
-                $data['total'] = $result;
+                $data['total'] = $this->_numericValue($result);
             }
         }
 
         return $data;
+    }
+
+    private function _numericValue(mixed $value): float|int
+    {
+        if (is_string($value) && str_ends_with($value, '%')) {
+            return (float)$value;
+        }
+
+        return is_numeric($value) ? $value + 0 : 0;
     }
 
     private function _fetchDimensionData(WidgetDataInterface $widgetData): array
