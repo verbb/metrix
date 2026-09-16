@@ -10,3 +10,4 @@ Follow these steps to configure Cloudflare Analytics for Metrix.
 1. Configure the permissions as needed for your zones.
 1. Copy the generated **API Token** and paste it into the **API Key** field in Metrix.
 1. Select the **Zone ID** in Metrix using the dynamic dropdown.
+1. Save the Source, use **Connect** if prompted, and confirm a widget can load data for the selected zone.

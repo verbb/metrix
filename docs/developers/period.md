@@ -1,13 +1,56 @@
 # Period
 
-## Methods
+A Period class defines a dashboard date range and the buckets used to plot it. Obtain registered Period class names from `Metrix::$plugin->getPeriods()->getAllPeriodTypes()`. Custom Periods extend `verbb\metrix\base\Period` and implement the static methods below; see [Custom Period](docs:developers/custom-period) for a complete registration example.
 
-Method | Description
---- | ---
-`displayName()` | Returns the display name of the period.
-`previousDisplayName()` | Returns the display name of the previous period.
-`getDateRange()` | Retrieves the start and end dates for the period.
-`getPreviousDateRange()` | Retrieves the start and end dates for the previous period.
-`getIntervalDimension()` | Returns the interval dimension for grouping data.
-`generatePlotDimensions(WidgetData $widgetData, array $rawData)` | Generates plot dimensions based on a daily interval.
-`getChartMetadata()` | Provides metadata for charting, including axis label formats (`datePeriodDayShort`) and tooltip formats (`datePeriodDayLong`).
+```php
+use verbb\metrix\Metrix;
+
+foreach (Metrix::$plugin->getPeriods()->getAllPeriodTypes() as $periodClass) {
+    $label = $periodClass::displayName();
+    $range = $periodClass::getDateRange();
+}
+```
+
+## Static Methods
+
+::: reference
+### `displayName(): string`
+
+Returns the display name of the period.
+:::
+
+::: reference
+### `previousDisplayName(): string`
+
+Returns the display name of the previous period.
+:::
+
+::: reference
+### `getDateRange(): array`
+
+Returns `start` and `end` `DateTime` values for the period.
+:::
+
+::: reference
+### `getPreviousDateRange(): array`
+
+Returns `start` and `end` `DateTime` values for the comparison period.
+:::
+
+::: reference
+### `getIntervalDimension(): string`
+
+Returns one of the `Period::INTERVAL_*` constants used to group provider data.
+:::
+
+::: reference
+### `generatePlotDimensions(WidgetData $widgetData, array $rawData): array`
+
+Returns the ordered dimension keys required for the chart. Use `$widgetData` and `$rawData` when the available buckets depend on the Widget or provider response.
+:::
+
+::: reference
+### `getChartMetadata(): array`
+
+Returns chart metadata such as `xAxisLabelFormat` and `tooltipFormat`.
+:::

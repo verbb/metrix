@@ -1,8 +1,8 @@
 # Dashboard
 
-The Metrix Dashboard is your central hub for viewing analytics data from various sources. It provides a customizable and intuitive interface, allowing you to monitor and analyze your data at a glance.
+The Metrix Dashboard displays analytics from your connected sources. Arrange charts, tables and counters into views for the people who need that information.
 
-Widgets are captured individually below so docs can compose a tight dashboard cutout (line + counters + breakdowns) without a single oversized screenshot.
+Each widget presents one part of the selected analytics data. For example, a content team can use a Sessions counter to see overall traffic, a line chart to spot changes over time and a table to identify popular pages. [Creating Your First Dashboard Widget](docs:get-started/creating-your-first-dashboard-widget) takes you through the first counter. The examples below show how the other presentation styles help answer different questions.
 
 ![Sessions line chart widget (two-thirds width)](/_screenshots/feature-tour/widget-sessions-line.png)
 
@@ -16,11 +16,11 @@ Widgets are captured individually below so docs can compose a tight dashboard cu
 
 ![Country sessions table widget with pagination](/_screenshots/feature-tour/widget-country-table.png)
 
-This differs from the Craft Dashboard (and not to be confused with it), where widgets are defined per-user. Metrix views are shared and easier to set up for clients.
+Unlike Craft Dashboard widgets, which are configured per user, Metrix Views share one analytics layout with everyone who has permission to view it.
 
 ## Views
 
-**Views** segment and organise widgets — for example website traffic vs a campaign. Each install comes with a default view.
+**Views** group widgets around an audience or task. Use the default View for general website traffic, or create a separate View for a campaign so its widgets and date range stay together. Create and name Views under **Metrix → Views**, then select the View on the dashboard to work with its widgets.
 
 ### Permissions
 
@@ -30,7 +30,7 @@ User groups can be limited with:
 - **Metrix → Sources** — manage Sources.
 - **Metrix → Views** — manage Views.
 
-### Multi-site / analytics scope
+### Multi-Site / Analytics Scope
 
 A View can optionally limit widget data to a **Craft site**, **path prefix**, or **hostname**. Use this when one analytics property (e.g. a single GA4 property) covers multiple Craft sites.
 
@@ -38,13 +38,15 @@ A View can optionally limit widget data to a **Craft site**, **path prefix**, or
 - **Path prefix** — e.g. `/en` or `/fr/` for path-based multi-site.
 - **Hostname** — e.g. `fr.example.com` for domain-based multi-site on one property.
 
-If each Craft site has its own analytics property or Plausible site, create separate Sources (and Views) instead.
+For example, when one analytics property includes an English site under `/en` and a French site under `/fr`, edit the French View under **Metrix → Views**. Set **Scope** to the path option, enter `/fr` as **Path prefix**, and choose a prefix match. Save and compare a page breakdown with the provider to confirm only French paths are included.
 
-Supported providers for View scope today: **Google Analytics**, **Plausible** (path), and **Matomo**. Other sources ignore the scope.
+If each Craft site has its own analytics property or Plausible site, create separate Sources and Views for those connections.
+
+Providers that support View scope: **Google Analytics**, **Plausible** (path), and **Matomo**. Other sources ignore the scope.
 
 ## Presets
 
-When creating a new view, you can add widgets one by one — or apply a **Preset** to spin up a full suite. Presets live in plugin settings / project config.
+A **Preset** supplies a starting collection of widgets when you create a View. Choose one that matches your task, then review each widget's Source and metric against the connected provider. Presets are stored in plugin settings and project config, so they can be shared with the project's other configuration.
 
 Fresh installs include seeded presets such as **Website Overview**, **Content Performance**, **Acquisition**, and **Realtime**.
 
@@ -60,13 +62,17 @@ Manage the widget list from the view settings (or the Widgets tab when configuri
 
 ![Widgets tab with line, counter, pie, and table widgets](/_screenshots/feature-tour/widgets.png)
 
-### Widget settings
+### Widget Settings
 
 ![Widget settings for source, chart type, width, period, and metric](/_screenshots/feature-tour/widget-settings.png)
 
-Configure source, chart type, width, period, metric, and dimension. Optional **title**, **subtitle**, and table/pie **row limit** are available. Use **Refresh** on a widget to bypass the data cache. Headers show when data was last updated.
+Choose the Source and the question the widget should answer. A metric is the value you want to measure, such as sessions or pageviews. A dimension groups that value, such as by page, country or browser. A table of popular pages therefore needs a pageview metric and a page dimension; a sessions counter needs only the metric.
 
-### Widget types
+Choose a chart type and width, then decide whether the widget should follow the View date range or use its own period. Give it a title that explains its purpose, such as “Most-read pages”; a subtitle can clarify the audience or filter. For a table or pie, set a row limit that keeps the result useful to scan.
+
+Save the widget and check it against the same data in the provider account. Use **Refresh** in its actions menu to bypass cached data. The header records when that data was fetched, which helps distinguish an old result from a provider that has not received any new traffic.
+
+### Widget Types
 
 #### Bar
 Vertical bars for comparing categories or time periods — e.g. daily traffic for the last 7 days.
@@ -90,7 +96,7 @@ Rows and columns for ranked breakdowns — e.g. pages by pageviews.
 
 The dashboard header has a **date range** control for the current View. Widgets inherit that period unless you set a specific period on the widget.
 
-### Available periods
+### Available Periods
 
 - **Today**
 - **Yesterday**

@@ -7,10 +7,10 @@ Metrix is a Craft CMS plugin for viewing your analytics data from a variety of d
 
 - Create widgets for your analytics data in a dedicated dashboard.
 - Create multiple views as collections of widgets. Each can be set to different user permissions.
-- Create preset widgets to spin up a collection of widgets in a flash.
-- Access analytics data from multiple sources. You can even mix-and-match!
+- Create presets containing reusable collections of widgets.
+- Combine analytics data from multiple Sources in one View.
 - Filter a view by Craft site, path, or hostname for multi-site installs.
-- Events to write your own source types, or extend existing ones.
+- Events for adding or extending Source types.
 
 ## Sources
 

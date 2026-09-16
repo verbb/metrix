@@ -8,11 +8,11 @@ You can mix Sources from different providers on the same dashboard. OAuth provid
 
 If a Source shows as **Not Connected** after tokens expire, reconnect from the Sources screen — widgets will surface a reconnect message instead of a raw API error.
 
-See the [provider docs](docs:providers/google-analytics) for setup details per platform.
+Choose the matching setup page in **Providers** before entering credentials. For example, [Google Analytics](docs:providers/google-analytics) explains how to authorise a Google account, while [Plausible](docs:providers/plausible) explains its API-key and team-access requirements.
 
-## Provider capabilities
+## Provider Capabilities
 
-Not every provider supports every widget feature. Rough guide:
+Not every provider supports every widget feature:
 
 | Provider | Realtime | Dimensions (table/pie) | View analytics scope | Auth |
 |---|---|---|---|---|
@@ -27,4 +27,4 @@ Not every provider supports every widget feature. Rough guide:
 | Simple Analytics | — | Yes | — | Credentials |
 | Mixpanel | — | No | — | Credentials |
 
-Realtime requires a Realtime widget **and** a Source that implements realtime fetch. View scope is configured on the [View](docs:feature-tour/dashboard#multi-site--analytics-scope); unsupported Sources ignore it.
+To display live activity, choose a Realtime widget and a Source marked **Yes** in the Realtime column. View scope is configured on the [View](docs:feature-tour/dashboard#multi-site-analytics-scope); unsupported Sources ignore it.

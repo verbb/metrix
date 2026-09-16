@@ -4,6 +4,7 @@
         "collapsable": false,
         "children": [
             "get-started/installation-setup",
+            "get-started/creating-your-first-dashboard-widget",
             "get-started/requirements",
             "get-started/configuration"
         ]
@@ -25,7 +26,7 @@
             "providers/goat-counter",
             "providers/google-analytics",
             "providers/matomo",
-            "providers/mix-panel",
+            "providers/mixpanel",
             "providers/pirsch",
             "providers/plausible",
             "providers/simple-analytics",
@@ -36,7 +37,7 @@
         "title": "Template Guides",
         "collapsable": false,
         "children": [
-            "template-guides/available-variables"
+            "template-guides/selecting-sources"
         ]
     },
     {
@@ -44,14 +45,27 @@
         "collapsable": false,
         "children": [
             "developers/events",
+            "developers/custom-source",
+            "developers/custom-period",
+            "developers/custom-widget"
+        ]
+    },
+    {
+        "title": "Reference",
+        "collapsable": false,
+        "children": [
             "developers/source",
             "developers/view",
             "developers/preset",
             "developers/period",
-            "developers/widget",
-            "developers/custom-source",
-            "developers/custom-period",
-            "developers/custom-widget"
+            "developers/widget"
+        ]
+    },
+    {
+        "title": "Troubleshooting",
+        "collapsable": false,
+        "children": [
+            "get-started/troubleshooting"
         ]
     }
 ]

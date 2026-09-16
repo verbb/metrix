@@ -9,3 +9,4 @@ Follow these steps to configure Matomo Analytics for Metrix.
 1. Copy your **Auth Token** and paste it into the **API Token** field in Metrix.
 1. Enter your Matomo instance’s **Base URL** in the **API URL** field in Metrix (e.g., `https://verbb.matomo.cloud`).
 1. Select the **Site ID** in Metrix using the dynamic dropdown.
+1. Save the Source, use **Connect** if prompted, and confirm a widget can load data for the selected site.

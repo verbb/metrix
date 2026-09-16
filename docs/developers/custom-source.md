@@ -1,5 +1,5 @@
 # Custom Source
-You can register your own Source Provider to add support for other analytics platforms, or even extend an existing Source Provider.
+Register a custom Source when Metrix does not include the analytics provider your project needs. Build the class in a project module or plugin, register it during module initialisation, and test connection, historical data and every capability you advertise.
 
 ```php
 namespace modules\sitemodule;
@@ -21,13 +21,9 @@ If your provider requires OAuth authentication, create the following class to ho
 namespace modules\sitemodule;
 
 use Craft;
-use Throwable;
-use verbb\metrix\Metrix;
 use verbb\metrix\base\OAuthSource;
 use verbb\metrix\base\Period;
 use verbb\metrix\base\WidgetDataInterface;
-
-use DateTime;
 
 use League\OAuth2\Client\Provider\SomeProvider;
 
@@ -63,7 +59,7 @@ class MySourceProvider extends OAuthSource
 
     public function getIcon(): ?string
     {
-        return '<svg>...</svg>';
+        return null;
     }
 
     public function getSettingsHtml(): ?string
@@ -135,9 +131,9 @@ class MySourceProvider extends OAuthSource
 }
 ```
 
-This is the minimum amount of implementation required for a typical source provider.
+Replace `SomeProvider` with the `AbstractProvider` implementation supplied by your installed OAuth client package. Create `modules/sitemodule/templates/my-source/settings.twig` for the Source-specific settings returned by `getSettingsHtml()`. The example illustrates the Metrix hooks but is not a drop-in provider: map your API's response shape, authentication scopes, error responses and pagination before registering it in production.
 
-Metrix OAuth source providers are built around the [Auth](https://github.com/verbb/auth) which in turn is built around [league/oauth2-client](https://github.com/thephpleague/oauth2-client). You can see that the `getOAuthProviderClass()` must return a `League\OAuth2\Client\Provider\AbstractProvider` class.
+Metrix OAuth source providers use [Auth](https://github.com/verbb/auth), which is built on [league/oauth2-client](https://github.com/thephpleague/oauth2-client). `getOAuthProviderClass()` must return a `League\OAuth2\Client\Provider\AbstractProvider` class supplied by an installed provider package.
 
 
 ## Credentials Example
@@ -147,13 +143,12 @@ If your provider requires non-OAuth authentication, like API keys or tokens, cre
 namespace modules\sitemodule;
 
 use Craft;
-use Throwable;
-use verbb\metrix\Metrix;
 use verbb\metrix\base\CredentialsSource;
 use verbb\metrix\base\Period;
 use verbb\metrix\base\WidgetDataInterface;
 
-use DateTime;
+use craft\helpers\App;
+
 use Throwable;
 
 use GuzzleHttp\Client;
@@ -185,7 +180,7 @@ class MySourceProvider extends CredentialsSource
 
     public function getIcon(): ?string
     {
-        return '<svg>...</svg>';
+        return null;
     }
 
     public function getSettingsHtml(): ?string
@@ -257,7 +252,9 @@ class MySourceProvider extends CredentialsSource
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://api.my-provider.com/v1/',
-            'headers' => ['Authorization' => 'Bearer xxxxxxxxxxxxxxxxx'],
+            'headers' => [
+                'Authorization' => 'Bearer ' . App::env('METRIX_PROVIDER_TOKEN'),
+            ],
         ]);
     }
 
@@ -282,6 +279,6 @@ class MySourceProvider extends CredentialsSource
 }
 ```
 
-The major different between the two is that you're no longer relying on the [Auth](https://github.com/verbb/auth) package to handle requests (as you don't need to). Instead, you'll need to define a Guzzle client and call `$this->request()` to make HTTP requests for your source provider.
+Unlike an OAuth Source, a Credentials Source defines its own HTTP client and calls `$this->request()` for provider requests. Set `METRIX_PROVIDER_TOKEN` in the environment before testing the example. For a reusable provider, expose the credential as a Source setting that accepts an environment-variable reference rather than fixing the variable name in the class.
 
-You should also provide a `fetchConnection()` function that serves as a way to test the connection to the provider. This allows Metrix to confirm that you've set everything up correctly.
+Implement `fetchConnection()` so Metrix can validate the saved credentials. Before shipping the Source, add failure tests for invalid credentials, rate limits and empty datasets, then create a widget for every supported metric and dimension.
