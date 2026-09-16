@@ -9,6 +9,8 @@ use craft\base\Model;
 
 use yii\caching\TagDependency;
 
+use Exception;
+
 class WidgetData extends Model implements WidgetDataInterface
 {
     // Properties
@@ -30,6 +32,10 @@ class WidgetData extends Model implements WidgetDataInterface
 
     public function getData(bool $refreshCache = false): array
     {
+        if ($this->scope?->mode === AnalyticsScope::MODE_CRAFT_SITE && !$this->scope->getCraftSite()) {
+            throw new Exception(Craft::t('metrix', 'The view’s Craft site is unavailable. Edit the view to select an existing site.'));
+        }
+
         $this->refreshCache = $refreshCache;
         $cacheDuration = Metrix::$plugin->getSettings()->getCacheDuration();
         $cacheKey = $this->getCacheKey();

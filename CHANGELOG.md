@@ -62,6 +62,7 @@
 - Fix date ranges including extra days or months, and keep comparison ranges within the intended calendar period.
 - Fix previous-period comparisons ignoring the view’s analytics scope and cache refresh settings.
 - Fix exact homepage scopes returning traffic for every page.
+- Fix views returning unfiltered traffic after their selected Craft site is deleted.
 - Fix Cloudflare All Time reports failing instead of querying the zone’s available history.
 - Fix Cloudflare report queries, bandwidth values, monthly totals, dimension breakdowns, API errors, and zone selection.
 - Fix Fathom site selection omitting sites after the first page of API results.
