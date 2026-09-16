@@ -66,6 +66,7 @@
 - Fix GoatCounter requests shifting non-UTC date ranges and extending partial comparison periods.
 - Fix GoatCounter All Time reports, dimension reports with more than 100 rows, and recovery from temporary API rate limits.
 - Fix GoatCounter hourly and monthly charts, missing dimension labels, and JSON request headers.
+- Fix Google Analytics account and property selection omitting later pages.
 - Fix Google Analytics aggregate counters and top-row ordering, and explain unsupported realtime scope filters.
 - Fix Matomo monthly charts, All Time reports, unformatted dimension metrics, and site selection with view-only tokens.
 - Fix Matomo aggregate counters, pageview reports, percentage values, and API error reporting.

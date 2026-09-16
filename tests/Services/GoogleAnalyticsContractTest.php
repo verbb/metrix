@@ -45,3 +45,32 @@ it('explains unsupported scoped Google realtime queries before making a request'
     expect(fn() => $this->google->fetchRealtimeData($widgetData))->toThrow(Exception::class, 'does not support hostname or path filters');
     expect($this->google->requests)->toBe([]);
 });
+
+it('loads every Google account and property page before sorting choices', function(string $key, string $resource) {
+    $source = new class extends GoogleAnalytics {
+        public array $requests = [];
+        public array $responses = [];
+
+        public function request(string $method = 'GET', string $uri = '', array $options = [])
+        {
+            $this->requests[] = ['uri' => $uri, 'query' => $options['query'] ?? []];
+            return array_shift($this->responses);
+        }
+    };
+    $source->accountId = 'accounts/42';
+    $source->responses = [
+        [$resource => [['displayName' => 'Zulu', 'name' => $resource . '/1']], 'nextPageToken' => 'second-page'],
+        [$resource => [['displayName' => 'Alpha', 'name' => $resource . '/2']]],
+    ];
+
+    expect($source->fetchSourceSettings($key))->toBe([
+        ['label' => 'Alpha', 'value' => $resource . '/2'],
+        ['label' => 'Zulu', 'value' => $resource . '/1'],
+    ])->and($source->requests)->toHaveCount(2)
+        ->and($source->requests[1]['query']['pageToken'])->toBe('second-page')
+        ->and($source->requests[1]['uri'])->toBe('https://analyticsadmin.googleapis.com/v1beta/' . $resource);
+
+    if ($resource === 'properties') {
+        expect(array_column(array_column($source->requests, 'query'), 'filter'))->toBe(['parent:accounts/42', 'parent:accounts/42']);
+    }
+})->with([['accountId', 'accounts'], ['propertyId', 'properties']]);

@@ -113,47 +113,25 @@ class GoogleAnalytics extends OAuthSource
     public function fetchSourceSettings(string $settingsKey): ?array
     {
         try {
-            if ($settingsKey === 'accountId') {
+            if ($settingsKey === 'accountId' || $settingsKey === 'propertyId') {
+                $resource = $settingsKey === 'accountId' ? 'accounts' : 'properties';
+                $query = $settingsKey === 'propertyId' ? ['filter' => 'parent:' . $this->getAccountId()] : [];
                 $options = [];
 
-                $response = $this->request('GET', 'https://analyticsadmin.googleapis.com/v1beta/accounts');
-                $accounts = $response['accounts'] ?? [];
+                do {
+                    $response = $this->request('GET', 'https://analyticsadmin.googleapis.com/v1beta/' . $resource, ['query' => $query]);
 
-                foreach ($accounts as $account) {
-                    $options[] = [
-                        'label' => $account['displayName'],
-                        'value' => $account['name'],
-                    ];
-                }
+                    foreach ($response[$resource] ?? [] as $item) {
+                        $options[] = [
+                            'label' => $item['displayName'],
+                            'value' => $item['name'],
+                        ];
+                    }
 
-                // Sort the options alphabetically by label
-                usort($options, function ($a, $b) {
-                    return strcmp($a['label'], $b['label']);
-                });
+                    $query['pageToken'] = $response['nextPageToken'] ?? null;
+                } while ($query['pageToken']);
 
-                return $options;
-            }
-
-            if ($settingsKey === 'propertyId') {
-                $options = [];
-
-                $response = $this->request('GET', 'https://analyticsadmin.googleapis.com/v1beta/properties', [
-                    'query' => [
-                        'filter' => 'parent:' . $this->getAccountId(),
-                    ],
-                ]);
-
-                $properties = $response['properties'] ?? [];
-
-                foreach ($properties as $property) {
-                    $options[] = [
-                        'label' => $property['displayName'],
-                        'value' => $property['name'],
-                    ];
-                }
-
-                // Sort the options alphabetically by label
-                usort($options, function ($a, $b) {
+                usort($options, function($a, $b) {
                     return strcmp($a['label'], $b['label']);
                 });
 
