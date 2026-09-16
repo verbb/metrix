@@ -73,13 +73,15 @@ abstract class CredentialsSource extends Source
             }
         }
 
-        $success = $this->fetchConnection();
+        $success = false;
 
-        if ($success) {
-            $this->setSettingCache(['connection' => self::CONNECT_SUCCESS]);
+        try {
+            $success = $this->fetchConnection();
+
+            return $success;
+        } finally {
+            $this->setSettingCache(['connection' => $success ? self::CONNECT_SUCCESS : null]);
         }
-
-        return $success;
     }
 
     public function request(string $method, string $url, array $options = []): mixed
