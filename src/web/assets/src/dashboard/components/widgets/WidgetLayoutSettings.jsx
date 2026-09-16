@@ -48,7 +48,7 @@ const WidgetLayoutRow = ({
 }) => (
     <div className={cn('metrix-layout-settings-row flex items-start gap-2', className)}>
         <div className="shrink-0 text-gray-400">
-            <Icon icon={widget.component.meta.icon} className="size-5" />
+            {widget.component?.meta?.icon && <Icon icon={widget.component.meta.icon} className="size-5" />}
         </div>
 
         <div className="min-w-0 flex-1">
@@ -58,7 +58,7 @@ const WidgetLayoutRow = ({
             </div>
 
             <div className="text-xs font-medium text-gray-400">
-                {widget.component.meta.name} - {widget.data.periodLabel}
+                {widget.component?.meta?.name || Craft.t('metrix', 'Widget type unavailable')} - {widget.data.periodLabel}
             </div>
         </div>
 
