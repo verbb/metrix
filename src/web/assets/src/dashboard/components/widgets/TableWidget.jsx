@@ -139,17 +139,19 @@ export const TableWidget = (props) => {
                     <div className="pt-3 w-full font-medium text-xs tracking-wide text-gray-550 flex items-center">
                         {data.cols.map((col, index) => {
                             return (
-                                <span
+                                <button
                                     key={col.id}
+                                    type="button"
                                     className={cn(
-                                        index === 0 ? 'flex-grow truncate' : '',
+                                        'cursor-pointer',
+                                        index === 0 ? 'flex-grow truncate text-left' : 'text-right',
                                     )}
                                     onClick={() => {
                                         return handleSort(col.id);
                                     }}
                                 >
                                     <span className="cursor-pointer">{col.label}</span>
-                                </span>
+                                </button>
                             );
                         })}
                     </div>
@@ -165,6 +167,7 @@ export const TableWidget = (props) => {
                     <div className="flex gap-2 mx-auto flex-shrink-0">
                         <Button
                             variant="outline"
+                            aria-label={Craft.t('metrix', 'Previous page')}
                             disabled={safePage === 0}
                             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
                         >
@@ -173,6 +176,7 @@ export const TableWidget = (props) => {
 
                         <Button
                             variant="outline"
+                            aria-label={Craft.t('metrix', 'Next page')}
                             disabled={safePage >= totalPages - 1}
                             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1))}
                         >
