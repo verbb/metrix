@@ -10,6 +10,7 @@ use verbb\metrix\variables\MetrixVariable;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin;
+use craft\enums\CmsEdition;
 use craft\events\RebuildConfigEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
@@ -62,7 +63,7 @@ class Metrix extends Plugin
             $this->_registerSiteRoutes();
         }
         
-        if (Craft::$app->getEdition() === Craft::Pro) {
+        if (Craft::$app->edition->value >= CmsEdition::Team->value) {
             $this->_registerPermissions();
         }
 
