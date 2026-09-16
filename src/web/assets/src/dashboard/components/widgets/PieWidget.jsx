@@ -63,12 +63,15 @@ export const PieWidget = (props) => {
         return (
             <ChartRenderer
                 ref={chartRef}
+                label={widget.data.displayTitle || widget.data.metricLabel}
+                dimensionLabel={data.cols[0]?.label}
                 type="doughnut"
                 chartProps={{
                     key: widget.data.type,
                     data: {
                         labels,
                         datasets: [{
+                            label: widget.data.metricLabel,
                             data: values,
                             backgroundColor: CHART_COLORS,
                             hoverBackgroundColor: CHART_COLORS,

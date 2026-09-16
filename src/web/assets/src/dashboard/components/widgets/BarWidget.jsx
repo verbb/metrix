@@ -51,12 +51,15 @@ export const BarWidget = (props) => {
         return (
             <ChartRenderer
                 ref={chartRef}
+                label={widget.data.displayTitle || widget.data.metricLabel}
+                dimensionLabel={data.cols[0]?.label}
                 type="bar"
                 chartProps={{
                     key: widget.data.type,
                     data: {
                         labels,
                         datasets: [{
+                            label: widget.data.metricLabel,
                             data: values,
                             backgroundColor: CHART_COLORS[0],
                             yAxisID: 'y',

@@ -1,5 +1,7 @@
 import { forwardRef } from 'react';
 
+import { format } from '@utils/format';
+
 import { Bar, Doughnut, Line } from '@dashboard/components/charts/Chart';
 import { ChartTooltip } from '@dashboard/components/charts/ChartTooltip';
 import { CHART_PANE_HEIGHT } from '@dashboard/components/charts/chartOptions';
@@ -15,6 +17,8 @@ const CHART_COMPONENTS = {
  */
 export const ChartRenderer = forwardRef(function ChartRenderer({
     type = 'line',
+    label = Craft.t('metrix', 'Chart data'),
+    dimensionLabel = Craft.t('metrix', 'Category'),
     chartProps,
     tooltipRef,
     tooltipData,
@@ -25,11 +29,12 @@ export const ChartRenderer = forwardRef(function ChartRenderer({
     children,
 }, ref) {
     const ChartComponent = CHART_COMPONENTS[type] || Line;
+    const { labels = [], datasets = [] } = chartProps.data || {};
 
     return (
         <div className={className}>
             <div className="relative w-full" style={{ height }}>
-                <ChartComponent ref={ref} {...chartProps} />
+                <ChartComponent ref={ref} {...chartProps} aria-hidden="true" />
 
                 <ChartTooltip
                     ref={tooltipRef}
@@ -37,6 +42,36 @@ export const ChartRenderer = forwardRef(function ChartRenderer({
                     position={tooltipPos}
                     visibility={tooltipVisible}
                 />
+            </div>
+
+            <div className="sr-only">
+                <table>
+                    <caption>{label}</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">{dimensionLabel}</th>
+                            {datasets.map((dataset, index) => (
+                                <th scope="col" key={index}>{dataset.label || Craft.t('metrix', 'Value')}</th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {labels.map((dimension, row) => (
+                            <tr key={row}>
+                                <th scope="row">{dimension}</th>
+                                {datasets.map((dataset, column) => {
+                                    const value = dataset.data[row];
+
+                                    return (
+                                        <td key={column}>
+                                            {value == null ? Craft.t('metrix', 'No data') : (dataset.yAxisFormatter ? format(value, dataset.yAxisFormatter) : value)}
+                                        </td>
+                                    );
+                                })}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
 
             {children}

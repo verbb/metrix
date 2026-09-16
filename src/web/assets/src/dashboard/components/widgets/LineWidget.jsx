@@ -104,6 +104,8 @@ export const LineWidget = (props) => {
         return (
             <ChartRenderer
                 ref={chartRef}
+                label={widget.data.displayTitle || widget.data.metricLabel}
+                dimensionLabel={data.cols[0]?.label}
                 type="line"
                 className="h-full flex flex-col relative pt-4 -mx-[10px]"
                 chartProps={{

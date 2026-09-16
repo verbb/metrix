@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix chart values and comparison series being unavailable to screen readers.
 - Fix Mixpanel All Time reports failing before requesting data.
 - Fix GoatCounter requests shifting non-UTC date ranges and extending partial comparison periods.
 - Fix pie chart legend controls being unavailable to keyboard and screen-reader users.
