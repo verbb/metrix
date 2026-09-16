@@ -21,22 +21,22 @@ class CounterData extends WidgetData
 
             return [
                 'cols' => [
-                    ['type' => 'integer', 'labelFormat' => 'numberLong'],
+                    ['type' => is_float($total) ? 'float' : 'integer', 'labelFormat' => 'numberLong'],
                     ['type' => 'float', 'labelFormat' => 'percentageChange', 'label' => $previousLabel],
                 ],
-                'rows' => [[(int)$total, $change]],
+                'rows' => [[$total, $change]],
             ];
         }
 
         return [
             'cols' => [
-                ['type' => 'integer', 'labelFormat' => 'numberLong'],
+                ['type' => is_float($total) ? 'float' : 'integer', 'labelFormat' => 'numberLong'],
             ],
-            'rows' => [[(int)$total]],
+            'rows' => [[$total]],
         ];
     }
 
-    protected function calculatePercentageChange(int $currentValue): float
+    protected function calculatePercentageChange(int|float $currentValue): float
     {
         $previousPeriodRange = $this->period::getPreviousDateRange();
         $originalRange = $this->period::$currentDateRange;

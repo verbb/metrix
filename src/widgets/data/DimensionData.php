@@ -16,12 +16,12 @@ class DimensionData extends WidgetData
         $limit = $this->getRowLimit();
         $rawData = array_slice($rawData, 0, $limit, true);
 
-        $rows = array_map(fn($key, $value) => [$key, (int)$value], array_keys($rawData), array_values($rawData));
+        $rows = array_map(fn($key, $value) => [$key, $value + 0], array_keys($rawData), array_values($rawData));
 
         return [
             'cols' => [
                 ['type' => 'string', 'label' => $this->widget->getDimensionLabel(), 'id' => $this->dimension],
-                ['type' => 'integer', 'labelFormat' => 'numberShort', 'label' => $this->widget->getMetricLabel(), 'id' => $this->metric],
+                ['type' => 'float', 'labelFormat' => 'numberShort', 'label' => $this->widget->getMetricLabel(), 'id' => $this->metric],
             ],
             'rows' => $rows,
         ];
