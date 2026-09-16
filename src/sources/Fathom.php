@@ -245,7 +245,7 @@ class Fathom extends CredentialsSource
     public function fetchConnection(): bool
     {
         try {
-            $this->request('GET', 'account');
+            $this->request('GET', 'token');
         } catch (Throwable $e) {
             self::apiError($this, $e);
 

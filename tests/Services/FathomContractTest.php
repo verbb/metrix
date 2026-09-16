@@ -57,3 +57,11 @@ it('lists Fathom sites beyond the first page', function() {
     parse_str($history[1]['request']->getUri()->getQuery(), $query);
     expect($query['starting_after'])->toBe('FIRST');
 });
+
+it('checks Fathom connections without requiring full account access', function() {
+    $source = new Fathom(['apiKey' => 'read-only-fixture']);
+    $history = [];
+    ProviderHttp::mock($source, [['id' => 'token-id', 'scopes' => ['all-sites-readonly']]], $history);
+    expect($source->fetchConnection())->toBeTrue()
+        ->and($history[0]['request']->getUri()->getPath())->toBe('/v1/token');
+});
