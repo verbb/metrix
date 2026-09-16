@@ -43,7 +43,7 @@ class DashboardController extends Controller
 
         Plugin::registerDashboardAssets();
 
-        $periodOptions = Options::getGroupedPeriodOptions();
+        $periodOptions = Options::getEnabledGroupedPeriodOptions();
         $viewOptions = Options::getViewOptions();
         $widgetTypeOptions = Options::getEnabledWidgetTypeSchemaOptions();
         $newWidget = Widget::getNewWidgetConfig();

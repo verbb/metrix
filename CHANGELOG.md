@@ -50,6 +50,7 @@
 - Fix inherited widgets losing their date range and data after reloading the dashboard.
 - Fix custom plot data transformers receiving aggregate reports instead of time series.
 - Fix registered custom periods missing from date-range options and settings.
+- Fix the dashboard date-range menu including disabled periods.
 - Fix All Time charts omitting earlier unordered data or inventing history for empty reports.
 - Fix rolling date ranges reusing cached results from the previous calendar day.
 - Fix numeric cache durations failing and invalid durations being accepted when saving settings.
