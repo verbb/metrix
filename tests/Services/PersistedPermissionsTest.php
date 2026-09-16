@@ -85,3 +85,26 @@ it('rejects an authenticated mutation without its CSRF token', function() {
 
     expect(fn() => $controller->runAction('widgets'))->toThrow(BadRequestHttpException::class, 'Unable to verify your data submission');
 });
+
+it('returns a recoverable error for a missing or unknown widget source', function(?string $source) {
+    $widget = ['type' => Counter::class, 'view' => $this->permittedView->handle, 'metric' => 'pageviews', 'width' => 1];
+    if ($source !== null) {
+        $widget['source'] = $source;
+    }
+    Craft::$app->getRequest()->setBodyParams(['widget' => $widget]);
+    $controller = new DashboardController('dashboard', Metrix::$plugin);
+    $controller->enableCsrfValidation = false;
+    $response = $controller->runAction('save-widget');
+
+    expect($response->statusCode)->toBe(400)->and($response->data['message'])->toContain('source');
+})->with([null, '', 'unknownSource']);
+
+it('checks view access before saving a new widget without a view', function() {
+    Craft::$app->getRequest()->setBodyParams(['widget' => [
+        'type' => Counter::class, 'source' => $this->restrictedWidget->getSource()->handle, 'metric' => 'pageviews', 'width' => 1,
+    ]]);
+    $controller = new DashboardController('dashboard', Metrix::$plugin);
+    $controller->enableCsrfValidation = false;
+
+    expect(fn() => $controller->runAction('save-widget'))->toThrow(ForbiddenHttpException::class);
+});

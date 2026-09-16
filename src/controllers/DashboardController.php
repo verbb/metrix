@@ -312,8 +312,13 @@ class DashboardController extends Controller
         }
 
         // Replace some handles with classes
-        if ($sourceHandle = ArrayHelper::remove($widgetData, 'source')) {
-            $source = Metrix::$plugin->getSources()->getSourceByHandle($sourceHandle);
+        if (array_key_exists('source', $widgetData)) {
+            $sourceHandle = ArrayHelper::remove($widgetData, 'source');
+            $source = is_string($sourceHandle) ? Metrix::$plugin->getSources()->getSourceByHandle($sourceHandle) : null;
+
+            if (!$source) {
+                return $this->asFailure(Craft::t('metrix', 'Provide a valid source.'));
+            }
 
             $widget->setSource($source);
         }
@@ -323,6 +328,12 @@ class DashboardController extends Controller
             DashboardPermissions::requireViewAccess($view);
             $widget->setView($view);
         }
+
+        if (!$widget->getSource()) {
+            return $this->asFailure(Craft::t('metrix', 'Provide a valid source.'));
+        }
+
+        DashboardPermissions::requireWidgetAccess($widget);
 
         $metric = ArrayHelper::remove($widgetData, 'metric');
         $dimension = ArrayHelper::remove($widgetData, 'dimension');
