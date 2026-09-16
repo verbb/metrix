@@ -66,6 +66,29 @@ it('returns fresh settings after a source is edited through a separate instance'
     expect($service->getSourceById($source->id)->siteId)->toBe('updated.invalid');
 });
 
+it('invalidates provider authentication and option caches when source settings change', function() {
+    $cache = ['authToken' => 'old-fixture-token', 'connection' => 'success', 'siteId' => [['label' => 'Previous site', 'value' => 'old']]];
+    Craft::$app->getDb()->createCommand()->update('{{%metrix_sources}}', ['cache' => json_encode($cache)], ['id' => $this->mutationSource->id])->execute();
+    $source = clone $this->mutationSource;
+    $source->cache = $cache;
+    $source->apiKey = 'new-fixture-key';
+    $service = Metrix::$plugin->getSources();
+    $service->saveSource($source);
+
+    expect($source->cache)->toBe([])->and($service->getSourceById($source->id)->cache)->toBe([]);
+});
+
+it('preserves provider caches when only the source name changes', function() {
+    $cache = ['connection' => 'success'];
+    Craft::$app->getDb()->createCommand()->update('{{%metrix_sources}}', ['cache' => json_encode($cache)], ['id' => $this->mutationSource->id])->execute();
+    $source = clone $this->mutationSource;
+    $source->name .= ' renamed';
+    $service = Metrix::$plugin->getSources();
+    $service->saveSource($source);
+
+    expect($service->getSourceById($source->id)->cache)->toBe($cache);
+});
+
 it('returns reordered records immediately', function(string $key, string $getter, string $reorder, string $fixture) {
     $service = Metrix::$plugin->get($key);
     $first = $this->$fixture;

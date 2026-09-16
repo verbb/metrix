@@ -182,6 +182,13 @@ class Sources extends Component
         $settings = $source->settings;
 
         $sourceRecord = $this->_getSourceRecordById($source->id);
+
+        if (!$isNewSource && ($sourceRecord->type !== get_class($source) || Json::decodeIfJson($sourceRecord->settings) != $settings)) {
+            // Tokens, connection status and option lists belong to the saved provider configuration.
+            $source->cache = [];
+            $sourceRecord->cache = Json::encode([]);
+        }
+
         $sourceRecord->name = $source->name;
         $sourceRecord->handle = $source->handle;
         $sourceRecord->enabled = $source->enabled;
