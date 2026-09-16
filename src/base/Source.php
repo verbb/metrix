@@ -304,7 +304,7 @@ abstract class Source extends SavableComponent implements SourceInterface
 
         $settings = $this->fetchSourceSettings($settingsKey);
 
-        if ($settings) {
+        if ($settings !== null) {
             $this->setSettingCache([$settingsKey => $settings]);
         }
 

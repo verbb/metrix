@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix removed provider options returning after a successful empty refresh.
 - Fix deleting sources and views from their edit pages.
 - Fix unavailable custom source providers preventing dashboards and presets from loading.
 - Fix rebuilding project config placing presets under the wrong key.
