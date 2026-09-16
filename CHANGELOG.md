@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix rolling date ranges reusing cached results from the previous calendar day.
 - Fix Google Analytics aggregate counters and top-row ordering, and explain unsupported realtime scope filters.
 - Fix Umami Cloud API paths, dimension rates and durations, monthly chart buckets, and All Time queries.
 - Fix table sorting being inaccessible by keyboard and add accessible pagination labels.

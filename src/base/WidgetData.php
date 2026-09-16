@@ -117,6 +117,10 @@ class WidgetData extends Model implements WidgetDataInterface
 
     public function getCacheKey(string $suffix = ''): string
     {
+        $range = $this->period ? $this->period::getCurrentDateRange() : [];
+        // Rolling periods must expire at calendar boundaries without bypassing the TTL every second.
+        $calendarRange = array_map(fn($date) => $date->format('Y-m-d e'), $range);
+
         $cacheKey = [
             'metrix',
             get_class($this->widget),
@@ -125,6 +129,7 @@ class WidgetData extends Model implements WidgetDataInterface
             $this->metric,
             $this->dimension,
             $this->period,
+            hash('sha256', serialize($calendarRange)),
             $this->getRowLimit(),
             $this->scope?->cacheKey() ?? 'scope:none',
             // Bump when envelope shape changes so legacy raw blobs are ignored.
