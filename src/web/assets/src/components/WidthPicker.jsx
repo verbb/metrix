@@ -8,7 +8,7 @@ export const WidthPicker = ({ value, onChange }) => {
     const activeWidth = Number(value) || 1;
 
     return (
-        <div className="width-picker">
+        <div className="width-picker" role="group" aria-label={Craft.t('metrix', 'Widget width')}>
             {[0, 1, 2].map((index) => {
                 const isHoveredOrPrevious = hoveredIndex !== null ? index <= hoveredIndex : index <= activeWidth - 1;
 
@@ -35,9 +35,12 @@ export const WidthPicker = ({ value, onChange }) => {
                 }
 
                 return (
-                    <a
+                    <button
                         key={index}
+                        type="button"
                         title={Craft.t('metrix', 'Column {num}', { num: index + 1 })}
+                        aria-label={Craft.t('metrix', 'Column {num}', { num: index + 1 })}
+                        aria-pressed={activeWidth === index + 1}
                         className={cn(
                             'width-picker-column',
                             isHoveredOrPrevious ? 'active' : '',
@@ -52,7 +55,7 @@ export const WidthPicker = ({ value, onChange }) => {
                         onClick={() => {
                             onChange(index + 1);
                         }}
-                    ></a>
+                    ></button>
                 );
             })}
         </div>

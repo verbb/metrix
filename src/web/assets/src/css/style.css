@@ -130,8 +130,14 @@
         margin-bottom: 1px;
         margin-left: 0;
         margin-top: 1px;
+        padding: 0;
         text-decoration: none;
         width: 7px;
+
+        &:focus-visible {
+            outline: 2px solid currentColor;
+            outline-offset: 2px;
+        }
 
         &:not(:first-child) {
             border-left: none;

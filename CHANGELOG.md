@@ -83,6 +83,7 @@
 - Fix delayed view or preset responses replacing the currently selected dashboard’s widgets.
 - Fix failed or overlapping widget reorders restoring another view or discarding refreshed data.
 - Fix overlapping widget edits saving older choices or restoring unconfirmed values after a failure.
+- Fix widget width controls being unavailable to keyboard users.
 - Fix switching dashboard views failing to load their widgets.
 - Fix missing widget sources or views causing server errors when saving.
 - Fix presets failing to load after their source is renamed or deleted.
