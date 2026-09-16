@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix previous-period comparisons ignoring the view’s analytics scope and cache refresh settings.
 - Fix duplicated dashboard widgets remaining in a loading state instead of fetching their chart data.
 - Roll back failed widget edits and reorders instead of leaving unsaved dashboard state in the UI.
 - Fall back to the first permitted dashboard view when the URL contains an unknown view handle.

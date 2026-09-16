@@ -22,12 +22,15 @@ class WidgetData extends Model implements WidgetDataInterface
     public ?int $limit = null;
     public ?AnalyticsScope $scope = null;
 
+    protected bool $refreshCache = false;
+
 
     // Public Methods
     // =========================================================================
 
     public function getData(bool $refreshCache = false): array
     {
+        $this->refreshCache = $refreshCache;
         $cacheDuration = Metrix::$plugin->getSettings()->getCacheDuration();
         $cacheKey = $this->getCacheKey();
 
@@ -180,6 +183,15 @@ class WidgetData extends Model implements WidgetDataInterface
     public function remember(string $suffix, callable $callback, ?int $duration = null): mixed
     {
         $duration ??= Metrix::$plugin->getSettings()->getCacheDuration();
+
+        // Related queries must honour the same cache policy as the main payload.
+        if ($duration <= 1) {
+            return $callback();
+        }
+
+        if ($this->refreshCache) {
+            Craft::$app->getCache()->delete($this->getCacheKey($suffix));
+        }
 
         return Craft::$app->getCache()->getOrSet(
             $this->getCacheKey($suffix),

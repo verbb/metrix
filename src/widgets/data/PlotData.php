@@ -103,14 +103,8 @@ class PlotData extends WidgetData
     private function _fetchPreviousPeriodData(): array
     {
         $previousPeriodRange = $this->period::getPreviousDateRange();
-        $previousWidgetData = new static([
-            'widget' => $this->widget,
-            'source' => $this->source,
-            'period' => $this->period,
-            'metric' => $this->metric,
-            'dimension' => $this->dimension,
-            'limit' => $this->limit,
-        ]);
+        // Retain the view scope and cache policy when comparing the same audience.
+        $previousWidgetData = clone $this;
 
         return $this->period::withDateRange(
             $previousPeriodRange,

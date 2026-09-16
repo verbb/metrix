@@ -40,14 +40,8 @@ class CounterData extends WidgetData
     {
         $previousPeriodRange = $this->period::getPreviousDateRange();
         $originalRange = $this->period::$currentDateRange;
-        $previousWidgetData = new static([
-            'widget' => $this->widget,
-            'source' => $this->source,
-            'period' => $this->period,
-            'metric' => $this->metric,
-            'dimension' => $this->dimension,
-            'limit' => $this->limit,
-        ]);
+        // Retain the view scope and cache policy when comparing the same audience.
+        $previousWidgetData = clone $this;
 
         try {
             $this->period::$currentDateRange = $previousPeriodRange;
