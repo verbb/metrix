@@ -56,7 +56,7 @@ it('uses the first recorded GoatCounter hit for All Time', function() {
     $data = $source->fetchData(new WidgetData(['widget' => new \verbb\metrix\widgets\Counter(), 'period' => \verbb\metrix\periods\AllTime::class, 'metric' => 'visitors']));
     parse_str($history[1]['request']->getUri()->getQuery(), $query);
 
-    expect($data)->toBe(['total' => 42])->and($query['start'])->toBe('2020-02-03T00:00:00Z');
+    expect($data)->toBe(['total' => 42])->and(new DateTime($query['start']))->toEqual(new DateTime('2020-02-03T00:00:00Z'));
 });
 
 it('paginates GoatCounter dimension reports beyond 100 rows', function(string $dimension, string $collection, string $label) {
@@ -80,4 +80,16 @@ it('retries a GoatCounter rate limit once and preserves the query', function() {
 
     expect($data)->toBe(['total' => 42])->and(count($history))->toBe(2)
         ->and((string)$history[1]['request']->getUri())->toBe((string)$history[0]['request']->getUri());
+});
+
+it('preserves GoatCounter request timezone offsets and partial period boundaries', function() {
+    $source = new GoatCounter(['siteUrl' => 'https://fixture.invalid', 'apiKey' => 'fixture']);
+    $history = [];
+    ProviderHttp::mock($source, [['total' => 42]], $history);
+    $range = ['start' => new DateTime('2026-10-01T00:00:00+10:00'), 'end' => new DateTime('2026-10-05T12:30:00+11:00')];
+    Last7Days::withDateRange($range, fn() => $source->fetchData(new WidgetData(['widget' => new \verbb\metrix\widgets\Counter(), 'period' => Last7Days::class, 'metric' => 'visitors'])));
+    parse_str($history[0]['request']->getUri()->getQuery(), $query);
+
+    expect((new DateTime($query['start']))->getTimestamp())->toBe($range['start']->getTimestamp())
+        ->and((new DateTime($query['end']))->getTimestamp())->toBe($range['end']->getTimestamp());
 });

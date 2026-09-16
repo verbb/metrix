@@ -292,12 +292,12 @@ class GoatCounter extends CredentialsSource
                 throw new Exception(Craft::t('metrix', 'Unable to determine the GoatCounter site’s reporting start date.'));
             }
 
-            $dateRange = ['start' => new DateTime($start), 'end' => new DateTime()];
+            $dateRange = ['start' => (new DateTime($start))->setTime(0, 0), 'end' => new DateTime()];
         }
 
         return [
-            'start' => $dateRange['start']->format('Y-m-d\T00:00:00\Z'),
-            'end' => $dateRange['end']->format('Y-m-d\T23:59:59\Z'),
+            'start' => $dateRange['start']->format(DATE_ATOM),
+            'end' => $dateRange['end']->format(DATE_ATOM),
         ];
     }
 }
