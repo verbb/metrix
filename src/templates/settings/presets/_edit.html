@@ -79,7 +79,7 @@
         <p class="warning with-icon">{{ 'There are no configured and enabled [sources]({url}), which are required to edit a preset.' | t('metrix', { url: cpUrl('metrix/sources') }) | md(inlineOnly=true) }}</p>
     {% endif %}
 
-    <input class="metrix-presets-store" type="hidden" name="widgets" value="{{ preset.getFrontEndWidgets() | json_encode }}" />
+    <input class="metrix-presets-store" type="hidden" name="widgets" value="{{ (hasSource ? preset.getFrontEndWidgets() : preset.getSerializedWidgets()) | json_encode }}" />
 
     <div class="metrix-presets"></div>
 </div>
@@ -123,4 +123,3 @@
 {% endif %}
 
 {% endjs %}
-

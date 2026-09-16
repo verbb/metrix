@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix saving a preset clearing its widgets when all sources are disabled.
 - Fix the preset widget editor crashing before chart components finish loading.
 - Fix the preset management table not appearing in settings.
 - Fix deleted presets preventing reuse of their names and handles.
