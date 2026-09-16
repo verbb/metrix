@@ -49,6 +49,7 @@
 - Fix chart values and comparison series being unavailable to screen readers.
 - Fix inherited widgets losing their date range and data after reloading the dashboard.
 - Fix custom plot data transformers receiving aggregate reports instead of time series.
+- Fix custom widgets failing to render when first created or loaded in another dashboard view.
 - Fix registered custom periods missing from date-range options and settings.
 - Fix the dashboard date-range menu including disabled periods.
 - Fix All Time charts omitting earlier unordered data or inventing history for empty reports.

@@ -29,11 +29,13 @@ class Plugin
     public static function registerDashboardAssets(): void
     {
         self::registerCpAsset('src/dashboard/metrix-dashboard.js');
+        self::_registerWidgetAssets();
     }
 
     public static function registerPresetsAssets(): void
     {
         self::registerCpAsset('src/presets/metrix-presets.js');
+        self::_registerWidgetAssets();
     }
 
     public static function registerSourcesAssets(): void
@@ -81,6 +83,20 @@ class Plugin
     public static function registerAsset(string $path): void
     {
         self::registerCpAsset($path);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private static function _registerWidgetAssets(): void
+    {
+        // Editors can add a type for the first time or switch views without a page reload.
+        foreach (Metrix::$plugin->getSettings()->getEnabledWidgetTypes() as $widgetType) {
+            if ($bundle = $widgetType::getAssetBundle()) {
+                Craft::$app->getView()->registerAssetBundle($bundle);
+            }
+        }
     }
 
 }
