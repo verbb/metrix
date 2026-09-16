@@ -38,61 +38,61 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
-- Fix connection checks returning a server error for deleted sources.
-- Fix delayed view responses replacing the currently selected dashboard’s widgets.
 - Fixed an information disclosure vulnerability.
-- Fix switching dashboard views failing to load their widgets.
+- Fix dashboard permissions being unavailable in Craft Team and Enterprise.
+- Fix refreshed source options treating provider labels and values as HTML.
+- Fix connection checks returning a server error for deleted sources.
 - Fix sources with missing environment credentials being treated as configured.
+- Fix source credential changes retaining old authentication and provider option caches.
+- Fix Mixpanel event selection, series counts, and service account connection checks.
 - Fix Last 30 Days charts showing midnight instead of dates on the horizontal axis.
 - Fix chart values and comparison series being unavailable to screen readers.
-- Fix Mixpanel All Time reports failing before requesting data.
-- Fix GoatCounter requests shifting non-UTC date ranges and extending partial comparison periods.
-- Fix pie chart legend controls being unavailable to keyboard and screen-reader users.
-- Fix Cloudflare All Time reports failing instead of querying the zone’s available history.
 - Fix inherited widgets losing their date range and data after reloading the dashboard.
-- Fix missing accessible names on widget metric and dimension selectors.
-- Fix Table widgets missing accessible table structure and sort direction.
-- Fix self-hosted Umami reports remaining unavailable after a cached login token is rejected.
-- Fix Fathom site selection omitting sites after the first page of API results.
-- Fix Pirsch sources failing after an access token is rejected or when no domains are available.
-- Fix GoatCounter All Time reports, dimension reports with more than 100 rows, and recovery from temporary API rate limits.
-- Fix Matomo monthly charts, All Time reports, unformatted dimension metrics, and site selection with view-only tokens.
-- Fix Cloudflare report queries, bandwidth values, monthly totals, dimension breakdowns, API errors, and zone selection.
-- Fix Pirsch chart intervals, rate and duration values, dimension pagination, and All Time queries.
-- Fix dashboard permissions being unavailable in Craft Team and Enterprise.
-- Fix GoatCounter hourly and monthly charts, missing dimension labels, and JSON request headers.
-- Fix source credential changes retaining old authentication and provider option caches.
 - Fix custom plot data transformers receiving aggregate reports instead of time series.
-- Fix Matomo aggregate counters, pageview reports, percentage values, and API error reporting.
-- Fix missing widget sources or views causing server errors when saving.
 - Fix registered custom periods missing from date-range options and settings.
-- Fix cancelling a preset widget drag outside the list throwing an error.
-- Fix Simple Analytics hourly charts, dimension row limits and labels, All Time queries, and API error reporting.
 - Fix All Time charts omitting earlier unordered data or inventing history for empty reports.
-- Fix widget deletion event listeners receiving stale cached records.
 - Fix rolling date ranges reusing cached results from the previous calendar day.
-- Fix Google Analytics aggregate counters and top-row ordering, and explain unsupported realtime scope filters.
-- Fix Umami Cloud API paths, dimension rates and durations, monthly chart buckets, and All Time queries.
-- Fix table sorting being inaccessible by keyboard and add accessible pagination labels.
-- Fix refreshed source options treating provider labels and values as HTML.
 - Fix older widget requests replacing newer data after a refresh or period change.
 - Fix a period selected in widget settings being overridden by the dashboard date range.
+- Fix fractional metrics being truncated in counters and dimension charts, including percentage comparisons.
+- Fix date ranges including extra days or months, and keep comparison ranges within the intended calendar period.
+- Fix previous-period comparisons ignoring the view’s analytics scope and cache refresh settings.
+- Fix Cloudflare All Time reports failing instead of querying the zone’s available history.
+- Fix Cloudflare report queries, bandwidth values, monthly totals, dimension breakdowns, API errors, and zone selection.
+- Fix Fathom site selection omitting sites after the first page of API results.
+- Fix Fathom date filtering, visitor metrics, aggregate counters, and All Time queries.
+- Fix GoatCounter requests shifting non-UTC date ranges and extending partial comparison periods.
+- Fix GoatCounter All Time reports, dimension reports with more than 100 rows, and recovery from temporary API rate limits.
+- Fix GoatCounter hourly and monthly charts, missing dimension labels, and JSON request headers.
+- Fix Google Analytics aggregate counters and top-row ordering, and explain unsupported realtime scope filters.
+- Fix Matomo monthly charts, All Time reports, unformatted dimension metrics, and site selection with view-only tokens.
+- Fix Matomo aggregate counters, pageview reports, percentage values, and API error reporting.
+- Fix Mixpanel All Time reports failing before requesting data.
+- Fix Pirsch sources failing after an access token is rejected or when no domains are available.
+- Fix Pirsch chart intervals, rate and duration values, dimension pagination, and All Time queries.
+- Fix Plausible aggregate totals, page dimensions, All Time queries, and scoped realtime counts.
+- Fix Simple Analytics hourly charts, dimension row limits and labels, All Time queries, and API error reporting.
+- Fix self-hosted Umami reports remaining unavailable after a cached login token is rejected.
+- Fix Umami Cloud API paths, dimension rates and durations, monthly chart buckets, and All Time queries.
+- Fix delayed view responses replacing the currently selected dashboard’s widgets.
+- Fix switching dashboard views failing to load their widgets.
+- Fix missing widget sources or views causing server errors when saving.
+- Fix widget deletion event listeners receiving stale cached records.
+- Fix stale source, view and widget data after saving, reordering or deleting records in the same request.
+- Fixed new widgets failing to save, and widget edits failing to refresh the displayed data.
+- Fix Save and continue editing redirecting to a missing page for views.
+- Fix cancelling a preset widget drag outside the list throwing an error.
 - Fix saving a preset clearing its widgets when all sources are disabled.
 - Fix the preset widget editor crashing before chart components finish loading.
 - Fix the preset management table not appearing in settings.
 - Fix deleted presets preventing reuse of their names and handles.
 - Fix saving edited preset widgets failing on their generated display titles.
-- Fix stale source, view and widget data after saving, reordering or deleting records in the same request.
-- Fix Mixpanel event selection, series counts, and service account connection checks.
-- Fix Fathom date filtering, visitor metrics, aggregate counters, and All Time queries.
-- Fix Plausible aggregate totals, page dimensions, All Time queries, and scoped realtime counts.
-- Fix fractional metrics being truncated in counters and dimension charts, including percentage comparisons.
-- Fixed new widgets failing to save, and widget edits failing to refresh the displayed data.
-- Fix date ranges including extra days or months, and keep comparison ranges within the intended calendar period.
-- Fix Save and continue editing redirecting to a missing page for views.
 - Fix invalid or duplicate source, view and preset names and handles causing save errors or inaccessible views.
 - Fix Website Overview and Content Performance presets missing from fresh installations.
-- Fix previous-period comparisons ignoring the view’s analytics scope and cache refresh settings.
+- Fix pie chart legend controls being unavailable to keyboard and screen-reader users.
+- Fix missing accessible names on widget metric and dimension selectors.
+- Fix Table widgets missing accessible table structure and sort direction.
+- Fix table sorting being inaccessible by keyboard and add accessible pagination labels.
 - Fix duplicated dashboard widgets remaining in a loading state instead of fetching their chart data.
 - Roll back failed widget edits and reorders instead of leaving unsaved dashboard state in the UI.
 - Fall back to the first permitted dashboard view when the URL contains an unknown view handle.
