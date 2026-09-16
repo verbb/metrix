@@ -83,8 +83,8 @@ class MixPanel extends CredentialsSource
         $data = $this->_getPropertyMetadata();
 
         return array_map(fn($metric) => [
-            'label' => $metric['event'],
-            'value' => $metric['event']
+            'label' => $metric,
+            'value' => $metric
         ], $data ?? []);
     }
 
@@ -112,8 +112,8 @@ class MixPanel extends CredentialsSource
 
         $formattedData = [];
 
-        foreach ($series as $index => $dimension) {
-            $formattedData[$dimension] = (int)($values[$index] ?? 0);
+        foreach ($series as $dimension) {
+            $formattedData[$dimension] = (int)($values[$dimension] ?? 0);
         }
 
         return $formattedData;
@@ -122,7 +122,13 @@ class MixPanel extends CredentialsSource
     public function fetchConnection(): bool
     {
         try {
-            $this->request('GET', 'https://mixpanel.com/api/app/me');
+            $this->request('GET', 'events/names', [
+                'query' => [
+                    'project_id' => $this->getProjectId(),
+                    'type' => 'general',
+                    'limit' => 1,
+                ],
+            ]);
         } catch (Throwable $e) {
             self::apiError($this, $e);
 
