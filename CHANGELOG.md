@@ -61,6 +61,7 @@
 - Fix Fathom connection checks rejecting read-only API tokens.
 - Fix removed provider options returning after a successful empty refresh.
 - Fix deleting sources and views from their edit pages.
+- Fix saving a deleted view from a stale edit form creating a replacement view.
 - Fix unavailable custom source providers preventing dashboards and presets from loading.
 - Fix rebuilding project config placing presets under the wrong key.
 - Fix presets losing their widgets when all dashboard views have been deleted.

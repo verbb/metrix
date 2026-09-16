@@ -98,8 +98,12 @@ class ViewsController extends Controller
 
         $viewId = $this->request->getParam('id');
         $view = $viewId
-            ? (Metrix::$plugin->getViews()->getViewById((int)$viewId) ?? new View())
+            ? Metrix::$plugin->getViews()->getViewById((int)$viewId)
             : new View();
+
+        if (!$view) {
+            throw new NotFoundHttpException('View not found');
+        }
 
         $view->name = $this->request->getParam('name');
         $view->handle = $this->request->getParam('handle');
