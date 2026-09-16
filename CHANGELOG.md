@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fixed new widgets failing to save, and widget edits failing to refresh the displayed data.
 - Fix date ranges including extra days or months, and keep comparison ranges within the intended calendar period.
 - Fix Save and continue editing redirecting to a missing page for views.
 - Fix invalid or duplicate source, view and preset names and handles causing save errors or inaccessible views.

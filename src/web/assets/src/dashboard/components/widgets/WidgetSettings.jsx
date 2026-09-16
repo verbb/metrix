@@ -18,7 +18,7 @@ export function WidgetSettings({
     const currentView = useAppStore((state) => state.currentView);
 
     const addWidget = useWidgetStore((state) => state.addWidget);
-    const updateWidgetState = useWidgetStore((state) => state.updateWidget);
+    const updateWidgetState = useWidgetStore((state) => state.updateWidgetState);
 
     const {
         formRef,
@@ -52,8 +52,6 @@ export function WidgetSettings({
         setLoading(true);
         setFormErrors(null);
 
-        const typeChanged = mergedData.type !== widget.data.type;
-
         try {
             const response = await api.post('save-widget', payload);
 
@@ -68,7 +66,9 @@ export function WidgetSettings({
                     updateWidgetState(widget, {
                         ...preloadedWidget,
                         waitForData: false,
-                        ...(typeChanged && { chartData: null }),
+                        chartData: null,
+                        error: null,
+                        loading: true,
                     });
                 }
 
