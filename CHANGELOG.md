@@ -56,6 +56,7 @@
 - Fix the empty dashboard’s Configure views action opening settings instead of views.
 - Fix delayed widget creation updating another view or closing a newly opened dialog.
 - Fix new widget forms failing to load when the default widget type is disabled.
+- Fix the configured default widget source being replaced by the first available source.
 - Fix Fathom connection checks rejecting read-only API tokens.
 - Fix removed provider options returning after a successful empty refresh.
 - Fix deleting sources and views from their edit pages.

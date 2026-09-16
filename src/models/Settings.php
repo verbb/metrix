@@ -208,7 +208,7 @@ class Settings extends Model
 
         $firstSource = Metrix::$plugin->getSources()->getAllConfiguredSources()[0] ?? null;
 
-        if ($firstSource) {
+        if (!$defaultWidget->getSource() && $firstSource) {
             $defaultWidget->setSource($firstSource);
         }
 
