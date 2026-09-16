@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix Umami Cloud API paths, dimension rates and durations, monthly chart buckets, and All Time queries.
 - Fix table sorting being inaccessible by keyboard and add accessible pagination labels.
 - Fix refreshed source options treating provider labels and values as HTML.
 - Fix older widget requests replacing newer data after a refresh or period change.

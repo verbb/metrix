@@ -62,7 +62,13 @@ class Umami extends CredentialsSource
 
     public function getBaseUrl(): string
     {
-        return rtrim(App::parseEnv($this->baseUrl) ?: 'https://api.umami.is', '/') . '/';
+        $url = rtrim(App::parseEnv($this->baseUrl) ?: 'https://api.umami.is', '/');
+
+        if (parse_url($url, PHP_URL_HOST) === 'api.umami.is' && !parse_url($url, PHP_URL_PATH)) {
+            $url .= '/v1';
+        }
+
+        return $url . '/';
     }
 
     public function getWebsiteId(): ?string
@@ -196,6 +202,10 @@ class Umami extends CredentialsSource
 
     public function request(string $method, string $url, array $options = []): mixed
     {
+        if (parse_url($this->getBaseUrl(), PHP_URL_HOST) === 'api.umami.is' && str_starts_with($url, 'api/')) {
+            $url = substr($url, 4);
+        }
+
         $options['headers'] = array_merge($options['headers'] ?? [], [
             'Authorization' => 'Bearer ' . $this->_getBearerToken(),
             'Accept' => 'application/json',
@@ -274,7 +284,7 @@ class Umami extends CredentialsSource
                 'startAt' => $startAt,
                 'endAt' => $endAt,
                 'unit' => $this->_getUnit($widgetData),
-                'timezone' => 'UTC',
+                'timezone' => Craft::$app->getTimeZone(),
             ],
         ]);
 
@@ -314,16 +324,15 @@ class Umami extends CredentialsSource
         ]);
 
         $data = [];
-        $metricField = $this->_getExpandedMetricField($widgetData->metric);
 
         foreach ($response as $row) {
             $name = $row['name'] ?? null;
 
-            if ($name === null || $name === '') {
+            if ($name === null) {
                 continue;
             }
 
-            $data[$name] = $row[$metricField] ?? 0;
+            $data[$name] = $this->_extractMetricValue($row, $widgetData->metric);
         }
 
         return $data;
@@ -377,6 +386,14 @@ class Umami extends CredentialsSource
     {
         if ($widgetData) {
             $dateRange = $widgetData->period::getCurrentDateRange();
+
+            if (!$dateRange) {
+                $history = $this->request('GET', 'api/websites/' . $this->getWebsiteId() . '/daterange');
+                $dateRange = [
+                    'start' => new \DateTime($history['startDate'] ?? 'now'),
+                    'end' => new \DateTime(),
+                ];
+            }
         } else {
             $dateRange = [
                 'start' => new \DateTime('-7 days'),
@@ -402,11 +419,12 @@ class Umami extends CredentialsSource
     private function _normalizeTimestampKey(string $timestamp, WidgetDataInterface $widgetData): string
     {
         $date = new \DateTime($timestamp);
+        $date->setTimezone(new \DateTimeZone(Craft::$app->getTimeZone()));
 
         return match ($widgetData->period::getIntervalDimension()) {
             Period::INTERVAL_HOUR => $date->format('Y-m-d H:00:00'),
-            Period::INTERVAL_MONTH => $date->format('Y-m'),
-            Period::INTERVAL_YEAR => $date->format('Y'),
+            Period::INTERVAL_MONTH => $date->format('Y-m-01'),
+            Period::INTERVAL_YEAR => $date->format('Y-01-01'),
             default => $date->format('Y-m-d'),
         };
     }
@@ -417,18 +435,6 @@ class Umami extends CredentialsSource
             'bounce_rate' => $this->_calculateBounceRate($response),
             'avg_duration' => $this->_calculateAverageDuration($response),
             default => (float)($response[$metric] ?? 0),
-        };
-    }
-
-    private function _getExpandedMetricField(string $metric): string
-    {
-        return match ($metric) {
-            'pageviews' => 'pageviews',
-            'visits', 'sessions' => 'visits',
-            'bounces' => 'bounces',
-            'bounce_rate' => 'bounces',
-            'avg_duration' => 'totaltime',
-            default => 'visitors',
         };
     }
 
