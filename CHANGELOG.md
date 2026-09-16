@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix table pagination requiring repeated Previous clicks after a report has fewer rows.
 - Fix presets and duplication creating disabled widget types, and prevent repeated preset application to views containing hidden widgets.
 - Fix the unnamed source action menu and hide Delete until a source is saved.
 - Fix saved provider selections disappearing while option lists are unavailable.

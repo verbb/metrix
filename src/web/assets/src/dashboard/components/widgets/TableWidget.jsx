@@ -175,7 +175,7 @@ export const TableWidget = (props) => {
                             variant="outline"
                             aria-label={Craft.t('metrix', 'Previous page')}
                             disabled={safePage === 0}
-                            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
+                            onClick={() => setCurrentPage((prev) => Math.max(Math.min(prev, totalPages - 1) - 1, 0))}
                         >
                             <Icon icon="chevron-left" />
                         </Button>
