@@ -2,6 +2,7 @@
 namespace verbb\metrix\base;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\Json;
 
 use GuzzleHttp\Client;
@@ -45,7 +46,18 @@ abstract class CredentialsSource extends Source
 
     public function isConfigured(): bool
     {
-        return true;
+        // Validate resolved settings without replacing stored environment references or form errors.
+        $source = clone $this;
+        $source->enabled = true;
+        $attributes = $source->settingsAttributes();
+
+        foreach ($attributes as $attribute) {
+            if (is_string($source->$attribute)) {
+                $source->$attribute = App::parseEnv($source->$attribute) ?? '';
+            }
+        }
+
+        return $source->validate($attributes);
     }
 
     public function isConnected(): bool

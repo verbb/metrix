@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix sources with missing environment credentials being treated as configured.
 - Fix Last 30 Days charts showing midnight instead of dates on the horizontal axis.
 - Fix chart values and comparison series being unavailable to screen readers.
 - Fix Mixpanel All Time reports failing before requesting data.

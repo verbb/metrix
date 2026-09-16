@@ -65,7 +65,7 @@ abstract class OAuthSource extends Source implements OAuthProviderInterface
 
     public function isConfigured(): bool
     {
-        return $this->clientId && $this->clientSecret;
+        return (bool)($this->getClientId() && $this->getClientSecret());
     }
 
     public function isConnected(): bool
