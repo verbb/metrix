@@ -12,30 +12,21 @@
 
 {% set saveShortcutRedirect = 'metrix/sources/{handle}' %}
 
-{% block actionButton %}
-
-<div class="btngroup">
-    <input type="submit" class="btn submit" value="{{ 'Save' | t('app') }}">
-
-    <div class="btn submit menubtn"></div>
-    <div class="menu">
-        <ul>
-            <li>
-                <a class="formsubmit" data-redirect="{{ saveShortcutRedirect | hash }}">
-                    {{ forms.optionShortcutLabel('S') }}
-                    {{ 'Save and continue editing' | t('app') }}
-                </a>
-            </li>
-        </ul>
-
-        <hr>
-        <ul>
-            <li><a class="formsubmit error" data-action="metrix/sources/delete" data-confirm="{{ 'Are you sure you want to delete this source?' | t('metrix') }}" data-redirect="{{ 'metrix/sources#' | hash }}">{{ 'Delete' | t('app') }}</a></li>
-        </ul>
-    </div>
-</div>
-
-{% endblock %}
+{% set formActions = [
+    {
+        label: 'Save and continue editing' | t('app'),
+        redirect: saveShortcutRedirect | hash,
+        shortcut: true,
+        retainScroll: true,
+    },
+    source.id ? {
+        destructive: true,
+        label: 'Delete source' | t('metrix'),
+        action: 'metrix/sources/delete',
+        redirect: 'metrix/sources' | hash,
+        confirm: 'Are you sure you want to delete this source?' | t('metrix'),
+    }
+] | filter %}
 
 {% set tabs = {
     source: { label: 'Source' | t('metrix'), url: '#source' },

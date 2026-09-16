@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix the unnamed source action menu and hide Delete until a source is saved.
 - Fix saved provider selections disappearing while option lists are unavailable.
 - Fix provider settings remaining unavailable after a successful source connection.
 - Fix missing accessible names for provider choices and refresh buttons.
