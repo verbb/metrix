@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix registered custom periods missing from date-range options and settings.
 - Fix cancelling a preset widget drag outside the list throwing an error.
 - Fix Simple Analytics hourly charts, dimension row limits and labels, All Time queries, and API error reporting.
 - Fix All Time charts omitting earlier unordered data or inventing history for empty reports.
