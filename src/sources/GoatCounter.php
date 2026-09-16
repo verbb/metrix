@@ -9,6 +9,7 @@ use verbb\metrix\widgets\data\PlotData;
 use Craft;
 use craft\helpers\App;
 
+use DateTime;
 use Throwable;
 
 use GuzzleHttp\Client;
@@ -134,6 +135,7 @@ class GoatCounter extends CredentialsSource
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->getApiKey(),
                 'Accept' => 'application/json',
+                'Content-Type' => 'application/json',
             ],
         ]);
     }
@@ -193,8 +195,22 @@ class GoatCounter extends CredentialsSource
                 continue;
             }
 
-            $key = (new \DateTime($day))->format('Y-m-d');
-            $data[$key] = $row['daily'] ?? 0;
+            $date = new DateTime($day);
+
+            switch ($widgetData->period::getIntervalDimension()) {
+                case Period::INTERVAL_HOUR:
+                    foreach ($row['hourly'] ?? [] as $hour => $value) {
+                        $data[$date->format('Y-m-d') . sprintf(' %02d:00:00', $hour)] = $value;
+                    }
+                    break;
+                case Period::INTERVAL_MONTH:
+                    if (isset($row['monthly'])) {
+                        $data[$date->format('Y-m-01')] = $row['monthly'];
+                    }
+                    break;
+                default:
+                    $data[$date->format('Y-m-d')] = $row['daily'] ?? 0;
+            }
         }
 
         return $data;
@@ -205,7 +221,7 @@ class GoatCounter extends CredentialsSource
         if ($widgetData->dimension === 'pages') {
             $response = $this->request('GET', 'api/v0/stats/hits', [
                 'query' => array_merge($this->_getDateQuery($widgetData), [
-                    'limit' => 100,
+                    'limit' => min(100, $widgetData->getRowLimit()),
                 ]),
             ]);
 
@@ -214,7 +230,7 @@ class GoatCounter extends CredentialsSource
             foreach ($response['hits'] ?? [] as $row) {
                 $path = $row['path'] ?? null;
 
-                if (!$path) {
+                if ($path === null) {
                     continue;
                 }
 
@@ -226,7 +242,7 @@ class GoatCounter extends CredentialsSource
 
         $response = $this->request('GET', 'api/v0/stats/' . $widgetData->dimension, [
             'query' => array_merge($this->_getDateQuery($widgetData), [
-                'limit' => 100,
+                'limit' => min(100, $widgetData->getRowLimit()),
             ]),
         ]);
 
@@ -235,7 +251,7 @@ class GoatCounter extends CredentialsSource
         foreach ($response['stats'] ?? [] as $row) {
             $name = $row['name'] ?? null;
 
-            if (!$name) {
+            if ($name === null) {
                 continue;
             }
 

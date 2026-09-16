@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix GoatCounter hourly and monthly charts, missing dimension labels, and JSON request headers.
 - Fix source credential changes retaining old authentication and provider option caches.
 - Fix custom plot data transformers receiving aggregate reports instead of time series.
 - Fix Matomo aggregate counters, pageview reports, percentage values, and API error reporting.
