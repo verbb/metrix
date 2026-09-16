@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix Matomo monthly charts, All Time reports, unformatted dimension metrics, and site selection with view-only tokens.
 - Fix Cloudflare report queries, bandwidth values, monthly totals, dimension breakdowns, API errors, and zone selection.
 - Fix Pirsch chart intervals, rate and duration values, dimension pagination, and All Time queries.
 - Fix dashboard permissions being unavailable in Craft Team and Enterprise.

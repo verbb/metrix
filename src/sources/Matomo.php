@@ -10,8 +10,9 @@ use verbb\metrix\widgets\data\PlotData;
 use Craft;
 use craft\helpers\App;
 
-use Throwable;
+use DateTime;
 use Exception;
+use Throwable;
 
 use GuzzleHttp\Client;
 
@@ -82,7 +83,7 @@ class Matomo extends CredentialsSource
                 $sites = $this->request('POST', '', [
                     'form_params' => [
                         'module' => 'API',
-                        'method' => 'SitesManager.getAllSites',
+                        'method' => 'SitesManager.getSitesWithAtLeastViewAccess',
                         'format' => 'json',
                         'token_auth' => $this->getApiToken(),
                     ],
@@ -286,7 +287,7 @@ class Matomo extends CredentialsSource
         $intervalDimension = is_a($widgetData->widget::getDataType(), PlotData::class, true)
             ? $this->_getIntervalDimension($widgetData)
             : 'range';
-        $dateRange = $widgetData->period::getCurrentDateRange();
+        $dateRange = $this->_getDateRange($widgetData);
         $startDate = $dateRange['start']->format('Y-m-d');
         $endDate = $dateRange['end']->format('Y-m-d');
 
@@ -309,7 +310,9 @@ class Matomo extends CredentialsSource
         foreach ($response as $key => $result) {
             // Single-day summary may be a flat metric map rather than date => metrics.
             if (is_array($result) && array_key_exists($widgetData->metric, $result)) {
-                $data[$key] = $this->_numericValue($result[$widgetData->metric]);
+                $date = new DateTime($key);
+                $dateKey = $intervalDimension === 'month' ? $date->format('Y-m-01') : $date->format('Y-m-d');
+                $data[$dateKey] = $this->_numericValue($result[$widgetData->metric]);
             } elseif ($key === $widgetData->metric) {
                 $data['total'] = $this->_numericValue($result);
             }
@@ -341,7 +344,7 @@ class Matomo extends CredentialsSource
             return [];
         }
 
-        $dateRange = $widgetData->period::getCurrentDateRange();
+        $dateRange = $this->_getDateRange($widgetData);
         $startDate = $dateRange['start']->format('Y-m-d');
         $endDate = $dateRange['end']->format('Y-m-d');
         $metric = $widgetData->metric;
@@ -355,6 +358,7 @@ class Matomo extends CredentialsSource
                 'period' => 'range',
                 'date' => "$startDate,$endDate",
                 'format' => 'json',
+                'format_metrics' => 0,
                 'filter_limit' => $limit,
                 'filter_sort_column' => $metric,
                 'filter_sort_order' => 'desc',
@@ -390,6 +394,30 @@ class Matomo extends CredentialsSource
         }
 
         return $data;
+    }
+
+    private function _getDateRange(WidgetDataInterface $widgetData): array
+    {
+        $range = $widgetData->period::getCurrentDateRange();
+
+        if ($range) {
+            return $range;
+        }
+
+        $site = $this->request('POST', '', ['form_params' => [
+            'module' => 'API',
+            'method' => 'SitesManager.getSiteFromId',
+            'idSite' => $this->getSiteId(),
+            'format' => 'json',
+            'token_auth' => $this->getApiToken(),
+        ]]);
+        $created = $site['ts_created'] ?? $site[0]['ts_created'] ?? null;
+
+        if (!$created) {
+            throw new Exception(Craft::t('metrix', 'Unable to determine the Matomo site’s reporting start date.'));
+        }
+
+        return ['start' => new DateTime($created), 'end' => new DateTime()];
     }
 
     private function _getIntervalDimension(WidgetDataInterface $widgetData): string
