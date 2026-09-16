@@ -8,6 +8,7 @@ use verbb\metrix\records\Source as SourceRecord;
 
 use Craft;
 use craft\base\SavableComponent;
+use craft\helpers\App;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
@@ -318,9 +319,13 @@ abstract class Source extends SavableComponent implements SourceInterface
     public function getCacheKey(): string
     {
         $settings = $this->getSettings();
-        unset($settings['clientId'], $settings['clientSecret']);
+        array_walk_recursive($settings, static function(&$value) {
+            if (is_string($value)) {
+                $value = App::parseEnv($value);
+            }
+        });
 
-        return md5(Json::encode($settings));
+        return hash('sha256', Json::encode([static::class, $settings]));
     }
 
     public function getCapabilities(): array
@@ -420,6 +425,7 @@ abstract class Source extends SavableComponent implements SourceInterface
 
     protected function setSettingCache(array $values): void
     {
+        $this->_ensureSettingCache();
         $this->cache = array_merge($this->cache, $values);
 
         $data = Json::encode($this->cache);
@@ -430,6 +436,8 @@ abstract class Source extends SavableComponent implements SourceInterface
 
     protected function getSettingCache(string $key): mixed
     {
+        $this->_ensureSettingCache();
+
         return $this->cache[$key] ?? null;
     }
 
@@ -443,5 +451,19 @@ abstract class Source extends SavableComponent implements SourceInterface
     protected function getCanonicalDimensionMap(): array
     {
         return [];
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _ensureSettingCache(): void
+    {
+        // Configuration and environment values can change without saving the source.
+        $settingsKey = $this->getCacheKey();
+
+        if (($this->cache['_settingsKey'] ?? null) !== $settingsKey) {
+            $this->cache = ['_settingsKey' => $settingsKey];
+        }
     }
 }

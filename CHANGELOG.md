@@ -38,7 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
-- Fixed an information disclosure vulnerability.
+- Fixed information disclosure vulnerabilities.
 - Fix dashboard permissions being unavailable in Craft Team and Enterprise.
 - Fix refreshed source options treating provider labels and values as HTML.
 - Fix connection checks returning a server error for deleted sources.

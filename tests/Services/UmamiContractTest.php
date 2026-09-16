@@ -59,7 +59,7 @@ it('uses the available Umami history for All Time', function() {
 
 it('refreshes a rejected self-hosted Umami token once', function() {
     $source = new Umami(['baseUrl' => 'https://analytics.example.com/', 'username' => 'reader', 'password' => 'fixture']);
-    $source->cache = ['authToken' => 'expired', 'authTokenExpires' => time() + 3600];
+    $source->cache = ['_settingsKey' => $source->getCacheKey(), 'authToken' => 'expired', 'authTokenExpires' => time() + 3600];
     $history = [];
     ProviderHttp::mock($source, [new \GuzzleHttp\Psr7\Response(401), ['token' => 'replacement'], ['pageviews' => 42]], $history);
     $data = $source->fetchData(new WidgetData(['widget' => new Counter(), 'period' => Last7Days::class, 'metric' => 'pageviews']));

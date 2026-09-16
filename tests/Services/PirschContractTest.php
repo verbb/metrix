@@ -16,7 +16,7 @@ use verbb\metrix\widgets\Table;
 function pirschFixture(array $responses, array &$history): Pirsch
 {
     $source = new Pirsch(['domainId' => 'fixture']);
-    $source->cache = ['accessToken' => 'fixture', 'accessTokenExpires' => (new DateTime('+1 hour'))->format(DATE_ATOM)];
+    $source->cache = ['_settingsKey' => $source->getCacheKey(), 'accessToken' => 'fixture', 'accessTokenExpires' => (new DateTime('+1 hour'))->format(DATE_ATOM)];
     ProviderHttp::mock($source, $responses, $history);
 
     return $source;

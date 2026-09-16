@@ -24,7 +24,7 @@ class CustomChartWidget extends Line
 
 it('requests time series for inherited custom plot transformers', function(string $class, array $config, array $response, string $metric) {
     $source = new $class($config);
-    $source->cache = ['accessToken' => 'fixture', 'accessTokenExpires' => (new DateTime('+1 hour'))->format(DATE_ATOM)];
+    $source->cache = ['_settingsKey' => $source->getCacheKey(), 'accessToken' => 'fixture', 'accessTokenExpires' => (new DateTime('+1 hour'))->format(DATE_ATOM)];
     $history = [];
     ProviderHttp::mock($source, [$response], $history);
     $data = $source->fetchData(new CustomChartData(['widget' => new CustomChartWidget(), 'period' => Last7Days::class, 'metric' => $metric]));
