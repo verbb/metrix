@@ -43,6 +43,7 @@
 - Fix pie legends disappearing after resizing the chart or browser.
 - Fix slow real-time responses being overtaken by polling and never displayed.
 - Fix chart tooltips showing a missing value for zero percentages.
+- Fix widget update ages remaining unchanged while the dashboard is idle.
 - Fix invalid real-time refresh intervals causing rapid repeated requests.
 - Fix disabled date range dividers still separating dashboard options.
 - Fix failed widget duplication leaving an undeletable placeholder on the dashboard.

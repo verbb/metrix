@@ -1,2 +1,0 @@
-import{v as e}from"./useWidgetSettingsStore-BWOx4kAW.js";import{t}from"./Widget-DDE9H613.js";import{n}from"./react-vendor-B27ue3us.js";var r=n(),i=({className:n,wrapperClassName:i,...a})=>(0,r.jsx)(`div`,{className:e(`row-span-2 h-full`,i),children:(0,r.jsx)(t,{className:e(`relative w-full flex flex-col break-inside-avoid`,n),...a})});export{i as t};
-//# sourceMappingURL=WidgetLarge-Ba0t4AX_.js.map

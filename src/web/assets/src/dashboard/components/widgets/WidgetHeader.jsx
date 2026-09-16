@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 
 import { Button } from '@verbb/plugin-kit-react/components/Button';
 import { Dialog } from '@verbb/plugin-kit-react/components/Dialog';
@@ -22,12 +22,12 @@ const WidgetSettings = lazy(() => import('./WidgetSettings.jsx').then((module) =
     default: module.WidgetSettings,
 })));
 
-function formatFreshness(meta) {
+function formatFreshness(meta, now) {
     if (!meta?.fetchedAt) {
         return null;
     }
 
-    const seconds = Math.max(0, Math.floor(Date.now() / 1000) - Number(meta.fetchedAt));
+    const seconds = Math.max(0, Math.floor(now / 1000) - Number(meta.fetchedAt));
     let age;
 
     if (seconds < 45) {
@@ -59,6 +59,17 @@ export function WidgetHeader({ widget }) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [now, setNow] = useState(Date.now);
+    const fetchedAt = widget.chartData?._meta?.fetchedAt;
+
+    useEffect(() => {
+        if (!fetchedAt) {
+            return;
+        }
+
+        const timer = setInterval(() => setNow(Date.now()), 30000);
+        return () => clearInterval(timer);
+    }, [fetchedAt]);
 
     const schema = getSettingsByType(widget.data.type, widget.data.source);
     const hasPeriodField = schema?.some((field) => field.name === 'period');
@@ -72,7 +83,7 @@ export function WidgetHeader({ widget }) {
         || (widget.data.dimensionLabel
             ? `${widget.data.dimensionLabel} - ${widget.data.metricLabel}`
             : widget.data.metricLabel);
-    const freshness = formatFreshness(widget.chartData?._meta);
+    const freshness = formatFreshness(widget.chartData?._meta, now);
 
     const handleWidthChange = (newWidth) => {
         updateWidget(widget, { width: newWidth }, false);
