@@ -8,8 +8,11 @@ import { zustandHmrFix } from '@utils/store';
 import useAppStore from '@dashboard/hooks/useAppStore';
 
 const useWidgetStore = create((set, get) => {
+    const reorderQueues = new Map();
+
     return {
         widgets: [],
+        collectionGeneration: 0,
         /** Bumped on each dashboard-wide fetch so stale responses cannot overwrite newer period/view state. */
         fetchGeneration: 0,
 
@@ -23,7 +26,7 @@ const useWidgetStore = create((set, get) => {
                 };
             });
 
-            set({ widgets });
+            set({ widgets, collectionGeneration: get().collectionGeneration + 1 });
 
             if (widgets.some((widget) => { return widget.data?.id; })) {
                 get().fetchAllWidgetData();
@@ -221,7 +224,8 @@ const useWidgetStore = create((set, get) => {
         },
 
         reorderWidgets: async(sourceWidget, targetWidget) => {
-            const { widgets } = get();
+            const { widgets, collectionGeneration } = get();
+            const view = useAppStore.getState().currentView;
             const currentIndex = widgets.findIndex((widget) => { return widget.__id === sourceWidget.__id; });
             const newIndex = widgets.findIndex((widget) => { return widget.__id === targetWidget.__id; });
 
@@ -236,18 +240,44 @@ const useWidgetStore = create((set, get) => {
             // Update the local state
             set({ widgets: reorderedWidgets });
 
-            try {
-                // Send the reordered server IDs to the server
-                await api.post('save-widget-order', {
-                    ids: reorderedWidgets.map((widget) => { return widget.data.id; }).filter(Boolean), // Only server-side IDs
-                });
-            } catch (error) {
-                console.error('Error saving widget order:', error);
-                set({ widgets });
+            // Persist each view's orders in submission order. A failed later save
+            // returns to the last confirmed order, not an earlier optimistic snapshot.
+            let queue = reorderQueues.get(view);
 
-                Craft.cp?.displayError?.(
-                    Craft.t('metrix', 'Failed to save widget order. Please try again.'),
-                );
+            if (!queue) {
+                queue = { promise: Promise.resolve(), requestId: 0, savedIds: widgets.map((widget) => widget.data.id) };
+                reorderQueues.set(view, queue);
+            }
+
+            const requestId = ++queue.requestId;
+            const ids = reorderedWidgets.map((widget) => widget.data.id).filter(Boolean);
+            const pending = queue.promise.then(async() => {
+                try {
+                    await api.post('save-widget-order', { ids });
+                    queue.savedIds = ids;
+                } catch (error) {
+                    if (requestId !== queue.requestId || collectionGeneration !== get().collectionGeneration) {
+                        return;
+                    }
+
+                    console.error('Error saving widget order:', error);
+                    const positions = new Map(queue.savedIds.map((id, index) => [id, index]));
+
+                    // Retain refreshed data and newly added/deleted widgets while rolling back order.
+                    set((state) => ({ widgets: [...state.widgets].sort((a, b) => {
+                        return (positions.get(a.data.id) ?? Infinity) - (positions.get(b.data.id) ?? Infinity);
+                    }) }));
+
+                    Craft.cp?.displayError?.(
+                        Craft.t('metrix', 'Failed to save widget order. Please try again.'),
+                    );
+                }
+            });
+            queue.promise = pending;
+            await pending;
+
+            if (queue.promise === pending) {
+                reorderQueues.delete(view);
             }
         },
 
@@ -270,7 +300,7 @@ const useWidgetStore = create((set, get) => {
         },
 
         clearWidgets: () => {
-            set({ widgets: [] });
+            set({ widgets: [], collectionGeneration: get().collectionGeneration + 1 });
         },
     };
 });

@@ -14,6 +14,7 @@ vi.mock('@utils', () => ({
 }));
 
 import useWidgetStore from './useWidgetStore.js';
+import useAppStore from './useAppStore.js';
 
 describe('useWidgetStore duplicate lifecycle', () => {
     beforeEach(() => {
@@ -80,6 +81,62 @@ describe('useWidgetStore duplicate lifecycle', () => {
 
         expect(useWidgetStore.getState().widgets.map((widget) => widget.__id)).toEqual(['first', 'second']);
         expect(Craft.cp.displayError).toHaveBeenCalledWith('Failed to save widget order. Please try again.');
+    });
+
+    it('does not restore an old view after its reorder fails', async() => {
+        const first = { __id: 'first', data: { id: 10 } };
+        const second = { __id: 'second', data: { id: 11 } };
+        useWidgetStore.setState({ widgets: [first, second] });
+        useAppStore.setState({ currentView: 'old' });
+        let reject;
+        postMock.mockImplementationOnce(() => new Promise((_resolve, fail) => { reject = fail; }));
+        const pending = useWidgetStore.getState().reorderWidgets(first, second);
+        await Promise.resolve();
+        useAppStore.setState({ currentView: 'new' });
+        useWidgetStore.getState().clearWidgets();
+        const current = { __id: 'current', data: { title: 'New view' } };
+        useWidgetStore.getState().addWidget(current);
+        reject(new Error('offline'));
+        await pending;
+
+        expect(useWidgetStore.getState().widgets.map((widget) => widget.data.title)).toEqual(['New view']);
+        expect(Craft.cp.displayError).not.toHaveBeenCalled();
+    });
+
+    it('preserves fresh widget data while restoring a failed order', async() => {
+        const first = { __id: 'first', data: { id: 10 } };
+        const second = { __id: 'second', data: { id: 11 } };
+        useWidgetStore.setState({ widgets: [first, second] });
+        let reject;
+        postMock.mockImplementationOnce(() => new Promise((_resolve, fail) => { reject = fail; }));
+        const pending = useWidgetStore.getState().reorderWidgets(first, second);
+        await Promise.resolve();
+        useWidgetStore.getState().updateWidgetState(first, { chartData: { total: 42 } });
+        reject(new Error('offline'));
+        await pending;
+
+        expect(useWidgetStore.getState().widgets.map((widget) => widget.__id)).toEqual(['first', 'second']);
+        expect(useWidgetStore.getState().widgets[0].chartData.total).toBe(42);
+    });
+
+    it('serializes overlapping orders and restores the last saved order on failure', async() => {
+        const first = { __id: 'first', data: { id: 10 } };
+        const second = { __id: 'second', data: { id: 11 } };
+        useWidgetStore.setState({ widgets: [first, second] });
+        let finish;
+        postMock.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
+        postMock.mockRejectedValueOnce(new Error('offline'));
+        const older = useWidgetStore.getState().reorderWidgets(first, second);
+        await Promise.resolve();
+        const newer = useWidgetStore.getState().reorderWidgets(second, first);
+        await Promise.resolve();
+        const simultaneous = postMock.mock.calls.length;
+        finish({});
+        await Promise.all([older, newer]);
+
+        expect(simultaneous).toBe(1);
+        expect(postMock.mock.calls.map((call) => call[1].ids)).toEqual([[11, 10], [10, 11]]);
+        expect(useWidgetStore.getState().widgets.map((widget) => widget.__id)).toEqual(['second', 'first']);
     });
 
     it.each([false, true])('keeps the newest widget response when an older request finishes last (dashboard: %s)', async(dashboard) => {
