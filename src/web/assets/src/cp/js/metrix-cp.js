@@ -40,13 +40,11 @@ if (typeof Craft.Metrix === typeof undefined) {
 
         const setSelect = function(values) {
             const currentValue = $select.val();
-            let options = '';
+            $select.empty();
 
             $.each(values, (key, option) => {
-                options += `<option value="${option.value}">${option.label}</option>`;
+                $select.append(new Option(String(option.label), String(option.value)));
             });
-
-            $select.html(options);
 
             // Set any original value back
             if (currentValue) {

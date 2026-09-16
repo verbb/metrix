@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix refreshed source options treating provider labels and values as HTML.
 - Fix older widget requests replacing newer data after a refresh or period change.
 - Fix a period selected in widget settings being overridden by the dashboard date range.
 - Fix saving a preset clearing its widgets when all sources are disabled.
