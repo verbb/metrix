@@ -5,6 +5,7 @@ use verbb\metrix\base\CredentialsSource;
 use verbb\metrix\base\Period;
 use verbb\metrix\base\WidgetDataInterface;
 use verbb\metrix\models\AnalyticsScope;
+use verbb\metrix\widgets\Counter;
 
 use Craft;
 use craft\helpers\App;
@@ -106,7 +107,7 @@ class Plausible extends CredentialsSource
             'visit:country' => 'Country',
             'visit:entry_page' => 'Entry Page',
             'visit:exit_page' => 'Exit Page',
-            'visit:page' => 'Page',
+            'event:page' => 'Page',
         ];
 
         return array_map(fn($key, $label) => [
@@ -119,18 +120,16 @@ class Plausible extends CredentialsSource
     {
         $intervalDimension = $this->_getIntervalDimension($widgetData);
         $dateRange = $widgetData->period::getCurrentDateRange();
-        $startDate = $dateRange['start']->format('Y-m-d');
-        $endDate = $dateRange['end']->format('Y-m-d');
 
         $payload = [
             'site_id' => $this->getSiteId(),
-            'date_range' => [$startDate, $endDate],
+            'date_range' => $dateRange ? [$dateRange['start']->format(DATE_ATOM), $dateRange['end']->format(DATE_ATOM)] : 'all',
             'metrics' => [$widgetData->metric],
         ];
 
         if ($widgetData->widget::supportsDimensions() && $widgetData->dimension) {
-            $payload['dimensions'][] = $widgetData->dimension;
-        } else {
+            $payload['dimensions'][] = $widgetData->dimension === 'visit:page' ? 'event:page' : $widgetData->dimension;
+        } elseif (!$widgetData->widget instanceof Counter) {
             $payload['dimensions'][] = $intervalDimension;
         }
 
@@ -146,9 +145,9 @@ class Plausible extends CredentialsSource
 
         foreach ($results as $result) {
             $metric = $result['metrics'][0] ?? null;
-            $dimension = $result['dimensions'][0] ?? null;
+            $dimension = $result['dimensions'][0] ?? ($widgetData->widget instanceof Counter ? 'total' : null);
 
-            if ($dimension) {
+            if ($dimension !== null) {
                 $data[$dimension] = $metric;
             }
         }
@@ -158,14 +157,17 @@ class Plausible extends CredentialsSource
 
     public function fetchRealtimeData(WidgetDataInterface $widgetData): array
     {
-        $response = $this->request('GET', $this->getBaseUrl() . 'api/v1/stats/realtime/visitors', [
-            'query' => [
-                'site_id' => $this->getSiteId(),
-            ],
-        ]);
+        $now = new DateTime();
+        $payload = [
+            'site_id' => $this->getSiteId(),
+            'metrics' => ['visitors'],
+            'date_range' => [(clone $now)->modify('-5 minutes')->format(DATE_ATOM), $now->format(DATE_ATOM)],
+        ];
+        $this->applyWidgetAnalyticsScope($payload, $widgetData);
+        $response = $this->request('POST', 'query', ['json' => $payload]);
 
         return [
-            Craft::t('metrix', 'Active users') => $response,
+            Craft::t('metrix', 'Active users') => $response['results'][0]['metrics'][0] ?? 0,
         ];
     }
 
@@ -249,7 +251,7 @@ class Plausible extends CredentialsSource
     protected function getCanonicalDimensionMap(): array
     {
         return [
-            'page' => 'visit:page',
+            'page' => 'event:page',
             'entry_page' => 'visit:entry_page',
             'source' => 'visit:source',
             'referrer' => 'visit:referrer',
