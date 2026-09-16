@@ -52,6 +52,7 @@
 - Fix registered custom periods missing from date-range options and settings.
 - Fix All Time charts omitting earlier unordered data or inventing history for empty reports.
 - Fix rolling date ranges reusing cached results from the previous calendar day.
+- Fix numeric cache durations failing and invalid durations being accepted when saving settings.
 - Fix older widget requests replacing newer data after a refresh or period change.
 - Fix initial widget errors repeatedly retrying requests instead of waiting for a manual refresh.
 - Fix a period selected in widget settings being overridden by the dashboard date range.

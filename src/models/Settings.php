@@ -14,6 +14,7 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 
 use DateInterval;
+use Exception;
 
 class Settings extends Model
 {
@@ -207,7 +208,11 @@ class Settings extends Model
             return 1;
         }
 
-        return DateTimeHelper::intervalToSeconds(new DateInterval($this->cacheDuration));
+        $duration = trim($this->cacheDuration);
+
+        return ctype_digit($duration)
+            ? (int)$duration
+            : DateTimeHelper::intervalToSeconds(new DateInterval($duration));
     }
 
     public function getRealtimeInterval(): int
@@ -225,6 +230,13 @@ class Settings extends Model
 
         $rules[] = [['pluginName'], 'trim'];
         $rules[] = [['pluginName'], 'required'];
+        $rules[] = [['cacheDuration'], function($attribute) {
+            try {
+                $this->getCacheDuration();
+            } catch (Exception $e) {
+                $this->addError($attribute, Craft::t('metrix', 'Enter a valid date interval or a whole number of seconds.'));
+            }
+        }, 'skipOnEmpty' => false, 'when' => fn() => $this->enableCache];
 
         return $rules;
     }
