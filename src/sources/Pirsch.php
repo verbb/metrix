@@ -9,6 +9,7 @@ use verbb\metrix\widgets\data\PlotData;
 use Craft;
 use craft\helpers\App;
 
+use DateTime;
 use Throwable;
 
 use GuzzleHttp\Client;
@@ -239,16 +240,25 @@ class Pirsch extends CredentialsSource
 
     private function _fetchPlotData(WidgetDataInterface $widgetData): array
     {
-        $response = $this->request('GET', 'api/v1/statistics/visitor', [
-            'query' => array_merge($this->_getFilterQuery($widgetData), [
-                'scale' => $this->_getScale($widgetData),
-            ]),
+        $hourly = $widgetData->period::getIntervalDimension() === Period::INTERVAL_HOUR;
+        $endpoint = $widgetData->metric === 'avg_duration'
+            ? 'api/v1/statistics/duration/session'
+            : ($hourly ? 'api/v1/statistics/hours' : 'api/v1/statistics/visitor');
+        $query = array_merge($this->_getFilterQuery($widgetData), ['scale' => $this->_getScale($widgetData)]);
+        $response = $this->request('GET', $endpoint, [
+            'query' => $query,
         ]);
 
         $metricField = $this->_getVisitorMetricField($widgetData->metric);
         $data = [];
 
-        foreach ($response as $row) {
+        foreach ($response ?? [] as $row) {
+            if ($hourly && isset($row['hour'])) {
+                $key = $query['from'] . sprintf(' %02d:00:00', $row['hour']);
+                $data[$key] = $this->_metricValue($row[$metricField] ?? 0, $widgetData->metric);
+                continue;
+            }
+
             $timestamp = $row['day'] ?? $row['week'] ?? $row['month'] ?? $row['year'] ?? null;
 
             if (!$timestamp) {
@@ -256,7 +266,7 @@ class Pirsch extends CredentialsSource
             }
 
             $key = $this->_normalizeTimestampKey($timestamp, $widgetData);
-            $data[$key] = $row[$metricField] ?? 0;
+            $data[$key] = $this->_metricValue($row[$metricField] ?? 0, $widgetData->metric);
         }
 
         return $data;
@@ -275,14 +285,29 @@ class Pirsch extends CredentialsSource
             default => 'api/v1/statistics/page',
         };
 
-        $response = $this->request('GET', $endpoint, [
-            'query' => $this->_getFilterQuery($widgetData),
-        ]);
-
         $data = [];
         $metricField = $this->_getBreakdownMetricField($widgetData->metric);
+        $limit = $widgetData->getRowLimit();
+        $offset = 0;
+        $rows = [];
 
-        foreach ($response as $row) {
+        do {
+            $pageSize = min(100, $limit - $offset);
+            $response = $this->request('GET', $endpoint, [
+                'query' => array_merge($this->_getFilterQuery($widgetData), [
+                    'limit' => $pageSize,
+                    'offset' => $offset,
+                    'sort' => $metricField,
+                    'direction' => 'desc',
+                    'include_title' => false,
+                    'include_avg_time_on_page' => $widgetData->metric === 'avg_duration',
+                ]),
+            ]) ?? [];
+            $rows = array_merge($rows, $response);
+            $offset += count($response);
+        } while (count($response) === $pageSize && $offset < $limit);
+
+        foreach ($rows as $row) {
             $label = $row['path']
                 ?? $row['referrer_name']
                 ?? $row['referrer']
@@ -292,11 +317,11 @@ class Pirsch extends CredentialsSource
                 ?? $row['language']
                 ?? null;
 
-            if (!$label) {
+            if ($label === null) {
                 continue;
             }
 
-            $data[$label] = $row[$metricField] ?? 0;
+            $data[$label] = $this->_metricValue($row[$metricField] ?? 0, $widgetData->metric);
         }
 
         return $data;
@@ -348,8 +373,9 @@ class Pirsch extends CredentialsSource
 
         return [
             'id' => $this->getDomainId(),
-            'from' => $dateRange['start']->format('Y-m-d'),
-            'to' => $dateRange['end']->format('Y-m-d'),
+            'from' => isset($dateRange['start']) ? $dateRange['start']->format('Y-m-d') : '1970-01-01',
+            'to' => ($dateRange['end'] ?? new DateTime())->format('Y-m-d'),
+            'tz' => Craft::$app->getTimeZone(),
         ];
     }
 
@@ -363,11 +389,11 @@ class Pirsch extends CredentialsSource
 
     private function _normalizeTimestampKey(string $timestamp, WidgetDataInterface $widgetData): string
     {
-        $date = new \DateTime($timestamp);
+        $date = new DateTime($timestamp);
 
         return match ($widgetData->period::getIntervalDimension()) {
-            Period::INTERVAL_MONTH => $date->format('Y-m'),
-            Period::INTERVAL_YEAR => $date->format('Y'),
+            Period::INTERVAL_MONTH => $date->format('Y-m-01'),
+            Period::INTERVAL_YEAR => $date->format('Y-01-01'),
             default => $date->format('Y-m-d'),
         };
     }
@@ -378,6 +404,7 @@ class Pirsch extends CredentialsSource
             'views', 'pageviews' => 'views',
             'sessions' => 'sessions',
             'bounce_rate' => 'bounce_rate',
+            'avg_duration' => 'average_time_spent_seconds',
             default => 'visitors',
         };
     }
@@ -387,8 +414,17 @@ class Pirsch extends CredentialsSource
         return match ($metric) {
             'views', 'pageviews' => 'views',
             'sessions' => 'sessions',
+            'bounce_rate' => 'bounce_rate',
+            'avg_duration' => 'average_time_spent_seconds',
             default => 'visitors',
         };
+    }
+
+    private function _metricValue(mixed $value, string $metric): float|int
+    {
+        $number = is_numeric($value) ? $value + 0 : 0;
+
+        return $metric === 'bounce_rate' ? round($number * 100, 2) : $number;
     }
 
     private function _averageDurationFromPages(WidgetDataInterface $widgetData): float

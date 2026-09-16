@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix Pirsch chart intervals, rate and duration values, dimension pagination, and All Time queries.
 - Fix dashboard permissions being unavailable in Craft Team and Enterprise.
 - Fix GoatCounter hourly and monthly charts, missing dimension labels, and JSON request headers.
 - Fix source credential changes retaining old authentication and provider option caches.
