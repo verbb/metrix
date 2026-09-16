@@ -102,11 +102,12 @@ export const TableWidget = (props) => {
 
         function renderRow(row) {
             return (
-                <div key={row[0]} className="flex w-full">
+                <div key={row[0]} role="row" className="flex w-full">
                     {data.cols.map((col, index) => {
                         return (
                             <div
                                 key={col.id}
+                                role="cell"
                                 className={
                                     index === 0
                                         ? 'flex-grow w-full overflow-hidden'
@@ -135,31 +136,36 @@ export const TableWidget = (props) => {
 
         return (
             <div className="h-full flex flex-col">
-                <div className="my-2">
-                    <div className="pt-3 w-full font-medium text-xs tracking-wide text-gray-550 flex items-center">
-                        {data.cols.map((col, index) => {
-                            return (
-                                <button
+                <div
+                    role="table"
+                    aria-label={widget.data?.displayTitle || widget.data?.metricLabel || Craft.t('metrix', 'Analytics report')}
+                    className="flex flex-1 flex-col"
+                >
+                    <div role="rowgroup" className="my-2">
+                        <div role="row" className="pt-3 w-full font-medium text-xs tracking-wide text-gray-550 flex items-center">
+                            {data.cols.map((col, index) => (
+                                <div
                                     key={col.id}
-                                    type="button"
-                                    className={cn(
-                                        'cursor-pointer',
-                                        index === 0 ? 'flex-grow truncate text-left' : 'text-right',
-                                    )}
-                                    onClick={() => {
-                                        return handleSort(col.id);
-                                    }}
+                                    role="columnheader"
+                                    aria-sort={sortConfig.key === col.id ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
+                                    className={index === 0 ? 'flex-grow truncate' : 'text-right'}
                                 >
-                                    <span className="cursor-pointer">{col.label}</span>
-                                </button>
-                            );
-                        })}
+                                    <button
+                                        type="button"
+                                        className={cn('cursor-pointer w-full', index === 0 ? 'text-left' : 'text-right')}
+                                        onClick={() => handleSort(col.id)}
+                                    >
+                                        <span>{col.label}</span>
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                </div>
 
-                <div className="flex-1 h-full">
-                    <div className="flex-grow flex flex-col gap-1 overflow-hidden">
-                        {getPaginatedRows().map(renderRow)}
+                    <div role="rowgroup" className="flex-1 h-full">
+                        <div className="flex-grow flex flex-col gap-1 overflow-hidden">
+                            {getPaginatedRows().map(renderRow)}
+                        </div>
                     </div>
                 </div>
 

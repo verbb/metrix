@@ -28,3 +28,18 @@ it('exposes table sorting and pagination as named keyboard controls', () => {
     expect(html).toContain('aria-label="Previous page"');
     expect(html).toContain('aria-label="Next page"');
 });
+
+it('exposes the report as a table with column and row relationships', () => {
+    globalThis.React = React;
+    globalThis.Craft = { t: (_category, message) => message };
+    const html = renderToStaticMarkup(<TableWidget widget={{
+        data: { displayTitle: 'Popular pages' },
+        chartData: { cols: [{ id: 'page', label: 'Page', type: 'string' }, { id: 'visits', label: 'Visits', type: 'integer' }], rows: [['/home', 42]] },
+    }} />);
+
+    expect(html).toContain('role="table"');
+    expect(html).toContain('aria-label="Popular pages"');
+    expect(html.match(/role="columnheader"/g)).toHaveLength(2);
+    expect(html.match(/role="row"/g)).toHaveLength(2);
+    expect(html.match(/role="cell"/g)).toHaveLength(2);
+});
