@@ -211,7 +211,7 @@ abstract class Widget extends SavableComponent implements WidgetInterface
             return $globalPeriod;
         }
 
-        return $this->period;
+        return $this->period ?? ($this->getInheritPeriod() ? Metrix::$plugin->getSettings()->getDefaultGlobalPeriod() : null);
     }
 
     public function getPeriodLabel(?string $globalPeriod = null): ?string
@@ -319,7 +319,7 @@ abstract class Widget extends SavableComponent implements WidgetInterface
             'source' => $this->getSource()?->handle,
             'view' => $this->getView()?->handle,
             'type' => get_class($this),
-            'period' => $this->period,
+            'period' => $this->getResolvedPeriod(),
             'inheritPeriod' => $this->getInheritPeriod(),
             'periodLabel' => $this->getPeriodLabel(),
             'metric' => $metricValue,

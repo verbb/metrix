@@ -93,3 +93,12 @@ it('does not cache comparisons when caching is disabled or duration is zero', fu
     'disabled' => [false, 'PT10M'],
     'zero duration' => [true, 'PT0S'],
 ]);
+
+it('uses the configured dashboard default for inherited widgets without a header selection', function() {
+    $widget = new Counter(['inheritPeriod' => true, 'metric' => 'visitors']);
+    $default = Metrix::$plugin->getSettings()->getDefaultGlobalPeriod();
+
+    expect($widget->getResolvedPeriod())->toBe($default)
+        ->and($widget->getFrontEndData()['period'])->toBe($default)
+        ->and($widget->getResolvedPeriod(Today::class))->toBe(Today::class);
+});

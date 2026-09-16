@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix inherited widgets losing their date range and data after reloading the dashboard.
 - Fix missing accessible names on widget metric and dimension selectors.
 - Fix Table widgets missing accessible table structure and sort direction.
 - Fix self-hosted Umami reports remaining unavailable after a cached login token is rejected.

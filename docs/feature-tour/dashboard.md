@@ -20,7 +20,7 @@ Unlike Craft Dashboard widgets, which are configured per user, Metrix Views shar
 
 ## Views
 
-**Views** group widgets around an audience or task. Use the default View for general website traffic, or create a separate View for a campaign so its widgets and date range stay together. Create and name Views under **Metrix → Views**, then select the View on the dashboard to work with its widgets.
+**Views** group widgets around an audience or task. Use the default View for general website traffic, or create a separate View for a campaign so its widgets stay together. Create and name Views under **Metrix → Views**, then select the View on the dashboard to work with its widgets.
 
 ### Permissions
 
@@ -96,7 +96,7 @@ Rows and columns for ranked breakdowns — e.g. pages by pageviews.
 
 ## Periods
 
-The dashboard header has a **date range** control for the current View. Widgets inherit that period unless you set a specific period on the widget.
+Once a View contains a widget, the dashboard header has a **date range** control. This selection applies while you are viewing the dashboard and resets when you reload or switch Views. Widgets with inheritance enabled use the selection, falling back to **Last 30 Days** when no dashboard range is selected; other widgets retain their own period. Choose **Use dashboard date range** from a widget’s actions menu to enable inheritance after selecting a dashboard range.
 
 ### Available Periods
 
