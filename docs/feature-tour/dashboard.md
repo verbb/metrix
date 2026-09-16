@@ -44,6 +44,8 @@ If each Craft site has its own analytics property or Plausible site, create sepa
 
 Providers that support View scope: **Google Analytics**, **Plausible** (path), and **Matomo**. Other sources ignore the scope.
 
+Google Analytics Realtime widgets require an unscoped View because Google’s Realtime API does not support hostname or path filters.
+
 ## Presets
 
 A **Preset** supplies a starting collection of widgets when you create a View. Choose one that matches your task, then review each widget's Source and metric against the connected provider. Presets are stored in plugin settings and project config, so they can be shared with the project's other configuration.

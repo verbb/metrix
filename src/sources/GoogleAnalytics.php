@@ -6,6 +6,7 @@ use verbb\metrix\base\OAuthSource;
 use verbb\metrix\base\Period;
 use verbb\metrix\base\WidgetDataInterface;
 use verbb\metrix\models\AnalyticsScope;
+use verbb\metrix\widgets\Counter;
 
 use Craft;
 use craft\helpers\App;
@@ -212,7 +213,8 @@ class GoogleAnalytics extends OAuthSource
             if ($widgetData->widget::supportsDimensions() && $widgetData->dimension) {
                 $payload['dimensions'] = [['name' => $widgetData->dimension]];
                 $payload['limit'] = $widgetData->getRowLimit();
-            } else {
+                $payload['orderBys'] = [['metric' => ['metricName' => $widgetData->metric], 'desc' => true]];
+            } elseif (!$widgetData->widget instanceof Counter) {
                 $payload['dimensions'] = [['name' => $intervalDimension]];
             }
 
@@ -227,9 +229,11 @@ class GoogleAnalytics extends OAuthSource
 
             foreach ($results as $result) {
                 $metric = $result['metricValues'][0]['value'] ?? null;
-                $dimension = $this->_formatDimension($widgetData, $result['dimensionValues'][0]['value'] ?? null);
+                $dimension = $widgetData->widget instanceof Counter
+                    ? 'total'
+                    : $this->_formatDimension($widgetData, $result['dimensionValues'][0]['value'] ?? null);
 
-                if ($dimension) {
+                if ($dimension !== null) {
                     $data[$dimension] = $metric;
                 }
             }
@@ -244,6 +248,10 @@ class GoogleAnalytics extends OAuthSource
 
     public function fetchRealtimeData(WidgetDataInterface $widgetData): array
     {
+        if ($widgetData->scope?->isActive()) {
+            throw new \Exception(Craft::t('metrix', 'Google Analytics realtime does not support hostname or path filters. Use a view without analytics scope and a source for the intended property.'));
+        }
+
         try {
             $payload = [
                 'metrics' => [['name' => 'activeUsers']],
@@ -407,10 +415,10 @@ class GoogleAnalytics extends OAuthSource
         return 'date';
     }
 
-    private function _formatDimension(WidgetDataInterface $widgetData, ?string $dimension): string
+    private function _formatDimension(WidgetDataInterface $widgetData, ?string $dimension): ?string
     {
         if ($dimension === null) {
-            return '';
+            return null;
         }
 
         // For plot data, ensure we format the date correctly

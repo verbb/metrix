@@ -47,6 +47,8 @@ For production sites:
 Tokens issued while the app was in Testing retain their original expiry, so reconnect after changing its publishing status. Google determines whether verification is required from the app's audience, scopes and use.
 
 ## Multi-Site Craft Installs
-If several Craft sites share one GA4 property, set **Analytics scope** on the Metrix View (Craft site, path prefix, or hostname). Metrix applies a GA `dimensionFilter` on `hostName` and/or `pagePath` for widgets in that view.
+If several Craft sites share one GA4 property, set **Analytics scope** on the Metrix View (Craft site, path prefix, or hostname). Metrix applies a GA `dimensionFilter` on `hostName` and/or `pagePath` for historical widgets in that view.
+
+Google’s Realtime API does not support hostname or path filters. Use Realtime widgets in a View without analytics scope, with a Source for the intended property. A Realtime widget in a scoped View reports this limitation instead of showing unfiltered activity.
 
 If each site has its own GA4 property, create one Metrix Source per property instead.
