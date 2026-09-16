@@ -106,17 +106,18 @@ const PresetWidgetRow = ({
     return (
         <div className="metrix-preset-widget-row flex items-start gap-2">
             <div className="shrink-0 text-gray-400">
-                <Icon icon={widget.component.meta.icon} className="size-5" />
+                {widget.component?.meta?.icon && <Icon icon={widget.component.meta.icon} className="size-5" />}
             </div>
 
             <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium leading-tight">
-                    {widget.data.dimension && `${dimension()} - `}
-                    {metric()}
+                    {widget.component ? (
+                        <>{widget.data.dimension && `${dimension()} - `}{metric()}</>
+                    ) : (widget.data.title || Craft.t('metrix', 'Widget'))}
                 </div>
 
                 <div className="text-xs font-medium text-gray-400">
-                    {widget.component.meta.name}
+                    {widget.component?.meta?.name || Craft.t('metrix', 'Widget type unavailable')}
                     {widget.data.period && ` - ${period()}`}
                 </div>
             </div>
@@ -137,7 +138,7 @@ const PresetWidgetRow = ({
                     <DragHandleIcon />
                 </button>
 
-                <button
+                {widget.component && <button
                     type="button"
                     className="metrix-preset-widget-row__btn"
                     title={Craft.t('metrix', 'Edit Widget')}
@@ -145,7 +146,7 @@ const PresetWidgetRow = ({
                     onClick={handleEdit}
                 >
                     <SettingsIcon />
-                </button>
+                </button>}
 
                 <button
                     type="button"

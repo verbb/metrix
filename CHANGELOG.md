@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix presets failing to load or losing settings when a custom widget type is unavailable.
 - Fix bounce-rate scales and percentage and duration formatting in widget reports.
 - Fix the empty dashboard’s Configure views action opening settings instead of views.
 - Fix delayed widget creation updating another view or closing a newly opened dialog.

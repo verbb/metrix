@@ -1,4 +1,5 @@
 import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, expect, it, vi } from 'vitest';
 
 const state = vi.hoisted(() => ({ setWidgets: vi.fn() }));
@@ -38,4 +39,17 @@ it('leaves preset widgets unchanged when a drag ends outside the list', () => {
     expect(onDragEnd).toBeTypeOf('function');
     expect(() => onDragEnd({ active: { id: 'first' }, over: null })).not.toThrow();
     expect(state.setWidgets).not.toHaveBeenCalled();
+});
+
+
+it('renders an unavailable preset widget without discarding its saved data', () => {
+    const widget = { __id: 'missing', component: null, data: {
+        type: 'verbb\\metrix\\widgets\\MissingWidget', expectedType: 'modules\\MissingWidget',
+        title: 'Retained widget', width: '1', settings: { customKey: 'retained' },
+    } };
+    const html = renderToStaticMarkup(React.createElement(Presets, { widgets: [widget] }));
+    expect(html).toContain('Retained widget');
+    expect(html).toContain('Widget type unavailable');
+    expect(html).toContain('Remove Widget');
+    expect(html).not.toContain('Edit Widget');
 });
