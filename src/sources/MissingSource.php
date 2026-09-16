@@ -35,4 +35,13 @@ class MissingSource extends Source implements MissingComponentInterface
     // =========================================================================
 
     public static string $providerHandle = 'missingSource';
+
+
+    // Public Methods
+    // =========================================================================
+
+    public function isConfigured(): bool
+    {
+        return false;
+    }
 }
