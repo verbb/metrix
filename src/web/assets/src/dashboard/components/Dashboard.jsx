@@ -92,7 +92,7 @@ export const Dashboard = () => {
         setError(null);
 
         try {
-            const { data: presetWidgets } = await api.get('widgets', { view });
+            const { data: presetWidgets } = await api.post('widgets', { view });
             const preloadedWidgets = preloadWidgets(presetWidgets);
 
             loadWidgets(preloadedWidgets);
