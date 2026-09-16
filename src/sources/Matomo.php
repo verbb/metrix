@@ -312,19 +312,23 @@ class Matomo extends CredentialsSource
             if (is_array($result) && array_key_exists($widgetData->metric, $result)) {
                 $date = new DateTime($key);
                 $dateKey = $intervalDimension === 'month' ? $date->format('Y-m-01') : $date->format('Y-m-d');
-                $data[$dateKey] = $this->_numericValue($result[$widgetData->metric]);
+                $data[$dateKey] = $this->_numericValue($result[$widgetData->metric], $widgetData->metric);
             } elseif ($key === $widgetData->metric) {
-                $data['total'] = $this->_numericValue($result);
+                $data['total'] = $this->_numericValue($result, $widgetData->metric);
             }
         }
 
         return $data;
     }
 
-    private function _numericValue(mixed $value): float|int
+    private function _numericValue(mixed $value, ?string $metric): float|int
     {
         if (is_string($value) && str_ends_with($value, '%')) {
             return (float)$value;
+        }
+
+        if ($metric === 'bounce_rate' && is_numeric($value)) {
+            return round((float)$value * 100, 10);
         }
 
         return is_numeric($value) ? $value + 0 : 0;
@@ -385,12 +389,7 @@ class Matomo extends CredentialsSource
 
             $value = $row[$metric] ?? null;
 
-            // Bounce rate arrives as "45%" — coerce to numeric for charts/tables.
-            if (is_string($value) && str_ends_with($value, '%')) {
-                $value = (float)$value;
-            }
-
-            $data[(string)$label] = is_numeric($value) ? $value + 0 : 0;
+            $data[(string)$label] = $this->_numericValue($value, $metric);
         }
 
         return $data;

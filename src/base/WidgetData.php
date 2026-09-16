@@ -2,6 +2,7 @@
 namespace verbb\metrix\base;
 
 use verbb\metrix\Metrix;
+use verbb\metrix\helpers\Canonical;
 use verbb\metrix\models\AnalyticsScope;
 
 use Craft;
@@ -138,8 +139,8 @@ class WidgetData extends Model implements WidgetDataInterface
             hash('sha256', serialize($calendarRange)),
             $this->getRowLimit(),
             $this->scope?->cacheKey() ?? 'scope:none',
-            // Bump when envelope shape changes so legacy raw blobs are ignored.
-            'v2',
+            // Provider rate values are normalized before caching.
+            'v3',
         ];
 
         if ($suffix !== '') {
@@ -215,6 +216,20 @@ class WidgetData extends Model implements WidgetDataInterface
 
     // Protected Methods
     // =========================================================================
+
+    protected function getMetricFormat(string $default): string
+    {
+        if ($this->source && $this->metric !== null) {
+            foreach (Canonical::getMetrics() as $key => $definition) {
+                if ($this->source->resolveCanonicalMetric($key) === $this->metric
+                    && in_array($definition['type'], ['percentage', 'duration'], true)) {
+                    return $definition['type'];
+                }
+            }
+        }
+
+        return $default;
+    }
 
     protected function formatData(array $rawData): array
     {

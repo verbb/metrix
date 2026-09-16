@@ -21,7 +21,7 @@ class DimensionData extends WidgetData
         return [
             'cols' => [
                 ['type' => 'string', 'label' => $this->widget->getDimensionLabel(), 'id' => $this->dimension],
-                ['type' => 'float', 'labelFormat' => 'numberShort', 'label' => $this->widget->getMetricLabel(), 'id' => $this->metric],
+                ['type' => 'float', 'labelFormat' => $this->getMetricFormat('numberShort'), 'label' => $this->widget->getMetricLabel(), 'id' => $this->metric],
             ],
             'rows' => $rows,
         ];

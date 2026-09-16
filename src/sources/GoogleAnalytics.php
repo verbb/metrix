@@ -207,6 +207,10 @@ class GoogleAnalytics extends OAuthSource
 
             foreach ($results as $result) {
                 $metric = $result['metricValues'][0]['value'] ?? null;
+
+                if ($widgetData->metric === 'bounceRate' && is_numeric($metric)) {
+                    $metric = round((float)$metric * 100, 10);
+                }
                 $dimension = $widgetData->widget instanceof Counter
                     ? 'total'
                     : $this->_formatDimension($widgetData, $result['dimensionValues'][0]['value'] ?? null);

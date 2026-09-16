@@ -15,7 +15,7 @@ use verbb\metrix\widgets\Table;
 it('requests Matomo aggregate counters for the whole range', function(string $metric, string $method) {
     $source = new Matomo(['apiUrl' => 'https://analytics.example.test', 'apiToken' => 'fixture', 'siteId' => '1']);
     $history = [];
-    ProviderHttp::mock($source, [[$metric => 25.5]], $history);
+    ProviderHttp::mock($source, [[$metric => $metric === 'bounce_rate' ? 0.255 : 25.5]], $history);
     $data = $source->fetchData(new WidgetData(['widget' => new Counter(), 'period' => Last7Days::class, 'metric' => $metric]));
     parse_str((string)$history[0]['request']->getBody(), $query);
 

@@ -27,7 +27,7 @@ it('requests and reads Google Analytics totals without time dimensions', functio
     $data = $this->google->fetchData(new WidgetData(['widget' => new Counter(), 'metric' => 'bounceRate', 'period' => Last7Days::class]));
 
     expect($this->google->requests[0]['dimensions'] ?? [])->toBe([])
-        ->and($data)->toBe(['total' => '0.255']);
+        ->and($data)->toBe(['total' => 25.5]);
 });
 
 it('requests the highest Google Analytics dimension values before limiting rows', function() {

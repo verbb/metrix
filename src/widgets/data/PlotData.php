@@ -47,8 +47,8 @@ class PlotData extends WidgetData
             ],
             [
                 'type' => 'integer',
-                'labelFormat' => 'numberShort',
-                'tooltipFormat' => 'numberLong',
+                'labelFormat' => $this->getMetricFormat('numberShort'),
+                'tooltipFormat' => $this->getMetricFormat('numberLong'),
                 'label' => $this->widget->getMetricLabel(),
                 'id' => $this->metric,
             ],
@@ -78,8 +78,8 @@ class PlotData extends WidgetData
 
             $cols[] = [
                 'type' => 'integer',
-                'labelFormat' => 'numberShort',
-                'tooltipFormat' => 'numberLong',
+                'labelFormat' => $this->getMetricFormat('numberShort'),
+                'tooltipFormat' => $this->getMetricFormat('numberLong'),
                 'label' => Craft::t('metrix', 'Previous period'),
                 'id' => 'previous',
             ];

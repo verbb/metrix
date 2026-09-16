@@ -21,7 +21,7 @@ class CounterData extends WidgetData
 
             return [
                 'cols' => [
-                    ['type' => is_float($total) ? 'float' : 'integer', 'labelFormat' => 'numberLong'],
+                    ['type' => is_float($total) ? 'float' : 'integer', 'labelFormat' => $this->getMetricFormat('numberLong')],
                     ['type' => 'float', 'labelFormat' => 'percentageChange', 'label' => $previousLabel],
                 ],
                 'rows' => [[$total, $change]],
@@ -30,7 +30,7 @@ class CounterData extends WidgetData
 
         return [
             'cols' => [
-                ['type' => is_float($total) ? 'float' : 'integer', 'labelFormat' => 'numberLong'],
+                ['type' => is_float($total) ? 'float' : 'integer', 'labelFormat' => $this->getMetricFormat('numberLong')],
             ],
             'rows' => [[$total]],
         ];
