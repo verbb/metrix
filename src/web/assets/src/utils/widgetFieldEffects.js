@@ -29,6 +29,10 @@ export const applyWidgetFieldEffects = (
     const updated = { ...previousValues, ...values };
     const formPatches = {};
 
+    if (values.period && values.period !== previousValues.period) {
+        updated.inheritPeriod = false;
+    }
+
     if (values.source !== previousValues.source) {
         updated.metric = '';
         updated.dimension = '';

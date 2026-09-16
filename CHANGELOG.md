@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix a period selected in widget settings being overridden by the dashboard date range.
 - Fix saving a preset clearing its widgets when all sources are disabled.
 - Fix the preset widget editor crashing before chart components finish loading.
 - Fix the preset management table not appearing in settings.
