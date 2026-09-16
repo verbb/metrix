@@ -23,9 +23,29 @@ it('queries last week from Monday through Sunday inclusively', function() {
     $previous = LastWeek::getPreviousDateRange();
     expect($current['start']->format('Y-m-d H:i:s'))->toBe((new DateTime('monday last week'))->format('Y-m-d') . ' 00:00:00')
         ->and($current['end']->format('Y-m-d H:i:s'))->toBe((new DateTime('sunday last week'))->format('Y-m-d') . ' 23:59:59')
+        ->and($previous['start']->format('Y-m-d H:i:s'))->toBe((clone $current['start'])->modify('-7 days')->format('Y-m-d H:i:s'))
         ->and($previous['end']->getTimestamp())->toBe($current['start']->getTimestamp() - 1)
-        ->and(LastWeek::generatePlotDimensions(new WidgetData(), []))->toHaveCount(7);
+        ->and(LastWeek::generatePlotDimensions(new WidgetData(), []))->toHaveCount(7)
+        ->and(LastWeek::withDateRange($previous, fn() => LastWeek::generatePlotDimensions(new WidgetData(), [])))->toHaveCount(7);
 });
+
+it('compares last week with a complete prior calendar week across clock and year changes', function(string $start) {
+    $period = new class extends LastWeek {
+        public static string $start;
+
+        public static function getDateRange(): array
+        {
+            $start = new DateTime(static::$start, new DateTimeZone('Australia/Melbourne'));
+            return ['start' => $start, 'end' => (clone $start)->modify('+6 days')->setTime(23, 59, 59)];
+        }
+    };
+    $period::$start = $start;
+    $current = $period::getDateRange();
+    $previous = $period::getPreviousDateRange();
+    expect($previous['start']->format('Y-m-d H:i:sP'))->toBe((clone $current['start'])->modify('-7 days')->format('Y-m-d H:i:sP'))
+        ->and($previous['end']->getTimestamp())->toBe($current['start']->getTimestamp() - 1)
+        ->and($period::withDateRange($previous, fn() => $period::generatePlotDimensions(new WidgetData(), [])))->toHaveCount(7);
+})->with(['2026-04-06', '2026-10-05', '2026-01-05']);
 
 it('uses first-of-month keys for twelve monthly buckets', function() {
     $buckets = Last12Months::generatePlotDimensions(new WidgetData(), []);

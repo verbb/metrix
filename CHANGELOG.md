@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix Last Week comparisons using an invalid previous date range during most of the week.
 - Fix failed source connection checks retaining a previous Connected status.
 - Fix pie legends disappearing after resizing the chart or browser.
 - Fix slow real-time responses being overtaken by polling and never displayed.
