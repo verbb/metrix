@@ -227,8 +227,8 @@ class AnalyticsScope extends Model
             $path = '/' . $path;
         }
 
-        // Root path matches everything — treat as no path filter.
-        if ($path === '/') {
+        // A root prefix matches everything, but exact matching selects only the homepage.
+        if ($path === '/' && $this->getPathMatch() !== self::MATCH_EXACT) {
             return null;
         }
 
