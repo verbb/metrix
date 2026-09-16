@@ -39,3 +39,12 @@ it('passes only enabled periods to the dashboard', function(string $setting) {
         $view->js = $originalJs;
     }
 })->with(['config', 'rows']);
+
+it('omits disabled dividers from the dashboard period groups', function() {
+    $settings = new \verbb\metrix\models\Settings(['periodSettings' => [
+        ['id' => Today::class, 'enabled' => true],
+        ['id' => 'divider0', 'enabled' => false],
+        ['id' => \verbb\metrix\periods\Last7Days::class, 'enabled' => true],
+    ]]);
+    expect($settings->getEnabledPeriods())->toBe([[Today::class, \verbb\metrix\periods\Last7Days::class]]);
+});

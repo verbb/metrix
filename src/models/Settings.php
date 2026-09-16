@@ -164,13 +164,17 @@ class Settings extends Model
 
         // Convert flat structure to nested one
         foreach ($this->getPeriodSettingsRows() as $item) {
+            if (!$item['enabled']) {
+                continue;
+            }
+
             if (str_starts_with($item['id'], 'divider')) {
                 // If it's a divider, start a new group
                 if (!empty($currentGroup)) {
                     $nested[] = $currentGroup;
                     $currentGroup = [];
                 }
-            } else if ($item['enabled']) {
+            } else {
                 // Add enabled items to the current group
                 $currentGroup[] = $item['id'];
             }
