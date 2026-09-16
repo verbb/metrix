@@ -4,14 +4,14 @@ export const getQueryParam = (key) => {
     return params.get(key);
 };
 
-export const setQueryParam = (key, value) => {
+export const setQueryParam = (key, value, { replace = false } = {}) => {
     const params = new URLSearchParams(window.location.search);
 
     params.set(key, value);
 
-    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    const newUrl = `${window.location.pathname}?${params.toString()}${window.location.hash}`;
 
-    window.history.pushState({}, '', newUrl);
+    window.history[replace ? 'replaceState' : 'pushState']({}, '', newUrl);
 };
 
 export const resolveQueryOption = (value, options = []) => {

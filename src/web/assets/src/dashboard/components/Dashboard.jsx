@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 import { Spinner } from '@verbb/plugin-kit-react/components/Spinner';
 
@@ -50,7 +50,7 @@ export const Dashboard = () => {
             setCurrentView(initialView);
 
             if (viewFromQuery !== initialView) {
-                setQueryParam('view', initialView);
+                setQueryParam('view', initialView, { replace: true });
             }
         }
     }, [viewOptions, setCurrentView]);
@@ -93,7 +93,7 @@ export const Dashboard = () => {
         fetchAllWidgetData();
     };
 
-    const handleViewChange = async(view) => {
+    const handleViewChange = useCallback(async(view, updateUrl = true) => {
         const requestId = ++viewRequestId.current;
         setCurrentView(view);
         setGlobalPeriod(null);
@@ -101,7 +101,9 @@ export const Dashboard = () => {
         setErrorPresets(null);
 
         // Update query string
-        setQueryParam('view', view);
+        if (updateUrl) {
+            setQueryParam('view', view);
+        }
 
         clearWidgets();
         setLoading(true);
@@ -133,7 +135,20 @@ export const Dashboard = () => {
                 setLoading(false);
             }
         }
-    };
+    }, [setCurrentView, setGlobalPeriod, clearWidgets, loadWidgets]);
+
+    useEffect(() => {
+        const handlePopState = () => {
+            const view = resolveQueryOption(getQueryParam('view'), viewOptions);
+
+            if (view && view !== useAppStore.getState().currentView) {
+                handleViewChange(view, false);
+            }
+        };
+
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, [viewOptions, handleViewChange]);
 
     const hasWidgets = widgets.length > 0;
     const hasViewOptions = viewOptions.length > 0;
