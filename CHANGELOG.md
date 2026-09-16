@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix chart tooltips showing a missing value for zero percentages.
 - Fix invalid real-time refresh intervals causing rapid repeated requests.
 - Fix disabled date range dividers still separating dashboard options.
 - Fix failed widget duplication leaving an undeletable placeholder on the dashboard.

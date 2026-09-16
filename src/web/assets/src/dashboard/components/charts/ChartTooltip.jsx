@@ -8,7 +8,7 @@ const ChartTooltip = forwardRef(({ data, position, visibility }, ref) => {
     }) ?? [];
 
     const primaryPoint = dataPoints[0];
-    const metric = format(primaryPoint?.label || '', primaryPoint?.dataset?.xAxisFormatter);
+    const metric = format(primaryPoint?.label ?? '', primaryPoint?.dataset?.xAxisFormatter);
     const label = data?.widget?.data?.metricLabel;
 
     return (
@@ -35,7 +35,7 @@ const ChartTooltip = forwardRef(({ data, position, visibility }, ref) => {
                     {dataPoints.map((point, index) => {
                         const color = data?.tooltipModel?.labelColors?.[index]?.backgroundColor;
                         const seriesLabel = point.dataset?.label || label;
-                        const value = format(point?.raw || '', point?.dataset?.yAxisFormatter);
+                        const value = format(point?.raw ?? '', point?.dataset?.yAxisFormatter);
 
                         return (
                             <div

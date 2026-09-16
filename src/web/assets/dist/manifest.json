@@ -1,13 +1,13 @@
 {
   "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/AutocompleteField.js": {
-    "file": "assets/AutocompleteField-H5dNmsN6.js",
+    "file": "assets/AutocompleteField-Ao2XI4bd.js",
     "name": "AutocompleteField",
     "src": "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/AutocompleteField.js",
     "isDynamicEntry": true,
     "imports": [
       "_pk-dialog-VMQqLW1f-Cj2lP4Ga.js",
       "_Field-DxmLpF8U.js",
-      "_MetrixConfig-6V5nitnW.js",
+      "_MetrixConfig-B5E5lbBB.js",
       "_focus-aa5dlv8k-Blvp5c6v.js",
       "_dndkit-VWrr40Ac.js",
       "_lit-Du1yN0YY.js",
@@ -20,14 +20,14 @@
     ]
   },
   "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CheckboxSelectField.js": {
-    "file": "assets/CheckboxSelectField-mY_PWWdQ.js",
+    "file": "assets/CheckboxSelectField-CFt_ViAr.js",
     "name": "CheckboxSelectField",
     "src": "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CheckboxSelectField.js",
     "isDynamicEntry": true,
     "imports": [
       "_pk-dialog-VMQqLW1f-Cj2lP4Ga.js",
       "_Field-DxmLpF8U.js",
-      "_MetrixConfig-6V5nitnW.js",
+      "_MetrixConfig-B5E5lbBB.js",
       "_focus-aa5dlv8k-Blvp5c6v.js",
       "_dndkit-VWrr40Ac.js",
       "_lit-Du1yN0YY.js",
@@ -37,14 +37,14 @@
     ]
   },
   "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CodeEditorField.js": {
-    "file": "assets/CodeEditorField-BERr18kR.js",
+    "file": "assets/CodeEditorField-CbqmPiC7.js",
     "name": "CodeEditorField",
     "src": "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/CodeEditorField.js",
     "isDynamicEntry": true,
     "imports": [
       "_pk-dialog-VMQqLW1f-Cj2lP4Ga.js",
       "_Field-DxmLpF8U.js",
-      "_MetrixConfig-6V5nitnW.js",
+      "_MetrixConfig-B5E5lbBB.js",
       "_focus-aa5dlv8k-Blvp5c6v.js",
       "_dndkit-VWrr40Ac.js",
       "_lit-Du1yN0YY.js",
@@ -54,14 +54,14 @@
     ]
   },
   "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/ColorField.js": {
-    "file": "assets/ColorField-DNhw84Y1.js",
+    "file": "assets/ColorField-DCgEsnax.js",
     "name": "ColorField",
     "src": "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/ColorField.js",
     "isDynamicEntry": true,
     "imports": [
       "_pk-dialog-VMQqLW1f-Cj2lP4Ga.js",
       "_Field-DxmLpF8U.js",
-      "_MetrixConfig-6V5nitnW.js",
+      "_MetrixConfig-B5E5lbBB.js",
       "_focus-aa5dlv8k-Blvp5c6v.js",
       "_dndkit-VWrr40Ac.js",
       "_lit-Du1yN0YY.js",
@@ -72,25 +72,25 @@
     ]
   },
   "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/ComboboxField.js": {
-    "file": "assets/ComboboxField-CQldstQf.js",
+    "file": "assets/ComboboxField-YQS5-lpe.js",
     "name": "ComboboxField",
     "src": "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/ComboboxField.js",
     "isDynamicEntry": true,
     "imports": [
       "_Field-DxmLpF8U.js",
-      "_MetrixConfig-6V5nitnW.js",
+      "_MetrixConfig-B5E5lbBB.js",
       "_react-vendor-B27ue3us.js"
     ]
   },
   "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/DateTimeField.js": {
-    "file": "assets/DateTimeField-rAHVKoqq.js",
+    "file": "assets/DateTimeField-CdQEr7v5.js",
     "name": "DateTimeField",
     "src": "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/DateTimeField.js",
     "isDynamicEntry": true,
     "imports": [
       "_pk-dialog-VMQqLW1f-Cj2lP4Ga.js",
       "_Field-DxmLpF8U.js",
-      "_MetrixConfig-6V5nitnW.js",
+      "_MetrixConfig-B5E5lbBB.js",
       "_focus-aa5dlv8k-Blvp5c6v.js",
       "_dndkit-VWrr40Ac.js",
       "_lit-Du1yN0YY.js",
@@ -116,14 +116,14 @@
     ]
   },
   "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/LightswitchField.js": {
-    "file": "assets/LightswitchField-CvHrVsJ_.js",
+    "file": "assets/LightswitchField-BLkBzNMV.js",
     "name": "LightswitchField",
     "src": "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/LightswitchField.js",
     "isDynamicEntry": true,
     "imports": [
       "_pk-dialog-VMQqLW1f-Cj2lP4Ga.js",
       "_Field-DxmLpF8U.js",
-      "_MetrixConfig-6V5nitnW.js",
+      "_MetrixConfig-B5E5lbBB.js",
       "_focus-aa5dlv8k-Blvp5c6v.js",
       "_dndkit-VWrr40Ac.js",
       "_lit-Du1yN0YY.js",
@@ -136,26 +136,26 @@
     ]
   },
   "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/NumberField.js": {
-    "file": "assets/NumberField-BH3S16Sd.js",
+    "file": "assets/NumberField-DmJ3bnT3.js",
     "name": "NumberField",
     "src": "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/NumberField.js",
     "isDynamicEntry": true,
     "imports": [
       "_Field-DxmLpF8U.js",
-      "_MetrixConfig-6V5nitnW.js",
+      "_MetrixConfig-B5E5lbBB.js",
       "_react-vendor-B27ue3us.js",
       "_Input-7PClsD7x.js"
     ]
   },
   "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/RadioGroupField.js": {
-    "file": "assets/RadioGroupField-QlJN1BIu.js",
+    "file": "assets/RadioGroupField-CbQGOS2J.js",
     "name": "RadioGroupField",
     "src": "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/RadioGroupField.js",
     "isDynamicEntry": true,
     "imports": [
       "_pk-dialog-VMQqLW1f-Cj2lP4Ga.js",
       "_Field-DxmLpF8U.js",
-      "_MetrixConfig-6V5nitnW.js",
+      "_MetrixConfig-B5E5lbBB.js",
       "_focus-aa5dlv8k-Blvp5c6v.js",
       "_dndkit-VWrr40Ac.js",
       "_lit-Du1yN0YY.js",
@@ -168,41 +168,41 @@
     ]
   },
   "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/SelectField.js": {
-    "file": "assets/SelectField-Cvnyq-jo.js",
+    "file": "assets/SelectField-D2Xj2KA3.js",
     "name": "SelectField",
     "src": "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/SelectField.js",
     "isDynamicEntry": true,
     "imports": [
       "_pk-dialog-VMQqLW1f-Cj2lP4Ga.js",
       "_Field-DxmLpF8U.js",
-      "_MetrixConfig-6V5nitnW.js",
+      "_MetrixConfig-B5E5lbBB.js",
       "_dndkit-VWrr40Ac.js",
       "_react-vendor-B27ue3us.js",
       "_dist-BQV6gLiX.js",
-      "_SelectInput-BohuBn7Z.js"
+      "_SelectInput-DhB-Nltc.js"
     ]
   },
   "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextField.js": {
-    "file": "assets/TextField-C_YEbtUP.js",
+    "file": "assets/TextField-DzoIn0r8.js",
     "name": "TextField",
     "src": "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextField.js",
     "isDynamicEntry": true,
     "imports": [
       "_Field-DxmLpF8U.js",
-      "_MetrixConfig-6V5nitnW.js",
+      "_MetrixConfig-B5E5lbBB.js",
       "_react-vendor-B27ue3us.js",
       "_Input-7PClsD7x.js"
     ]
   },
   "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextareaField.js": {
-    "file": "assets/TextareaField-5TMSx4d4.js",
+    "file": "assets/TextareaField-B0SUDUol.js",
     "name": "TextareaField",
     "src": "../../../node_modules/@verbb/plugin-kit-react/dist/forms/fields/TextareaField.js",
     "isDynamicEntry": true,
     "imports": [
       "_pk-dialog-VMQqLW1f-Cj2lP4Ga.js",
       "_Field-DxmLpF8U.js",
-      "_MetrixConfig-6V5nitnW.js",
+      "_MetrixConfig-B5E5lbBB.js",
       "_focus-aa5dlv8k-Blvp5c6v.js",
       "_dndkit-VWrr40Ac.js",
       "_lit-Du1yN0YY.js",
@@ -213,8 +213,8 @@
       "_field-labels-CmuAW8Cl-qJ92s-2-.js"
     ]
   },
-  "_ChartRenderer-CZ4SsJgY.js": {
-    "file": "assets/ChartRenderer-CZ4SsJgY.js",
+  "_ChartRenderer-C3Huc-d2.js": {
+    "file": "assets/ChartRenderer-C3Huc-d2.js",
     "name": "ChartRenderer",
     "imports": [
       "_pk-dialog-VMQqLW1f-Cj2lP4Ga.js",
@@ -253,8 +253,8 @@
       "_field-labels-CmuAW8Cl-qJ92s-2-.js"
     ]
   },
-  "_MetrixConfig-6V5nitnW.js": {
-    "file": "assets/MetrixConfig-6V5nitnW.js",
+  "_MetrixConfig-B5E5lbBB.js": {
+    "file": "assets/MetrixConfig-B5E5lbBB.js",
     "name": "MetrixConfig",
     "imports": [
       "_pk-dialog-VMQqLW1f-Cj2lP4Ga.js",
@@ -282,26 +282,26 @@
       "src/dashboard/components/widgets/TableWidget.jsx"
     ]
   },
-  "_SelectInput-BohuBn7Z.js": {
-    "file": "assets/SelectInput-BohuBn7Z.js",
+  "_SelectInput-DhB-Nltc.js": {
+    "file": "assets/SelectInput-DhB-Nltc.js",
     "name": "SelectInput",
     "imports": [
       "_pk-dialog-VMQqLW1f-Cj2lP4Ga.js",
-      "_MetrixConfig-6V5nitnW.js",
+      "_MetrixConfig-B5E5lbBB.js",
       "_focus-aa5dlv8k-Blvp5c6v.js",
       "_dndkit-VWrr40Ac.js",
       "_react-vendor-B27ue3us.js",
       "_pk-status-BehQARDv-BlLZqkPQ.js"
     ]
   },
-  "_Widget-CoKGZrnX.js": {
-    "file": "assets/Widget-CoKGZrnX.js",
+  "_Widget-CB-6UoI4.js": {
+    "file": "assets/Widget-CB-6UoI4.js",
     "name": "Widget",
     "imports": [
       "_pk-dialog-VMQqLW1f-Cj2lP4Ga.js",
       "_useWidgetSettingsStore-BWOx4kAW.js",
       "_forms-Bp9cJWca.js",
-      "_MetrixConfig-6V5nitnW.js",
+      "_MetrixConfig-B5E5lbBB.js",
       "_focus-aa5dlv8k-Blvp5c6v.js",
       "_dndkit-VWrr40Ac.js",
       "_lit-Du1yN0YY.js",
@@ -313,21 +313,21 @@
       "src/dashboard/components/widgets/WidgetSettings.jsx"
     ]
   },
-  "_WidgetLarge-LZgPBN_S.js": {
-    "file": "assets/WidgetLarge-LZgPBN_S.js",
+  "_WidgetLarge-HIIm4izj.js": {
+    "file": "assets/WidgetLarge-HIIm4izj.js",
     "name": "WidgetLarge",
     "imports": [
       "_useWidgetSettingsStore-BWOx4kAW.js",
-      "_Widget-CoKGZrnX.js",
+      "_Widget-CB-6UoI4.js",
       "_react-vendor-B27ue3us.js"
     ]
   },
-  "_WidgetSmall-5VL_qB6b.js": {
-    "file": "assets/WidgetSmall-5VL_qB6b.js",
+  "_WidgetSmall-ClyfkwTr.js": {
+    "file": "assets/WidgetSmall-ClyfkwTr.js",
     "name": "WidgetSmall",
     "imports": [
       "_useWidgetSettingsStore-BWOx4kAW.js",
-      "_Widget-CoKGZrnX.js",
+      "_Widget-CB-6UoI4.js",
       "_react-vendor-B27ue3us.js"
     ]
   },
@@ -452,14 +452,14 @@
     "file": "assets/theme-CV1kDR6b.js",
     "name": "theme"
   },
-  "_useWidgetSettingsForm-D7fwwWJm.js": {
-    "file": "assets/useWidgetSettingsForm-D7fwwWJm.js",
+  "_useWidgetSettingsForm-BF2XNNQ5.js": {
+    "file": "assets/useWidgetSettingsForm-BF2XNNQ5.js",
     "name": "useWidgetSettingsForm",
     "imports": [
       "_pk-dialog-VMQqLW1f-Cj2lP4Ga.js",
       "_useWidgetSettingsStore-BWOx4kAW.js",
       "_forms-Bp9cJWca.js",
-      "_MetrixConfig-6V5nitnW.js",
+      "_MetrixConfig-B5E5lbBB.js",
       "_dndkit-VWrr40Ac.js",
       "_react-vendor-B27ue3us.js",
       "_dist-BQV6gLiX.js"
@@ -520,7 +520,7 @@
     ]
   },
   "src/dashboard/components/widgets/BarWidget.jsx": {
-    "file": "assets/BarWidget-Bw31aAub.js",
+    "file": "assets/BarWidget-CwZjfaaJ.js",
     "name": "BarWidget",
     "src": "src/dashboard/components/widgets/BarWidget.jsx",
     "isDynamicEntry": true,
@@ -529,12 +529,12 @@
       "_useWidgetSettingsStore-BWOx4kAW.js",
       "_dndkit-VWrr40Ac.js",
       "_react-vendor-B27ue3us.js",
-      "_WidgetLarge-LZgPBN_S.js",
-      "_ChartRenderer-CZ4SsJgY.js"
+      "_WidgetLarge-HIIm4izj.js",
+      "_ChartRenderer-C3Huc-d2.js"
     ]
   },
   "src/dashboard/components/widgets/CounterWidget.jsx": {
-    "file": "assets/CounterWidget-Cn0XAmL4.js",
+    "file": "assets/CounterWidget-6Ixtgqji.js",
     "name": "CounterWidget",
     "src": "src/dashboard/components/widgets/CounterWidget.jsx",
     "isDynamicEntry": true,
@@ -543,11 +543,11 @@
       "_useWidgetSettingsStore-BWOx4kAW.js",
       "_dndkit-VWrr40Ac.js",
       "_react-vendor-B27ue3us.js",
-      "_WidgetSmall-5VL_qB6b.js"
+      "_WidgetSmall-ClyfkwTr.js"
     ]
   },
   "src/dashboard/components/widgets/LineWidget.jsx": {
-    "file": "assets/LineWidget-DsnYknFt.js",
+    "file": "assets/LineWidget-CR4qga2h.js",
     "name": "LineWidget",
     "src": "src/dashboard/components/widgets/LineWidget.jsx",
     "isDynamicEntry": true,
@@ -556,12 +556,12 @@
       "_useWidgetSettingsStore-BWOx4kAW.js",
       "_dndkit-VWrr40Ac.js",
       "_react-vendor-B27ue3us.js",
-      "_WidgetLarge-LZgPBN_S.js",
-      "_ChartRenderer-CZ4SsJgY.js"
+      "_WidgetLarge-HIIm4izj.js",
+      "_ChartRenderer-C3Huc-d2.js"
     ]
   },
   "src/dashboard/components/widgets/PieWidget.jsx": {
-    "file": "assets/PieWidget-D3hXCIMl.js",
+    "file": "assets/PieWidget-CvcYi6uI.js",
     "name": "PieWidget",
     "src": "src/dashboard/components/widgets/PieWidget.jsx",
     "isDynamicEntry": true,
@@ -570,12 +570,12 @@
       "_useWidgetSettingsStore-BWOx4kAW.js",
       "_dndkit-VWrr40Ac.js",
       "_react-vendor-B27ue3us.js",
-      "_WidgetLarge-LZgPBN_S.js",
-      "_ChartRenderer-CZ4SsJgY.js"
+      "_WidgetLarge-HIIm4izj.js",
+      "_ChartRenderer-C3Huc-d2.js"
     ]
   },
   "src/dashboard/components/widgets/RealtimeWidget.jsx": {
-    "file": "assets/RealtimeWidget-AKW7baRe.js",
+    "file": "assets/RealtimeWidget-BgUPcNKr.js",
     "name": "RealtimeWidget",
     "src": "src/dashboard/components/widgets/RealtimeWidget.jsx",
     "isDynamicEntry": true,
@@ -584,11 +584,11 @@
       "_useWidgetSettingsStore-BWOx4kAW.js",
       "_dndkit-VWrr40Ac.js",
       "_react-vendor-B27ue3us.js",
-      "_WidgetSmall-5VL_qB6b.js"
+      "_WidgetSmall-ClyfkwTr.js"
     ]
   },
   "src/dashboard/components/widgets/TableWidget.jsx": {
-    "file": "assets/TableWidget-CoKI_bTq.js",
+    "file": "assets/TableWidget-d48PHGWY.js",
     "name": "TableWidget",
     "src": "src/dashboard/components/widgets/TableWidget.jsx",
     "isDynamicEntry": true,
@@ -598,23 +598,23 @@
       "_dndkit-VWrr40Ac.js",
       "_react-vendor-B27ue3us.js",
       "_theme-CV1kDR6b.js",
-      "_WidgetLarge-LZgPBN_S.js"
+      "_WidgetLarge-HIIm4izj.js"
     ]
   },
   "src/dashboard/components/widgets/WidgetSettings.jsx": {
-    "file": "assets/WidgetSettings-qL32hZOh.js",
+    "file": "assets/WidgetSettings-BgRWITot.js",
     "name": "WidgetSettings",
     "src": "src/dashboard/components/widgets/WidgetSettings.jsx",
     "isDynamicEntry": true,
     "imports": [
       "_pk-dialog-VMQqLW1f-Cj2lP4Ga.js",
       "_useWidgetSettingsStore-BWOx4kAW.js",
-      "_MetrixConfig-6V5nitnW.js",
+      "_MetrixConfig-B5E5lbBB.js",
       "_dndkit-VWrr40Ac.js",
-      "_Widget-CoKGZrnX.js",
+      "_Widget-CB-6UoI4.js",
       "_react-vendor-B27ue3us.js",
       "_dist-BQV6gLiX.js",
-      "_useWidgetSettingsForm-D7fwwWJm.js"
+      "_useWidgetSettingsForm-BF2XNNQ5.js"
     ]
   },
   "src/dashboard/metrix-dashboard.js": {
@@ -626,13 +626,13 @@
       "_pk-dialog-VMQqLW1f-Cj2lP4Ga.js",
       "_useWidgetSettingsStore-BWOx4kAW.js",
       "_forms-Bp9cJWca.js",
-      "_MetrixConfig-6V5nitnW.js",
+      "_MetrixConfig-B5E5lbBB.js",
       "_dndkit-VWrr40Ac.js",
-      "_Widget-CoKGZrnX.js",
+      "_Widget-CB-6UoI4.js",
       "_react-vendor-B27ue3us.js",
-      "_SelectInput-BohuBn7Z.js",
-      "_WidgetLarge-LZgPBN_S.js",
-      "_WidgetSmall-5VL_qB6b.js"
+      "_SelectInput-DhB-Nltc.js",
+      "_WidgetLarge-HIIm4izj.js",
+      "_WidgetSmall-ClyfkwTr.js"
     ],
     "dynamicImports": [
       "src/dashboard/components/widgets/WidgetSettings.jsx"
@@ -646,10 +646,10 @@
     "imports": [
       "_pk-dialog-VMQqLW1f-Cj2lP4Ga.js",
       "_useWidgetSettingsStore-BWOx4kAW.js",
-      "_MetrixConfig-6V5nitnW.js",
+      "_MetrixConfig-B5E5lbBB.js",
       "_dndkit-VWrr40Ac.js",
       "_react-vendor-B27ue3us.js",
-      "_useWidgetSettingsForm-D7fwwWJm.js"
+      "_useWidgetSettingsForm-BF2XNNQ5.js"
     ]
   },
   "src/sources/metrix-sources.js": {
