@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix Website Overview and Content Performance presets missing from fresh installations.
 - Fix previous-period comparisons ignoring the view’s analytics scope and cache refresh settings.
 - Fix duplicated dashboard widgets remaining in a loading state instead of fetching their chart data.
 - Roll back failed widget edits and reorders instead of leaving unsaved dashboard state in the UI.

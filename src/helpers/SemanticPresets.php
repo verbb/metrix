@@ -14,7 +14,7 @@ class SemanticPresets
     public static function getDefinitions(): array
     {
         return [
-            'website-overview' => [
+            'websiteOverview' => [
                 'name' => Craft::t('metrix', 'Website Overview'),
                 'description' => Craft::t('metrix', 'Traffic trend, live visitors, and key visitor metrics.'),
                 'sortOrder' => 1,
@@ -50,7 +50,7 @@ class SemanticPresets
                     ],
                 ],
             ],
-            'content-performance' => [
+            'contentPerformance' => [
                 'name' => Craft::t('metrix', 'Content Performance'),
                 'description' => Craft::t('metrix', 'Top pages and entry pages for the selected date range.'),
                 'sortOrder' => 2,
