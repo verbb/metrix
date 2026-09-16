@@ -10,9 +10,11 @@ Follow [Connecting to Google Analytics](docs:providers/google-analytics#connecti
 
 ## Add a Sessions Counter
 
-A View is a shared dashboard layout. Open **Metrix → Dashboard** and use the default View for this first widget. Set its date range to **Last 7 Days**. If you have already configured an analytics scope on the View, use a View without a filter for this initial comparison.
+A View is a shared dashboard layout. Open **Metrix → Dashboard** and use the default View for this first widget. If you have already configured an analytics scope on the View, use a View without a filter for this initial comparison.
 
-Add a widget from the dashboard header. Choose **Website Analytics** as the source, **Counter** as the chart type and **Sessions** as the metric. Keep the widget's period inherited from the View, choose a width of one third and enter “Site sessions” as its title. Save the widget.
+Click **New widget**. Choose **Website Analytics** as the source if you have more than one source, **Counter** as the chart type, **Last 7 Days** as the period and **Sessions** as the metric. Set **Width** to **1 Column**, enter “Site sessions” as its title, then click **Create**.
+
+The dashboard date range control appears after the first widget is created. To make this counter follow it, select **Last 7 Days** in that control, then choose **Use dashboard date range** from the counter’s actions menu.
 
 The counter shows the number of sessions for the selected range. The source determines what each metric means; sessions count visits and can include repeat visits from the same person.
 
