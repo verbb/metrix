@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix Simple Analytics hourly charts, dimension row limits and labels, All Time queries, and API error reporting.
 - Fix All Time charts omitting earlier unordered data or inventing history for empty reports.
 - Fix widget deletion event listeners receiving stale cached records.
 - Fix rolling date ranges reusing cached results from the previous calendar day.

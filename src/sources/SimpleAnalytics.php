@@ -10,6 +10,7 @@ use Craft;
 use craft\helpers\App;
 
 use Throwable;
+use Exception;
 
 use GuzzleHttp\Client;
 
@@ -207,7 +208,11 @@ class SimpleAnalytics extends CredentialsSource
                 continue;
             }
 
-            $data[$date] = $row[$widgetData->metric] ?? $row['pageviews'] ?? 0;
+            if (isset($row['hour'])) {
+                $date .= sprintf(' %02d:00:00', $row['hour']);
+            }
+
+            $data[$date] = $row[$widgetData->metric] ?? 0;
         }
 
         return $data;
@@ -217,7 +222,7 @@ class SimpleAnalytics extends CredentialsSource
     {
         $response = $this->_fetchStats($this->_getBaseQuery($widgetData, [
             'fields' => $widgetData->dimension,
-            'limit' => 100,
+            'limit' => $widgetData->getRowLimit(),
         ]));
 
         $data = [];
@@ -226,11 +231,11 @@ class SimpleAnalytics extends CredentialsSource
         foreach ($rows as $row) {
             $label = $row['value'] ?? $row['path'] ?? $row['referrer'] ?? $row['country'] ?? null;
 
-            if (!$label) {
+            if ($label === null) {
                 continue;
             }
 
-            $data[$label] = $row[$widgetData->metric] ?? $row['pageviews'] ?? $row['visitors'] ?? 0;
+            $data[$label] = $row[$widgetData->metric] ?? 0;
         }
 
         return $data;
@@ -240,12 +245,18 @@ class SimpleAnalytics extends CredentialsSource
     {
         $hostname = $this->getHostname();
 
-        return $this->request('GET', $hostname . '.json', [
+        $response = $this->request('GET', $hostname . '.json', [
             'query' => array_merge([
                 'version' => 6,
                 'timezone' => $this->getTimezone(),
             ], $query),
         ]);
+
+        if (($response['ok'] ?? true) === false) {
+            throw new Exception('Simple Analytics could not provide the requested report. Check the hostname and API key.');
+        }
+
+        return $response;
     }
 
     private function _getBaseQuery(WidgetDataInterface $widgetData, array $extra = []): array
@@ -253,8 +264,8 @@ class SimpleAnalytics extends CredentialsSource
         $dateRange = $widgetData->period::getCurrentDateRange();
 
         return array_merge([
-            'start' => $dateRange['start']->format('Y-m-d'),
-            'end' => $dateRange['end']->format('Y-m-d'),
+            'start' => isset($dateRange['start']) ? $dateRange['start']->format('Y-m-d') : '1970-01-01',
+            'end' => isset($dateRange['end']) ? $dateRange['end']->format('Y-m-d') : 'today',
         ], $extra);
     }
 
