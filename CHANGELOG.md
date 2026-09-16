@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix deleted presets preventing reuse of their names and handles.
 - Fix saving edited preset widgets failing on their generated display titles.
 - Fix stale source, view and widget data after saving, reordering or deleting records in the same request.
 - Fix Mixpanel event selection, series counts, and service account connection checks.

@@ -199,6 +199,17 @@ class Presets extends Component
 
         $transaction = Craft::$app->getDb()->beginTransaction();
         try {
+            // Older deleted rows still reserve unique names and handles.
+            $trashed = PresetRecord::findWithTrashed()
+                ->where(['not', ['dateDeleted' => null]])
+                ->andWhere(['or', ['name' => $data['name']], ['handle' => $data['handle']]])
+                ->andWhere(['not', ['uid' => $presetUid]])
+                ->all();
+
+            foreach ($trashed as $record) {
+                $this->_releaseDeletedIdentity($record);
+            }
+
             $presetRecord = $this->_getPresetRecord($presetUid, true);
             $isNewPreset = $presetRecord->getIsNewRecord();
 
@@ -307,6 +318,8 @@ class Presets extends Component
         try {
             $preset->beforeApplyDelete();
 
+            $this->_releaseDeletedIdentity($presetRecord);
+
             // Delete the preset
             $db->createCommand()
                 ->softDelete('{{%metrix_presets}}', ['id' => $presetRecord->id])
@@ -333,6 +346,13 @@ class Presets extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _releaseDeletedIdentity(PresetRecord $record): void
+    {
+        // Project config restores the original identity by UID when needed.
+        $record->name = $record->handle = '__deleted__' . $record->uid;
+        $record->save(false);
+    }
 
     private function _presets(): MemoizableArray
     {
