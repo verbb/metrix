@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix pie legends disappearing after resizing the chart or browser.
 - Fix slow real-time responses being overtaken by polling and never displayed.
 - Fix chart tooltips showing a missing value for zero percentages.
 - Fix invalid real-time refresh intervals causing rapid repeated requests.

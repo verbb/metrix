@@ -17,25 +17,32 @@ export const ChartLegend = ({
     containerHeight = LEGEND_HEIGHT,
 }) => {
     const legendContainerRef = useRef(null);
+    const legendContentRef = useRef(null);
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
 
     const calculateTotalPages = useCallback(() => {
-        if (!legendContainerRef.current) {
+        if (!legendContentRef.current) {
             return;
         }
 
-        const { scrollHeight } = legendContainerRef.current;
-        setTotalPages(Math.ceil(scrollHeight / containerHeight));
+        // Measure unshifted content, then keep the visible page inside its new bounds.
+        const pages = Math.max(1, Math.ceil(legendContentRef.current.scrollHeight / containerHeight));
+        setTotalPages(pages);
+        setCurrentPage((page) => Math.min(page, pages - 1));
     }, [containerHeight]);
 
     useEffect(() => {
         calculateTotalPages();
 
         window.addEventListener('resize', calculateTotalPages);
+        const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(calculateTotalPages);
+        if (legendContainerRef.current) observer?.observe(legendContainerRef.current);
+        if (legendContentRef.current) observer?.observe(legendContentRef.current);
 
         return () => {
             window.removeEventListener('resize', calculateTotalPages);
+            observer?.disconnect();
         };
     }, [calculateTotalPages, legendItems]);
 
@@ -77,9 +84,10 @@ export const ChartLegend = ({
                     }}
                 >
                     <div
+                        ref={legendContentRef}
                         className="flex items-center justify-center flex-wrap gap-x-3"
                         style={{
-                            transform: `translateY(-${currentPage * LEGEND_HEIGHT}px)`,
+                            transform: `translateY(-${currentPage * containerHeight}px)`,
                         }}
                     >
                         {legendItems.map((item, index) => (
