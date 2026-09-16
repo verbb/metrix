@@ -14,6 +14,8 @@ use verbb\metrix\widgets\Counter;
 it('reports a deleted scoped site instead of requesting unfiltered traffic', function() {
     $transaction = Craft::$app->getDb()->beginTransaction();
     $originalSites = Craft::$app->getSites();
+    $projectConfig = Craft::$app->getProjectConfig();
+    $configVersion = Craft::$app->getInfo()->configVersion;
     Craft::$app->set('sites', $sites = new Sites());
 
     try {
@@ -52,7 +54,11 @@ it('reports a deleted scoped site instead of requesting unfiltered traffic', fun
         expect(fn() => $widget->getWidgetData(null, true))->toThrow(Exception::class, 'Craft site is unavailable');
         expect($source->getRequestCount())->toBe(0);
     } finally {
+        // Complete the request-level config write inside the transaction to release its mutex.
+        $projectConfig->saveModifiedConfigData();
         $transaction->rollBack();
+        $projectConfig->reset();
+        Craft::$app->getInfo()->configVersion = $configVersion;
         Craft::$app->set('sites', $originalSites);
     }
 });
