@@ -4,6 +4,7 @@ $app = class_exists(Craft::class, false) && Craft::$app
     ? Craft::$app
     : require CRAFT_VENDOR_PATH . '/craftcms/cms/bootstrap/console.php';
 $app->setEdition(\craft\enums\CmsEdition::Pro);
+$app->getProjectConfig()->flush();
 $package = json_decode(file_get_contents(dirname(__DIR__, 2) . '/composer.json'), true);
 $handle = $package['extra']['handle'];
 $plugin = $app->getPlugins()->getPlugin($handle);
