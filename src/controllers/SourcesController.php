@@ -147,13 +147,12 @@ class SourcesController extends Controller
     public function actionDelete(): Response
     {
         $this->requirePostRequest();
-        $this->requireAcceptsJson();
 
-        $sourceId = $this->request->getRequiredBodyParam('id');
+        $sourceId = $this->request->getBodyParam('sourceId') ?: $this->request->getRequiredBodyParam('id');
 
         Metrix::$plugin->getSources()->deleteSourceById($sourceId);
 
-        return $this->asSuccess();
+        return $this->asSuccess(Craft::t('metrix', 'Source deleted.'));
     }
 
     public function actionRefreshSettings(): Response

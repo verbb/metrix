@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix deleting sources and views from their edit pages.
 - Fix unavailable custom source providers preventing dashboards and presets from loading.
 - Fix rebuilding project config placing presets under the wrong key.
 - Fix presets losing their widgets when all dashboard views have been deleted.

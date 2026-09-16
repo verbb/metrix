@@ -144,13 +144,12 @@ class ViewsController extends Controller
     public function actionDelete(): Response
     {
         $this->requirePostRequest();
-        $this->requireAcceptsJson();
 
         $viewId = $this->request->getRequiredBodyParam('id');
 
         Metrix::$plugin->getViews()->deleteViewById($viewId);
 
-        return $this->asSuccess();
+        return $this->asSuccess(Craft::t('metrix', 'View deleted.'));
     }
 
 }
