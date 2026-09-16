@@ -4,12 +4,15 @@ namespace verbb\metrix\sources;
 use verbb\metrix\base\CredentialsSource;
 use verbb\metrix\base\Period;
 use verbb\metrix\base\WidgetDataInterface;
+use verbb\metrix\widgets\data\PlotData;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
 use DateTime;
+use DateTimeZone;
+use Exception;
 use Throwable;
 
 use GuzzleHttp\Client;
@@ -72,19 +75,24 @@ class Cloudflare extends CredentialsSource
             if ($settingsKey === 'zoneId') {
                 $options = [];
 
-                $response = $this->request('GET', 'zones', [
-                    'query' => [
-                        'per_page' => 500,
-                    ],
-                ]);
-                $zones = $response['result'] ?? [];
+                $page = 1;
 
-                foreach ($zones as $zone) {
-                    $options[] = [
-                        'label' => $zone['name'],
-                        'value' => $zone['id'],
-                    ];
-                }
+                do {
+                    $response = $this->request('GET', 'zones', ['query' => ['per_page' => 50, 'page' => $page]]);
+                    $zones = $response['result'] ?? [];
+
+                    foreach ($zones as $zone) {
+                        $options[] = [
+                            'label' => $zone['name'],
+                            'value' => $zone['id'],
+                        ];
+                    }
+
+                    $more = isset($response['result_info']['total_pages'])
+                        ? $page < $response['result_info']['total_pages']
+                        : count($zones) === 50;
+                    $page++;
+                } while ($more);
 
                 // Sort the options alphabetically by label
                 usort($options, function ($a, $b) {
@@ -122,23 +130,33 @@ class Cloudflare extends CredentialsSource
     {
         $intervalDimension = $this->_getIntervalDimension($widgetData);
         $dateRange = $widgetData->period::getCurrentDateRange();
-        $startDate = $dateRange['start']->format('Y-m-d');
-        $endDate = $dateRange['end']->format('Y-m-d');
-
-        $dimensionPart = $widgetData->dimension ? $widgetData->dimension : 'date';
+        $hourly = $widgetData->period::getIntervalDimension() === Period::INTERVAL_HOUR;
+        $timeDimension = $hourly ? 'datetime' : 'date';
+        $startDate = Json::encode($dateRange['start']->format($hourly ? DATE_ATOM : 'Y-m-d'));
+        $endDate = Json::encode($dateRange['end']->format($hourly ? DATE_ATOM : 'Y-m-d'));
+        $zone = Json::encode($this->getZoneId());
+        $metric = match ($widgetData->metric) {
+            'bandwidth' => 'bytes',
+            'requests', 'pageViews', 'threats' => $widgetData->metric,
+            default => throw new Exception(Craft::t('metrix', 'Unsupported Cloudflare metric.')),
+        };
+        $dimension = $widgetData->widget::supportsDimensions() ? $widgetData->dimension : null;
+        $plot = is_a($widgetData->widget::getDataType(), PlotData::class, true);
+        $dimensions = $plot && !$dimension ? "dimensions { $timeDimension }" : '';
+        $sum = match ($dimension) {
+            'country' => "countryMap { clientCountryName $metric }",
+            'browser' => "browserMap { uaBrowserFamily $metric }",
+            null, '' => $metric,
+            default => throw new Exception(Craft::t('metrix', 'Unsupported Cloudflare dimension.')),
+        };
 
         $query = <<<GRAPHQL
         query {
             viewer {
-                zones(filter: {zoneTag: "{$this->getZoneId()}"}) {
-                    {$intervalDimension}(limit: 1000, filter: {date_geq: "{$startDate}", date_leq: "{$endDate}"}) {
-                        dimensions {
-                            $dimensionPart
-                        }
-
-                        sum {
-                            $widgetData->metric
-                        }
+                zones(filter: {zoneTag: $zone}) {
+                    {$intervalDimension}(limit: 1000, filter: {{$timeDimension}_geq: $startDate, {$timeDimension}_leq: $endDate}) {
+                        $dimensions
+                        sum { $sum }
                     }
                 }
             }
@@ -156,13 +174,46 @@ class Cloudflare extends CredentialsSource
         $data = [];
 
         foreach ($groups as $group) {
-            $dimension = $group['dimensions'][$dimensionPart];
-            $metricValue = $group['sum'][$widgetData->metric] ?? 0;
+            if ($dimension) {
+                $map = $dimension === 'country' ? 'countryMap' : 'browserMap';
+                $labelField = $dimension === 'country' ? 'clientCountryName' : 'uaBrowserFamily';
 
-            $data[$dimension] = $metricValue;
+                foreach ($group['sum'][$map] ?? [] as $row) {
+                    $label = $row[$labelField] ?? '';
+                    $data[$label] = ($data[$label] ?? 0) + ($row[$metric] ?? 0);
+                }
+
+                continue;
+            }
+
+            $key = 'total';
+            if ($plot) {
+                $date = new DateTime($group['dimensions'][$timeDimension]);
+                if ($hourly) {
+                    $date->setTimezone(new DateTimeZone(Craft::$app->getTimeZone()));
+                }
+                $key = match ($widgetData->period::getIntervalDimension()) {
+                    Period::INTERVAL_HOUR => $date->format('Y-m-d H:00:00'),
+                    Period::INTERVAL_MONTH => $date->format('Y-m-01'),
+                    default => $date->format('Y-m-d'),
+                };
+            }
+
+            $data[$key] = ($data[$key] ?? 0) + ($group['sum'][$metric] ?? 0);
         }
 
         return $data;
+    }
+
+    public function request(string $method, string $url, array $options = []): mixed
+    {
+        $response = parent::request($method, $url, $options);
+
+        if (!empty($response['errors']) || ($response['success'] ?? true) === false) {
+            throw new Exception(Craft::t('metrix', 'Cloudflare could not provide the requested data. Check your token permissions and selected date range.'));
+        }
+
+        return $response;
     }
 
 
@@ -223,10 +274,6 @@ class Cloudflare extends CredentialsSource
 
         if ($intervalDimension === Period::INTERVAL_DAY) {
             return 'httpRequests1dGroups';
-        }
-
-        if ($intervalDimension === Period::INTERVAL_MONTH) {
-            return 'httpRequests1mGroups';
         }
 
         return 'httpRequests1dGroups';

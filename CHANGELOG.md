@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix Cloudflare report queries, bandwidth values, monthly totals, dimension breakdowns, API errors, and zone selection.
 - Fix Pirsch chart intervals, rate and duration values, dimension pagination, and All Time queries.
 - Fix dashboard permissions being unavailable in Craft Team and Enterprise.
 - Fix GoatCounter hourly and monthly charts, missing dimension labels, and JSON request headers.
