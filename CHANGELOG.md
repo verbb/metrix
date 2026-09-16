@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix presets and duplication creating disabled widget types, and prevent repeated preset application to views containing hidden widgets.
 - Fix the unnamed source action menu and hide Delete until a source is saved.
 - Fix saved provider selections disappearing while option lists are unavailable.
 - Fix provider settings remaining unavailable after a successful source connection.

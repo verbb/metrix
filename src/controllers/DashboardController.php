@@ -109,7 +109,7 @@ class DashboardController extends Controller
         try {
             // Presets initialise an empty view. The per-view lock makes concurrent
             // retries idempotent instead of creating duplicate dashboards.
-            if ($widgetsService->getWidgetsForView($viewHandle)) {
+            if (array_filter($widgetsService->getAllWidgets(), fn($widget) => $widget->viewId === $view->id)) {
                 return $this->asFailure(Craft::t('metrix', 'Presets can only be applied to an empty dashboard.'));
             }
 
@@ -117,6 +117,14 @@ class DashboardController extends Controller
 
             if (!$preset) {
                 return $this->asFailure(Craft::t('metrix', 'Unable to find preset.'));
+            }
+
+            $presetWidgets = $preset->getWidgets();
+
+            foreach ($presetWidgets as $widget) {
+                if (!$widgetsService->isAllowedWidgetType($widget::class)) {
+                    return $this->asFailure(Craft::t('metrix', 'This preset contains unavailable widget types.'));
+                }
             }
 
             // Presets can be stored in project config before any source exists, but saved
@@ -130,7 +138,7 @@ class DashboardController extends Controller
             $transaction = Craft::$app->getDb()->beginTransaction();
 
             try {
-                foreach ($preset->getWidgets() as $widget) {
+                foreach ($presetWidgets as $widget) {
                     $widget->setView($view);
 
                     if (!$widget->getSource()) {
@@ -415,6 +423,10 @@ class DashboardController extends Controller
         }
 
         DashboardPermissions::requireWidgetAccess($originalWidget);
+
+        if (!Metrix::$plugin->getWidgets()->isAllowedWidgetType($originalWidget::class)) {
+            return $this->asFailure(Craft::t('metrix', 'Invalid widget type.'));
+        }
 
         $duplicatedWidget = clone $originalWidget;
         $duplicatedWidget->id = null;
