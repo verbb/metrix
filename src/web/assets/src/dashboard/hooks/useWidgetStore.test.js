@@ -54,6 +54,28 @@ describe('useWidgetStore duplicate lifecycle', () => {
         expect(duplicate.waitForData).toBe(false);
     });
 
+    it.each([false, true])('removes a failed duplicate placeholder without disturbing another view (%s)', async(navigate) => {
+        const original = { __id: 'original', data: { id: 10 } };
+        useWidgetStore.setState({ widgets: [original] });
+        let fail;
+        postMock.mockImplementationOnce(() => new Promise((_resolve, reject) => { fail = reject; }));
+        const pending = useWidgetStore.getState().duplicateWidget(original);
+        expect(useWidgetStore.getState().widgets).toHaveLength(2);
+        if (navigate) {
+            useWidgetStore.getState().clearWidgets();
+            useWidgetStore.getState().addWidget({ __id: 'other', data: { id: 20 } });
+        }
+        fail(new Error('offline'));
+        await pending;
+
+        expect(useWidgetStore.getState().widgets.map(widget => widget.data.id)).toEqual(navigate ? [20] : [10]);
+        if (navigate) {
+            expect(Craft.cp.displayError).not.toHaveBeenCalled();
+        } else {
+            expect(Craft.cp.displayError).toHaveBeenCalledWith('Failed to duplicate widget. Please try again.');
+        }
+    });
+
     it('rolls back an optimistic widget edit when saving fails', async() => {
         const original = {
             __id: 'original',

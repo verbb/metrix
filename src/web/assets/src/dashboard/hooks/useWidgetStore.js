@@ -194,13 +194,13 @@ const useWidgetStore = create((set, get) => {
             } catch (error) {
                 console.error('Error duplicating widget:', error);
 
-                get().updateWidgetState(newWidget, {
-                    loading: false,
-                    error: {
-                        message: Craft.t('metrix', 'Failed to duplicate widget. Please try again.'),
-                        error,
-                    },
-                });
+                if (!get().widgets.some((widget) => widget.__id === newWidgetId)) {
+                    return;
+                }
+
+                // No saved identity exists to retry or delete this placeholder.
+                set((state) => ({ widgets: state.widgets.filter((widget) => widget.__id !== newWidgetId) }));
+                Craft.cp.displayError(Craft.t('metrix', 'Failed to duplicate widget. Please try again.'));
             }
         },
 
