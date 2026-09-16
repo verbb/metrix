@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix widget deletion event listeners receiving stale cached records.
 - Fix rolling date ranges reusing cached results from the previous calendar day.
 - Fix Google Analytics aggregate counters and top-row ordering, and explain unsupported realtime scope filters.
 - Fix Umami Cloud API paths, dimension rates and durations, monthly chart buckets, and All Time queries.

@@ -43,6 +43,19 @@ it('makes saved sources visible after the source list has been read', function()
     expect($service->getSourceById($source->id)?->handle)->toBe($source->handle);
 });
 
+it('exposes the completed deletion to widget event listeners', function() {
+    $service = Metrix::$plugin->getWidgets();
+    $service->getAllWidgets();
+    $observed = false;
+    $service->on(Widgets::EVENT_AFTER_DELETE_WIDGET, function($event) use ($service, &$observed) {
+        $observed = $service->getWidgetById($event->widget->id);
+    });
+
+    $service->deleteWidget($this->mutationWidget);
+
+    expect($observed)->toBeNull();
+});
+
 it('returns fresh settings after a source is edited through a separate instance', function() {
     $service = Metrix::$plugin->getSources();
     $service->getAllSources();

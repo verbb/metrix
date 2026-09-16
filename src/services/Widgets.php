@@ -235,6 +235,7 @@ class Widgets extends Component
         }
 
         Db::delete('{{%metrix_widgets}}', ['id' => $widget->id]);
+        $this->_widgets = null;
 
         // Fire an 'afterDeleteWidget' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_WIDGET)) {
@@ -242,9 +243,6 @@ class Widgets extends Component
                 'widget' => $widget,
             ]));
         }
-
-        // Clear caches
-        $this->_widgets = null;
 
         return true;
     }
