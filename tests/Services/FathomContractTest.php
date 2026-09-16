@@ -1,0 +1,45 @@
+<?php
+
+declare(strict_types=1);
+
+use Tests\Support\ProviderHttp;
+use verbb\metrix\base\WidgetData;
+use verbb\metrix\periods\AllTime;
+use verbb\metrix\periods\Last7Days;
+use verbb\metrix\sources\Fathom;
+use verbb\metrix\widgets\Counter;
+use verbb\metrix\widgets\Table;
+
+it('uses Fathom date filters and reads ungrouped totals', function() {
+    $source = new Fathom(['siteId' => 'fixture']);
+    $history = [];
+    ProviderHttp::mock($source, [[['visits' => '45']]], $history);
+    $data = $source->fetchData(new WidgetData(['widget' => new Counter(), 'period' => Last7Days::class, 'metric' => 'visitors']));
+    parse_str($history[0]['request']->getUri()->getQuery(), $query);
+    $range = Last7Days::getDateRange();
+
+    expect($query)->toMatchArray([
+        'aggregates' => 'visits',
+        'date_from' => $range['start']->format('Y-m-d H:i:s'),
+        'date_to' => $range['end']->format('Y-m-d H:i:s'),
+    ])->and(array_values($data))->toBe(['45']);
+});
+
+it('omits Fathom date filters for all recorded history', function() {
+    $source = new Fathom();
+    $history = [];
+    ProviderHttp::mock($source, [[['pageviews' => '120']]], $history);
+    $data = $source->fetchData(new WidgetData(['widget' => new Counter(), 'period' => AllTime::class, 'metric' => 'pageviews']));
+    parse_str($history[0]['request']->getUri()->getQuery(), $query);
+
+    expect($query)->not->toHaveKeys(['date_from', 'date_to'])->and(array_values($data))->toBe(['120']);
+});
+
+it('keeps direct and zero-valued Fathom dimension labels', function() {
+    $source = new Fathom();
+    $history = [];
+    ProviderHttp::mock($source, [[['referrer_hostname' => '', 'pageviews' => '12'], ['referrer_hostname' => '0', 'pageviews' => '4']]], $history);
+    $data = $source->fetchData(new WidgetData(['widget' => new Table(), 'period' => Last7Days::class, 'metric' => 'pageviews', 'dimension' => 'referrer']));
+
+    expect($data)->toBe(['' => '12', 0 => '4']);
+});

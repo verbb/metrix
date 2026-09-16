@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix Fathom date filtering, visitor metrics, aggregate counters, and All Time queries.
 - Fix Plausible aggregate totals, page dimensions, All Time queries, and scoped realtime counts.
 - Fix fractional metrics being truncated in counters and dimension charts, including percentage comparisons.
 - Fixed new widgets failing to save, and widget edits failing to refresh the displayed data.

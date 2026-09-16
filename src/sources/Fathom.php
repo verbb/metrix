@@ -102,7 +102,7 @@ class Fathom extends CredentialsSource
         // Hardcoded list of metrics based on Fathom documentation
         $metrics = [
             'pageviews' => 'Pageviews',
-            'visitors' => 'Unique Visitors',
+            'visits' => 'Unique Visitors',
             'avg_duration' => 'Average Visit Duration',
             'bounce_rate' => 'Bounce Rate',
         ];
@@ -137,20 +137,20 @@ class Fathom extends CredentialsSource
     public function fetchData(WidgetDataInterface $widgetData): array
     {
         $dateRange = $widgetData->period::getCurrentDateRange();
-        $startDate = $dateRange['start']->format('Y-m-d');
-        $endDate = $dateRange['end']->format('Y-m-d');
-
-        $metrics = [$widgetData->metric];
-        $dimensions = $widgetData->dimension ? [$widgetData->dimension] : [];
+        // Retain the previously offered visitors key for saved widgets.
+        $metricName = $widgetData->metric === 'visitors' ? 'visits' : $widgetData->metric;
 
         $payload = [
             'entity' => 'pageview',
             'entity_id' => $this->getSiteId(),
-            'aggregates' => implode(',', $metrics),
-            'timezone' => 'UTC',
-            'start_date' => $startDate,
-            'end_date' => $endDate,
+            'aggregates' => $metricName,
+            'timezone' => Craft::$app->getTimeZone(),
         ];
+
+        if ($dateRange) {
+            $payload['date_from'] = $dateRange['start']->format('Y-m-d H:i:s');
+            $payload['date_to'] = $dateRange['end']->format('Y-m-d H:i:s');
+        }
 
         // Check if we should group things via date, or fields
         $groupingDimension = $this->_getGroupingDimension($widgetData);
@@ -175,10 +175,10 @@ class Fathom extends CredentialsSource
         $data = [];
 
         foreach ($response as $result) {
-            $metric = $result[$widgetData->metric] ?? null;
-            $dimension = $result[$groupedDimension] ?? null;
+            $metric = $result[$metricName] ?? null;
+            $dimension = $widgetData->widget instanceof Counter ? 'total' : ($result[$groupedDimension] ?? null);
 
-            if ($dimension) {
+            if ($dimension !== null) {
                 $data[$dimension] = $metric;
             }
         }
@@ -208,7 +208,7 @@ class Fathom extends CredentialsSource
     protected function getCanonicalMetricMap(): array
     {
         return [
-            'visitors' => 'visitors',
+            'visitors' => 'visits',
             'pageviews' => 'pageviews',
             'bounce_rate' => 'bounce_rate',
             'avg_duration' => 'avg_duration',
