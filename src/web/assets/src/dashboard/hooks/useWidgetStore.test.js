@@ -71,6 +71,66 @@ describe('useWidgetStore duplicate lifecycle', () => {
         expect(widget.error.message).toBe('Failed to update widget. Please try again.');
     });
 
+    it.each([[true, true], [true, false], [false, true], [false, false]])(
+        'persists overlapping edits in order and rolls back to confirmed data (%s, %s)',
+        async(firstSucceeds, secondSucceeds) => {
+            const original = { __id: 'original', data: { id: 10, width: 1 } };
+            useWidgetStore.setState({ widgets: [original] });
+            let finishFirst;
+            let persistedWidth = 1;
+            postMock.mockImplementationOnce(() => new Promise((resolve, reject) => {
+                finishFirst = () => {
+                    if (firstSucceeds) {
+                        persistedWidth = 2;
+                        resolve({ data: { id: 10, width: persistedWidth } });
+                    } else {
+                        reject(new Error('first failed'));
+                    }
+                };
+            }));
+            postMock.mockImplementationOnce(async() => {
+                if (!secondSucceeds) {
+                    throw new Error('second failed');
+                }
+                persistedWidth = 3;
+                return { data: { id: 10, width: persistedWidth } };
+            });
+            const older = useWidgetStore.getState().updateWidget(original, { width: 2 }, false);
+            await Promise.resolve();
+            const newer = useWidgetStore.getState().updateWidget(original, { width: 3 }, false);
+            await Promise.resolve();
+            const simultaneous = postMock.mock.calls.length;
+            finishFirst();
+            await Promise.all([older, newer]);
+
+            const expected = secondSucceeds ? 3 : (firstSucceeds ? 2 : 1);
+            expect(simultaneous).toBe(1);
+            expect(persistedWidth).toBe(expected);
+            expect(useWidgetStore.getState().widgets[0].data.width).toBe(expected);
+            expect(useWidgetStore.getState().widgets[0].waitForData).toBe(false);
+        },
+    );
+
+    it('still fetches a changed period when a width edit follows it', async() => {
+        const original = { __id: 'original', data: { id: 10, width: 1, period: 'old' } };
+        useWidgetStore.setState({ widgets: [original] });
+        let finish;
+        postMock.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
+        postMock.mockResolvedValueOnce({ data: { id: 10, width: 3, period: 'new' } });
+        getMock.mockResolvedValue({ data: { total: 42 } });
+        const older = useWidgetStore.getState().updateWidget(original, { period: 'new' });
+        await Promise.resolve();
+        const newer = useWidgetStore.getState().updateWidget(original, { width: 3 }, false);
+        finish({ data: { id: 10, width: 1, period: 'new' } });
+        await Promise.all([older, newer]);
+        await Promise.resolve();
+
+        const current = useWidgetStore.getState().widgets[0];
+        expect(current.data).toMatchObject({ width: 3, period: 'new' });
+        expect(current.chartData).toEqual({ total: 42 });
+        expect(current.waitForData).toBe(false);
+    });
+
     it('restores widget order when persistence fails', async() => {
         const first = { __id: 'first', data: { id: 10 } };
         const second = { __id: 'second', data: { id: 11 } };

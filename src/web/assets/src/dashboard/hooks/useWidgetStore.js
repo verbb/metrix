@@ -9,6 +9,7 @@ import useAppStore from '@dashboard/hooks/useAppStore';
 
 const useWidgetStore = create((set, get) => {
     const reorderQueues = new Map();
+    const widgetSaveQueues = new Map();
 
     return {
         widgets: [],
@@ -65,45 +66,73 @@ const useWidgetStore = create((set, get) => {
         },
 
         updateWidget: async(widget, updates, fetchData = true) => {
-            // Merge updates into the current widget data
-            const originalData = widget.data;
-            const updatedData = { ...widget.data, ...updates };
+            const current = get().widgets.find((item) => item.__id === widget.__id);
 
-            // Update client-side state with conditional loading and error reset
-            get().updateWidgetState(widget, {
-                data: updatedData,
-                loading: fetchData, // Show loading only if fetching is needed
+            if (!current) {
+                return;
+            }
+
+            let queue = widgetSaveQueues.get(current.data.id);
+
+            if (!queue) {
+                queue = { promise: Promise.resolve(), requestId: 0, savedData: current.data, fetchData: false };
+                widgetSaveQueues.set(current.data.id, queue);
+            }
+
+            const requestId = ++queue.requestId;
+            queue.fetchData ||= fetchData;
+            const isCurrentSave = () => queue.requestId === requestId
+                && get().widgets.some((item) => item.__id === current.__id);
+
+            get().updateWidgetState(current, {
+                data: { ...current.data, ...updates },
+                loading: queue.fetchData,
                 error: null,
-                ...(fetchData && { waitForData: true }), // Add `waitForData` only if fetching is needed
+                ...(queue.fetchData && { waitForData: true, requestId: null }),
             });
 
-            try {
-                // Send only the updated data to the server
-                const response = await api.post('save-widget', { id: widget.data.id, widget: updates });
+            // Serialise writes as well as responses so the latest choice survives reload.
+            // Keep confirmed data separately from optimistic edits for failure recovery.
+            const pending = queue.promise.then(async() => {
+                try {
+                    const response = await api.post('save-widget', { id: current.data.id, widget: updates });
+                    queue.savedData = { ...queue.savedData, ...response.data };
 
-                // Update the client-side state with the server's response
-                get().updateWidgetState(widget, {
-                    data: { ...updatedData, ...response.data }, // Merge server response into the data
-                    loading: false,
-                    ...(fetchData && { waitForData: false }), // Maintain `waitForData` if fetching is needed
-                });
+                    if (!isCurrentSave()) {
+                        return;
+                    }
 
-                // If fetching data after update, trigger fetch
-                if (fetchData) {
-                    get().fetchWidgetData(widget.__id);
+                    get().updateWidgetState(current, {
+                        data: queue.savedData,
+                        loading: false,
+                        waitForData: false,
+                    });
+
+                    if (queue.fetchData) {
+                        get().fetchWidgetData(current.__id);
+                    }
+                } catch (error) {
+                    if (!isCurrentSave()) {
+                        return;
+                    }
+
+                    console.error('Error updating widget:', error);
+                    get().updateWidgetState(current, {
+                        data: queue.savedData,
+                        loading: false,
+                        waitForData: false,
+                        error: {
+                            message: Craft.t('metrix', 'Failed to update widget. Please try again.'),
+                            error,
+                        },
+                    });
                 }
-            } catch (error) {
-                console.error('Error updating widget:', error);
+            });
+            queue.promise = pending;
+            await pending;
 
-                // Update client-side state to reflect the error
-                get().updateWidgetState(widget, {
-                    data: originalData,
-                    loading: false,
-                    error: {
-                        message: Craft.t('metrix', 'Failed to update widget. Please try again.'),
-                        error,
-                    },
-                });
+            if (queue.promise === pending) {
+                widgetSaveQueues.delete(current.data.id);
             }
         },
 
