@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 import { Spinner } from '@verbb/plugin-kit-react/components/Spinner';
 
@@ -39,6 +39,7 @@ export const Dashboard = () => {
     const [error, setError] = useState(null);
     const [loadingPresets, setLoadingPresets] = useState(false);
     const [errorPresets, setErrorPresets] = useState(null);
+    const viewRequestId = useRef(0);
 
     // Load currentView from query string on initial mount
     useEffect(() => {
@@ -81,6 +82,7 @@ export const Dashboard = () => {
     };
 
     const handleViewChange = async(view) => {
+        const requestId = ++viewRequestId.current;
         setCurrentView(view);
         setGlobalPeriod(null);
 
@@ -93,10 +95,19 @@ export const Dashboard = () => {
 
         try {
             const { data: presetWidgets } = await api.post('widgets', { view });
+
+            if (requestId !== viewRequestId.current) {
+                return;
+            }
+
             const preloadedWidgets = preloadWidgets(presetWidgets);
 
             loadWidgets(preloadedWidgets);
         } catch (error) {
+            if (requestId !== viewRequestId.current) {
+                return;
+            }
+
             console.error('Failed to load widgets:', error);
 
             setError({
@@ -104,7 +115,9 @@ export const Dashboard = () => {
                 error,
             });
         } finally {
-            setLoading(false);
+            if (requestId === viewRequestId.current) {
+                setLoading(false);
+            }
         }
     };
 

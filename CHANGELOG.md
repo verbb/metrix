@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix delayed view responses replacing the currently selected dashboard’s widgets.
 - Fixed an information disclosure vulnerability.
 - Fix switching dashboard views failing to load their widgets.
 - Fix sources with missing environment credentials being treated as configured.
