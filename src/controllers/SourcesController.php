@@ -192,6 +192,10 @@ class SourcesController extends Controller
 
         $source = Metrix::$plugin->getSources()->getSourceById($sourceId);
 
+        if (!$source) {
+            return $this->asFailure(Craft::t('metrix', 'Unknown source: “{id}”', ['id' => $sourceId]));
+        }
+
         if (!$source::supportsConnection()) {
             return $this->asFailure(Craft::t('metrix', '“{id}” does not support connection.', ['id' => $sourceId]));
         }

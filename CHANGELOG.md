@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix connection checks returning a server error for deleted sources.
 - Fix delayed view responses replacing the currently selected dashboard’s widgets.
 - Fixed an information disclosure vulnerability.
 - Fix switching dashboard views failing to load their widgets.
