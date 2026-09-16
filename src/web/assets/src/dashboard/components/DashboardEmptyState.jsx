@@ -19,9 +19,9 @@ export const DashboardEmptyState = ({
     const sourcesUrl = typeof Craft.getCpUrl === 'function'
         ? Craft.getCpUrl('metrix/sources')
         : Craft.getUrl('metrix/sources');
-    const settingsUrl = typeof Craft.getCpUrl === 'function'
-        ? Craft.getCpUrl('metrix/settings')
-        : Craft.getUrl('metrix/settings');
+    const viewsUrl = typeof Craft.getCpUrl === 'function'
+        ? Craft.getCpUrl('metrix/views')
+        : Craft.getUrl('metrix/views');
 
     const renderContent = () => {
         if (type === 'noSources') {
@@ -62,7 +62,7 @@ export const DashboardEmptyState = ({
                         type="button"
                         variant="primary"
                         size="lg"
-                        onClick={() => { window.location.href = settingsUrl; }}
+                        onClick={() => { window.location.href = viewsUrl; }}
                     >
                         {Craft.t('metrix', 'Configure views')}
                     </Button>
