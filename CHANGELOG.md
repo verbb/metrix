@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix Mixpanel All Time reports failing before requesting data.
 - Fix GoatCounter requests shifting non-UTC date ranges and extending partial comparison periods.
 - Fix pie chart legend controls being unavailable to keyboard and screen-reader users.
 - Fix Cloudflare All Time reports failing instead of querying the zone’s available history.

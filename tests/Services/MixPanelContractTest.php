@@ -42,3 +42,19 @@ it('tests Mixpanel service account access to the selected project', function() {
     expect($request->getUri()->getPath())->toBe('/api/query/events/names')
         ->and($query)->toMatchArray(['project_id' => '12345', 'type' => 'general']);
 });
+
+it('requests a bounded date range covering Mixpanel full history', function() {
+    $source = new MixPanel();
+    $history = [];
+    ProviderHttp::mock($source, [['data' => [
+        'series' => ['2010-05-01', '2026-09-01'],
+        'values' => ['Purchase' => ['2010-05-01' => 12, '2026-09-01' => 7]],
+    ]]], $history);
+    $data = $source->fetchData(new WidgetData(['widget' => new Line(), 'period' => \verbb\metrix\periods\AllTime::class, 'metric' => 'Purchase']));
+    parse_str($history[0]['request']->getUri()->getQuery(), $query);
+
+    expect($data)->toBe(['2010-05-01' => 12, '2026-09-01' => 7])
+        ->and($query['from_date'])->toBe('1970-01-01')
+        ->and($query['to_date'])->toBe((new DateTime())->format('Y-m-d'))
+        ->and($query['unit'])->toBe('month');
+});

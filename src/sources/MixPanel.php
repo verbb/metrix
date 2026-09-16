@@ -92,6 +92,11 @@ class MixPanel extends CredentialsSource
     {
         $intervalDimension = $this->_getIntervalDimension($widgetData);
         $dateRange = $widgetData->period::getCurrentDateRange();
+
+        if (!$dateRange) {
+            $dateRange = ['start' => new DateTime('1970-01-01'), 'end' => new DateTime()];
+        }
+
         $startDate = $dateRange['start']->format('Y-m-d');
         $endDate = $dateRange['end']->format('Y-m-d');
 
