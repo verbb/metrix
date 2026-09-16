@@ -81,4 +81,22 @@ describe('useWidgetStore duplicate lifecycle', () => {
         expect(useWidgetStore.getState().widgets.map((widget) => widget.__id)).toEqual(['first', 'second']);
         expect(Craft.cp.displayError).toHaveBeenCalledWith('Failed to save widget order. Please try again.');
     });
+
+    it.each([false, true])('keeps the newest widget response when an older request finishes last (dashboard: %s)', async(dashboard) => {
+        const widget = { __id: 'first', data: { id: 10 } };
+        useWidgetStore.setState({ widgets: [widget] });
+        let resolveOld;
+        getMock.mockImplementationOnce(() => new Promise((resolve) => { resolveOld = resolve; }));
+        getMock.mockResolvedValueOnce({ data: { total: 25 } });
+
+        const oldRequest = dashboard
+            ? useWidgetStore.getState().fetchAllWidgetData()
+            : useWidgetStore.getState().fetchWidgetData('first');
+        await useWidgetStore.getState().refreshWidgetData('first');
+        resolveOld({ data: { total: 10 } });
+        await oldRequest;
+
+        expect(useWidgetStore.getState().widgets[0].chartData.total).toBe(25);
+        expect(useWidgetStore.getState().widgets[0].waitForData).toBe(false);
+    });
 });

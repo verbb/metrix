@@ -44,53 +44,8 @@ const useWidgetStore = create((set, get) => {
             const generation = get().fetchGeneration + 1;
             set({ fetchGeneration: generation });
 
-            set((state) => {
-                return {
-                    widgets: state.widgets.map((widget) => {
-                        if (!widget.data?.id) {
-                            return widget;
-                        }
-
-                        return {
-                            ...widget,
-                            loading: true,
-                            error: null,
-                            waitForData: true,
-                        };
-                    }),
-                };
-            });
-
-            await Promise.allSettled(widgets.map(async(widget) => {
-                try {
-                    const payload = getWidgetDataParams(widget, { refresh });
-                    const response = await api.get('widget-data', payload);
-
-                    if (get().fetchGeneration !== generation) {
-                        return;
-                    }
-
-                    get().updateWidgetState(widget, {
-                        chartData: response.data,
-                        loading: false,
-                        waitForData: false,
-                        error: null,
-                    });
-                } catch (error) {
-                    if (get().fetchGeneration !== generation) {
-                        return;
-                    }
-
-                    // Reconnect messages are face-worthy; other API dumps stay in Details.
-                    get().updateWidgetState(widget, {
-                        loading: false,
-                        waitForData: false,
-                        error: {
-                            message: getWidgetFetchFaceMessage(error),
-                            error,
-                        },
-                    });
-                }
+            await Promise.allSettled(widgets.map((widget) => {
+                return get().fetchWidgetData(widget.__id, { refresh });
             }));
         },
 
@@ -226,16 +181,20 @@ const useWidgetStore = create((set, get) => {
             }
 
             const generation = get().fetchGeneration;
+            const requestId = nanoid();
+            const isCurrentRequest = () => {
+                return get().fetchGeneration === generation
+                    && get().widgets.find((current) => current.__id === id)?.requestId === requestId;
+            };
 
-            // Update state to indicate loading
-            get().updateWidgetState(widget, { loading: true, error: null });
+            get().updateWidgetState(widget, { requestId, loading: true, waitForData: true, error: null });
 
             try {
                 const payload = getWidgetDataParams(widget, { refresh });
 
                 const response = await api.get('widget-data', payload);
 
-                if (get().fetchGeneration !== generation) {
+                if (!isCurrentRequest()) {
                     return;
                 }
 
@@ -243,14 +202,16 @@ const useWidgetStore = create((set, get) => {
                 get().updateWidgetState(widget, {
                     chartData: response.data, // Store fetched chart data
                     loading: false,
+                    waitForData: false,
                 });
             } catch (error) {
-                if (get().fetchGeneration !== generation) {
+                if (!isCurrentRequest()) {
                     return;
                 }
 
                 get().updateWidgetState(widget, {
                     loading: false,
+                    waitForData: false,
                     error: {
                         message: getWidgetFetchFaceMessage(error),
                         error,
