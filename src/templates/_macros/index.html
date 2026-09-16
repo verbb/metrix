@@ -3,15 +3,21 @@
     {% import 'verbb-base/_macros' as macros %}
 
     {% set connected = source.isConnected() %}
+    {% set value = source[config.name] ?? '' %}
+    {% set options = connected ? source.getSourceSettings(config.name) : null %}
+
+    {# A cold option cache must not clear a saved selection on an unrelated edit. #}
+    {% if options is null and (value ~ '') != '' %}
+        {% set options = [{ label: value, value: value }] %}
+    {% endif %}
     {% set input %}
         <div data-provider-settings-source="{{ source.id }}">
             <div data-provider-settings-input class="{{ not connected ? 'hidden' }}">
                 {{ forms.select({
                     id: config.name,
                     name: config.name,
-                    options: connected ? source.getSourceSettings(config.name) : [],
-                    value: source[config.name] ?? '',
-                    disabled: not connected,
+                    options: options ?? [],
+                    value: value,
                 }) }}
 
                 <button class="btn metrix-btn-transparent" type="button" data-icon="refresh" aria-label="{{ 'Refresh {setting}' | t('metrix', { setting: config.label }) }}" title="{{ 'Refresh {setting}' | t('metrix', { setting: config.label }) }}" data-refresh-settings="{{ config.name }}" data-source="{{ source.handle }}" data-source-class="{{ className(source) }}" {{ not connected ? 'disabled' }}></button>
