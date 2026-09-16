@@ -73,8 +73,8 @@ class Last30Days extends Period
     public static function getChartMetadata(): array
     {
         return [
-            'xAxisLabelFormat' => 'datePeriodDayShort',
-            'tooltipFormat' => 'datePeriodDayLong',
+            'xAxisLabelFormat' => 'datePeriodMonthShort',
+            'tooltipFormat' => 'datePeriodMonthLong',
         ];
     }
 }
