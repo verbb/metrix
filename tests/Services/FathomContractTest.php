@@ -14,9 +14,9 @@ it('uses Fathom date filters and reads ungrouped totals', function() {
     $source = new Fathom(['siteId' => 'fixture']);
     $history = [];
     ProviderHttp::mock($source, [[['visits' => '45']]], $history);
-    $data = $source->fetchData(new WidgetData(['widget' => new Counter(), 'period' => Last7Days::class, 'metric' => 'visitors']));
+    $range = ['start' => new DateTime('2026-09-10 00:00:00'), 'end' => new DateTime('2026-09-16 12:34:56')];
+    $data = Last7Days::withDateRange($range, fn() => $source->fetchData(new WidgetData(['widget' => new Counter(), 'period' => Last7Days::class, 'metric' => 'visitors'])));
     parse_str($history[0]['request']->getUri()->getQuery(), $query);
-    $range = Last7Days::getDateRange();
 
     expect($query)->toMatchArray([
         'aggregates' => 'visits',
