@@ -102,6 +102,7 @@ class Preset extends SavableComponent
             ArrayHelper::remove($widgetConfig, 'metricLabel');
             ArrayHelper::remove($widgetConfig, 'dimensionLabel');
             ArrayHelper::remove($widgetConfig, 'periodLabel');
+            ArrayHelper::remove($widgetConfig, 'displayTitle');
 
             // Null source is okay here, as that might not be setup yet
             if (array_key_exists('source', $widgetConfig) && $widgetConfig['source'] === null) {
