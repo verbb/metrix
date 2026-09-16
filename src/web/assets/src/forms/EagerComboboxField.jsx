@@ -50,6 +50,7 @@ function GroupedComboboxField({
 
     return (
         <Combobox
+            aria-label={field.label}
             value={stringValue}
             placeholder={field.placeholder}
             emptyMessage={field.emptyMessage || Craft.t('metrix', 'No options found.')}
@@ -175,6 +176,7 @@ export const EagerComboboxField = ({ form, field }) => {
                     />
                 ) : (
                     <ComboboxInput
+                        aria-label={field.label}
                         options={options}
                         value={value ?? ''}
                         placeholder={field.placeholder}

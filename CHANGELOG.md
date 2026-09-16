@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix missing accessible names on widget metric and dimension selectors.
 - Fix Table widgets missing accessible table structure and sort direction.
 - Fix self-hosted Umami reports remaining unavailable after a cached login token is rejected.
 - Fix Fathom site selection omitting sites after the first page of API results.
