@@ -19,8 +19,7 @@ dependency, seeds plugin fixtures and runs Pest. No separate Craft site, host PH
 host Composer, database setup or `.env.testing` file is required. The root Composer
 `test` aliases call this same command if you already have Composer on your host.
 
-Tests run against real Craft. The PHPUnit XML discovers PHP tests; the suite
-manifest in `tests/runtime/suite.json` defines intentional group exclusions.
+Tests run against Craft’s web application with sessions disabled, including persisted users and permissions. Installation and runtime verification use Craft’s console application. The PHPUnit XML discovers PHP tests; the suite manifest in `tests/runtime/suite.json` defines intentional group exclusions.
 The default excludes slow, performance, large-performance and migration-plugin
 groups. Some plugins have additional suites listed in that manifest. Test files
 named `Unit` may still rely on the Craft application.
