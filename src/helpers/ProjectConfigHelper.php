@@ -15,7 +15,7 @@ class ProjectConfigHelper
     {
         $configData = [];
 
-        $configData['metrix'] = self::_getPresetsData();
+        $configData['presets'] = self::_getPresetsData();
 
         return array_filter($configData);
     }
