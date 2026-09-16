@@ -10,9 +10,11 @@ use Craft;
 use craft\helpers\App;
 
 use DateTime;
+use Exception;
 use Throwable;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 
 class GoatCounter extends CredentialsSource
 {
@@ -124,6 +126,26 @@ class GoatCounter extends CredentialsSource
         return true;
     }
 
+    public function request(string $method, string $url, array $options = []): mixed
+    {
+        try {
+            return parent::request($method, $url, $options);
+        } catch (ClientException $e) {
+            $response = $e->getResponse();
+            $reset = $response->getHeaderLine('X-Rate-Limit-Reset');
+            $delay = is_numeric($reset) ? max(0, (int)ceil((float)$reset)) : 1;
+
+            if ($response->getStatusCode() !== 429 || $delay > 10) {
+                throw $e;
+            }
+
+            // A large report may exceed the provider's four requests per second.
+            sleep($delay);
+
+            return parent::request($method, $url, $options);
+        }
+    }
+
     public function getClient(): Client
     {
         if ($this->_client) {
@@ -218,45 +240,40 @@ class GoatCounter extends CredentialsSource
 
     private function _fetchDimensionData(WidgetDataInterface $widgetData): array
     {
-        if ($widgetData->dimension === 'pages') {
-            $response = $this->request('GET', 'api/v0/stats/hits', [
-                'query' => array_merge($this->_getDateQuery($widgetData), [
-                    'limit' => min(100, $widgetData->getRowLimit()),
-                ]),
-            ]);
-
-            $data = [];
-
-            foreach ($response['hits'] ?? [] as $row) {
-                $path = $row['path'] ?? null;
-
-                if ($path === null) {
-                    continue;
-                }
-
-                $data[$path] = $row['count'] ?? 0;
-            }
-
-            return $data;
-        }
-
-        $response = $this->request('GET', 'api/v0/stats/' . $widgetData->dimension, [
-            'query' => array_merge($this->_getDateQuery($widgetData), [
-                'limit' => min(100, $widgetData->getRowLimit()),
-            ]),
-        ]);
-
+        $pages = $widgetData->dimension === 'pages';
+        $endpoint = $pages ? 'hits' : $widgetData->dimension;
+        $dateQuery = $this->_getDateQuery($widgetData);
+        $limit = $widgetData->getRowLimit();
+        $offset = 0;
+        $excludedPaths = [];
         $data = [];
 
-        foreach ($response['stats'] ?? [] as $row) {
-            $name = $row['name'] ?? null;
+        do {
+            $query = array_merge($dateQuery, ['limit' => min(100, $limit - $offset)]);
 
-            if ($name === null) {
-                continue;
+            if ($pages && $excludedPaths) {
+                $query['exclude_paths'] = implode(',', $excludedPaths);
+            } elseif (!$pages) {
+                $query['offset'] = $offset;
             }
 
-            $data[$name] = $row['count'] ?? 0;
-        }
+            $response = $this->request('GET', 'api/v0/stats/' . $endpoint, ['query' => $query]);
+            $rows = $response[$pages ? 'hits' : 'stats'] ?? [];
+
+            foreach ($rows as $row) {
+                $label = $row[$pages ? 'path' : 'name'] ?? null;
+
+                if ($label !== null) {
+                    $data[$label] = $row['count'] ?? 0;
+                }
+
+                if ($pages && isset($row['path_id'])) {
+                    $excludedPaths[] = $row['path_id'];
+                }
+            }
+
+            $offset += count($rows);
+        } while ($rows && ($response['more'] ?? false) && $offset < $limit);
 
         return $data;
     }
@@ -264,6 +281,19 @@ class GoatCounter extends CredentialsSource
     private function _getDateQuery(WidgetDataInterface $widgetData): array
     {
         $dateRange = $widgetData->period::getCurrentDateRange();
+
+        if (!$dateRange) {
+            // The current site precedes its child sites in the API response.
+            $response = $this->request('GET', 'api/v0/sites');
+            $site = $response['sites'][0] ?? [];
+            $start = $site['first_hit_at'] ?? $site['created_at'] ?? null;
+
+            if (!$start) {
+                throw new Exception(Craft::t('metrix', 'Unable to determine the GoatCounter site’s reporting start date.'));
+            }
+
+            $dateRange = ['start' => new DateTime($start), 'end' => new DateTime()];
+        }
 
         return [
             'start' => $dateRange['start']->format('Y-m-d\T00:00:00\Z'),
