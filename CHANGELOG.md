@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix self-hosted Umami reports remaining unavailable after a cached login token is rejected.
 - Fix Fathom site selection omitting sites after the first page of API results.
 - Fix Pirsch sources failing after an access token is rejected or when no domains are available.
 - Fix GoatCounter All Time reports, dimension reports with more than 100 rows, and recovery from temporary API rate limits.

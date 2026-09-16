@@ -56,3 +56,25 @@ it('uses the available Umami history for All Time', function() {
 
     expect($data)->toBe(['total' => 100.0])->and((int)$query['startAt'])->toBe(1580515200000);
 });
+
+it('refreshes a rejected self-hosted Umami token once', function() {
+    $source = new Umami(['baseUrl' => 'https://analytics.example.com/', 'username' => 'reader', 'password' => 'fixture']);
+    $source->cache = ['authToken' => 'expired', 'authTokenExpires' => time() + 3600];
+    $history = [];
+    ProviderHttp::mock($source, [new \GuzzleHttp\Psr7\Response(401), ['token' => 'replacement'], ['pageviews' => 42]], $history);
+    $data = $source->fetchData(new WidgetData(['widget' => new Counter(), 'period' => Last7Days::class, 'metric' => 'pageviews']));
+
+    expect($data)->toBe(['total' => 42.0])->and(count($history))->toBe(3)
+        ->and($history[1]['request']->getUri()->getPath())->toBe('/api/auth/login')
+        ->and($history[2]['request']->getHeaderLine('Authorization'))->toBe('Bearer replacement')
+        ->and($source->cache['authToken'])->toBe('replacement');
+});
+
+it('does not exchange an invalid Umami API key for a login token', function() {
+    $source = new Umami(['apiKey' => 'invalid']);
+    $history = [];
+    ProviderHttp::mock($source, [new \GuzzleHttp\Psr7\Response(401)], $history);
+    expect(fn() => $source->fetchData(new WidgetData(['widget' => new Counter(), 'period' => Last7Days::class, 'metric' => 'pageviews'])))
+        ->toThrow(\GuzzleHttp\Exception\ClientException::class);
+    expect(count($history))->toBe(1);
+});

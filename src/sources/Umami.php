@@ -9,9 +9,11 @@ use verbb\metrix\widgets\data\PlotData;
 use Craft;
 use craft\helpers\App;
 
+use Exception;
 use Throwable;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 
 class Umami extends CredentialsSource
 {
@@ -211,7 +213,18 @@ class Umami extends CredentialsSource
             'Accept' => 'application/json',
         ]);
 
-        return parent::request($method, $url, $options);
+        try {
+            return parent::request($method, $url, $options);
+        } catch (ClientException $e) {
+            if ($e->getResponse()->getStatusCode() !== 401 || $this->getApiKey()) {
+                throw $e;
+            }
+
+            $this->setSettingCache(['authToken' => null, 'authTokenExpires' => null]);
+            $options['headers']['Authorization'] = 'Bearer ' . $this->_getBearerToken();
+
+            return parent::request($method, $url, $options);
+        }
     }
 
     public function getClient(): Client
@@ -351,26 +364,18 @@ class Umami extends CredentialsSource
             return $cachedToken;
         }
 
-        $client = Craft::createGuzzleClient([
-            'base_uri' => $this->getBaseUrl(),
-            'headers' => [
-                'Accept' => 'application/json',
-                'Content-Type' => 'application/json',
-            ],
-        ]);
-
-        $response = $client->request('POST', 'api/auth/login', [
+        $payload = parent::request('POST', 'api/auth/login', [
+            'headers' => ['Accept' => 'application/json'],
             'json' => [
                 'username' => $this->getUsername(),
                 'password' => $this->getPassword(),
             ],
         ]);
 
-        $payload = json_decode($response->getBody()->getContents(), true);
         $token = $payload['token'] ?? null;
 
         if (!$token) {
-            throw new \Exception(Craft::t('metrix', 'Unable to authenticate with Umami.'));
+            throw new Exception(Craft::t('metrix', 'Unable to authenticate with Umami.'));
         }
 
         // Self-hosted JWTs vary; cache for one hour and refresh on 401 during requests.
