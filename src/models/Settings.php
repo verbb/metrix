@@ -13,6 +13,8 @@ use craft\base\Model;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 
+use yii\base\InvalidConfigException;
+
 use DateInterval;
 use Exception;
 
@@ -25,7 +27,7 @@ class Settings extends Model
     public bool $hasCpSection = true;
     public bool $enableCache = true;
     public string $cacheDuration = 'PT10M';
-    public int $realtimeInterval = 10;
+    public int|string|null $realtimeInterval = 10;
     public array $defaultWidgetConfig = [];
     public array|string $enabledWidgetTypes = '*';
     public array $enabledPeriods = []; // Set via config
@@ -228,7 +230,11 @@ class Settings extends Model
 
     public function getRealtimeInterval(): int
     {
-        return $this->realtimeInterval * 1000;
+        if (!$this->validate(['realtimeInterval'])) {
+            throw new InvalidConfigException(Craft::t('metrix', 'Real-time refresh interval must be a whole number between 1 and 2147483 seconds.'));
+        }
+
+        return (int)$this->realtimeInterval * 1000;
     }
 
 
@@ -241,6 +247,9 @@ class Settings extends Model
 
         $rules[] = [['pluginName'], 'trim'];
         $rules[] = [['pluginName'], 'required'];
+        $rules[] = [['realtimeInterval'], 'required'];
+        // Browser timers use signed 32-bit millisecond delays.
+        $rules[] = [['realtimeInterval'], 'integer', 'min' => 1, 'max' => 2147483];
         $rules[] = [['cacheDuration'], function($attribute) {
             try {
                 $this->getCacheDuration();

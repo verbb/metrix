@@ -37,7 +37,7 @@
 
     {{ forms.textField({
         label: 'Real-time Refresh Interval' | t('metrix'),
-        instructions: 'Set the number of seconds between requests for real-time data.' | t('metrix'),
+        instructions: 'Set a whole number of seconds between 1 and 2147483 for real-time requests.' | t('metrix'),
         id: 'realtimeInterval',
         name: 'realtimeInterval',
         value: settings.realtimeInterval,

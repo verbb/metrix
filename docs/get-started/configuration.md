@@ -78,7 +78,7 @@ The cache duration for API requests as an [ISO 8601 duration string](https://www
 
 **Type:** `int` · **Default:** `10`
 
-The number of seconds between requests from Realtime widgets. Increase this interval when less frequent updates are sufficient or when you need to reduce requests to the provider.
+The number of seconds between requests from Realtime widgets, from `1` to `2147483`. Values must be whole numbers within the browser timer’s supported range. Increase this interval when less frequent updates are sufficient or when you need to reduce requests to the provider.
 :::
 
 
