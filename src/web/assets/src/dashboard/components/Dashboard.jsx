@@ -56,15 +56,25 @@ export const Dashboard = () => {
     }, [viewOptions, setCurrentView]);
 
     const handleLoadPresets = async(preset) => {
+        const requestId = ++viewRequestId.current;
         setLoadingPresets(true);
         setErrorPresets(null);
 
         try {
             const { data: presetWidgets } = await api.post('apply-preset', { view: currentView, preset });
+
+            if (requestId !== viewRequestId.current) {
+                return;
+            }
+
             const preloadedWidgets = preloadWidgets(presetWidgets);
 
             loadWidgets(preloadedWidgets);
         } catch (error) {
+            if (requestId !== viewRequestId.current) {
+                return;
+            }
+
             console.error('Failed to load preset widgets:', error);
 
             setErrorPresets({
@@ -72,7 +82,9 @@ export const Dashboard = () => {
                 error,
             });
         } finally {
-            setLoadingPresets(false);
+            if (requestId === viewRequestId.current) {
+                setLoadingPresets(false);
+            }
         }
     };
 
@@ -85,6 +97,8 @@ export const Dashboard = () => {
         const requestId = ++viewRequestId.current;
         setCurrentView(view);
         setGlobalPeriod(null);
+        setLoadingPresets(false);
+        setErrorPresets(null);
 
         // Update query string
         setQueryParam('view', view);

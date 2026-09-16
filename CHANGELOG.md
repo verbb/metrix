@@ -79,7 +79,7 @@
 - Fix Simple Analytics hourly charts, dimension row limits and labels, All Time queries, and API error reporting.
 - Fix self-hosted Umami reports remaining unavailable after a cached login token is rejected.
 - Fix Umami Cloud API paths, dimension rates and durations, monthly chart buckets, and All Time queries.
-- Fix delayed view responses replacing the currently selected dashboard’s widgets.
+- Fix delayed view or preset responses replacing the currently selected dashboard’s widgets.
 - Fix switching dashboard views failing to load their widgets.
 - Fix missing widget sources or views causing server errors when saving.
 - Fix presets failing to load after their source is renamed or deleted.
