@@ -2,32 +2,30 @@
     {% import '_includes/forms' as forms %}
     {% import 'verbb-base/_macros' as macros %}
 
-    {% if source.isConnected() %}
-        {% set input %}
-            {{ forms.select({
-                id: config.name,
-                name: config.name,
-                options: source.getSourceSettings(config.name),
-                value: source[config.name] ?? '',
-            }) }}
+    {% set connected = source.isConnected() %}
+    {% set input %}
+        <div data-provider-settings-source="{{ source.id }}">
+            <div data-provider-settings-input class="{{ not connected ? 'hidden' }}">
+                {{ forms.select({
+                    id: config.name,
+                    name: config.name,
+                    options: connected ? source.getSourceSettings(config.name) : [],
+                    value: source[config.name] ?? '',
+                    disabled: not connected,
+                }) }}
 
-            <button class="btn metrix-btn-transparent" type="button" data-icon="refresh" aria-label="{{ 'Refresh {setting}' | t('metrix', { setting: config.label }) }}" title="{{ 'Refresh {setting}' | t('metrix', { setting: config.label }) }}" data-refresh-settings="{{ config.name }}" data-source="{{ source.handle }}" data-source-class="{{ className(source) }}"></button>
-        {% endset %}
+                <button class="btn metrix-btn-transparent" type="button" data-icon="refresh" aria-label="{{ 'Refresh {setting}' | t('metrix', { setting: config.label }) }}" title="{{ 'Refresh {setting}' | t('metrix', { setting: config.label }) }}" data-refresh-settings="{{ config.name }}" data-source="{{ source.handle }}" data-source-class="{{ className(source) }}" {{ not connected ? 'disabled' }}></button>
+            </div>
+            <p data-provider-settings-warning class="warning {{ connected ? 'hidden' }}">{{ 'Please connect to the provider to be able to configure “{setting}”.' | t('metrix', { setting: config.label }) }}</p>
+        </div>
+    {% endset %}
 
-        {{ forms.field({
-            id: config.name,
-            label: config.label,
-            instructions: config.instructions,
-            warning: macros.configWarning("sources.#{source.handle}.#{config.name}", 'metrix'),
-            errors: source.getErrors(config.name),
-            required: config.required ?? false,
-        }, input) }}
-    {% else %}
-        {{ forms.field({
-            label: config.label,
-            instructions: config.instructions,
-            warning: 'Please connect to the provider to be able to configure “{setting}”.' | t('metrix', { setting: config.label }),
-        }) }}
-    {% endif %}
+    {{ forms.field({
+        id: config.name,
+        label: config.label,
+        instructions: config.instructions,
+        warning: macros.configWarning("sources.#{source.handle}.#{config.name}", 'metrix'),
+        errors: source.getErrors(config.name),
+        required: config.required ?? false,
+    }, input) }}
 {% endmacro %}
-

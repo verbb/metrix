@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix provider settings remaining unavailable after a successful source connection.
 - Fix missing accessible names for provider choices and refresh buttons.
 - Fix presets failing to load or losing settings when a custom widget type is unavailable.
 - Fix bounce-rate scales and percentage and duration formatting in widget reports.

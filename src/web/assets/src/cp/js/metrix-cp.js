@@ -14,6 +14,26 @@ if (typeof Craft.Metrix === typeof undefined) {
 }
 
 (function($) {
+    $(document).on('pk-status-change', 'pk-connect', function(event) {
+        const status = event.originalEvent?.detail?.status ?? event.detail?.status;
+
+        if (status !== 'connected') {
+            return;
+        }
+
+        const sourceId = this.getAttribute('source-id');
+
+        document.querySelectorAll('[data-provider-settings-source]').forEach((container) => {
+            if (container.dataset.providerSettingsSource !== sourceId) {
+                return;
+            }
+
+            container.querySelector('[data-provider-settings-input]').classList.remove('hidden');
+            container.querySelector('[data-provider-settings-warning]').classList.add('hidden');
+            container.querySelectorAll('select, button').forEach((control) => { control.disabled = false; });
+        });
+    });
+
     $(document).on('click', '[data-refresh-settings]', function(e) {
         e.preventDefault();
 

@@ -18,7 +18,7 @@ it('preserves provider option labels and values as text when refreshing settings
         addClass: vi.fn(),
         removeClass: vi.fn(),
     };
-    const jquery = (element) => element === document ? { on: (_event, _selector, handler) => { click = handler; } } : button;
+    const jquery = (element) => element === document ? { on: (_event, selector, handler) => { if (selector === '[data-refresh-settings]') click = handler; } } : button;
     jquery.each = (values, handler) => values.forEach((value, index) => handler(index, value));
     vi.stubGlobal('document', {});
     vi.stubGlobal('jQuery', jquery);
