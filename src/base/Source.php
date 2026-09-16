@@ -155,6 +155,8 @@ abstract class Source extends SavableComponent implements SourceInterface
      */
     public static function redactUri(string $value): string
     {
+        $value = (string)preg_replace('~(https?://)[^/\s@]+@~i', '$1***@', $value);
+
         // Query keys commonly carrying tokens/secrets in analytics provider URLs.
         $secretKeys = 'access_token|api_key|apikey|token|secret|password|key|auth|authorization|client_secret|refresh_token';
 

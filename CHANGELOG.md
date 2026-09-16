@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fixed an information disclosure vulnerability.
 - Fix switching dashboard views failing to load their widgets.
 - Fix sources with missing environment credentials being treated as configured.
 - Fix Last 30 Days charts showing midnight instead of dates on the horizontal axis.
