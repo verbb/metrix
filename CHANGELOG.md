@@ -38,6 +38,7 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fix Fathom site selection omitting sites after the first page of API results.
 - Fix Pirsch sources failing after an access token is rejected or when no domains are available.
 - Fix GoatCounter All Time reports, dimension reports with more than 100 rows, and recovery from temporary API rate limits.
 - Fix Matomo monthly charts, All Time reports, unformatted dimension metrics, and site selection with view-only tokens.

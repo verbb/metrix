@@ -73,15 +73,28 @@ class Fathom extends CredentialsSource
             if ($settingsKey === 'siteId') {
                 $options = [];
 
-                $response = $this->request('GET', 'sites');
-                $sites = $response['data'] ?? [];
+                $cursor = null;
 
-                foreach ($sites as $site) {
-                    $options[] = [
-                        'label' => $site['name'],
-                        'value' => $site['id'],
-                    ];
-                }
+                do {
+                    $query = ['limit' => 100];
+
+                    if ($cursor) {
+                        $query['starting_after'] = $cursor;
+                    }
+
+                    $response = $this->request('GET', 'sites', ['query' => $query]);
+                    $sites = $response['data'] ?? [];
+
+                    foreach ($sites as $site) {
+                        $options[] = [
+                            'label' => $site['name'],
+                            'value' => $site['id'],
+                        ];
+                    }
+
+                    $previousCursor = $cursor;
+                    $cursor = $sites ? end($sites)['id'] : null;
+                } while (($response['has_more'] ?? false) && $cursor && $cursor !== $previousCursor);
 
                 // Sort the options alphabetically by label
                 usort($options, function ($a, $b) {

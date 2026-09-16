@@ -43,3 +43,17 @@ it('keeps direct and zero-valued Fathom dimension labels', function() {
 
     expect($data)->toBe(['' => '12', 0 => '4']);
 });
+
+it('lists Fathom sites beyond the first page', function() {
+    $source = new Fathom();
+    $history = [];
+    ProviderHttp::mock($source, [
+        ['data' => [['id' => 'FIRST', 'name' => 'Zebra']], 'has_more' => true],
+        ['data' => [['id' => 'SECOND', 'name' => 'Alpha']], 'has_more' => false],
+    ], $history);
+    $options = $source->fetchSourceSettings('siteId');
+
+    expect($options)->toBe([['label' => 'Alpha', 'value' => 'SECOND'], ['label' => 'Zebra', 'value' => 'FIRST']]);
+    parse_str($history[1]['request']->getUri()->getQuery(), $query);
+    expect($query['starting_after'])->toBe('FIRST');
+});
