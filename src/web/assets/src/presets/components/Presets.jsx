@@ -212,10 +212,12 @@ export const Presets = ({ widgets: initialWidgets }) => {
     );
 
     const handleDragEnd = ({ active, over }) => {
-        if (active.id !== over?.id) {
+        if (over && active.id !== over.id) {
             const currentIndex = widgets.findIndex((w) => w.__id === active.id);
             const newIndex = widgets.findIndex((w) => w.__id === over.id);
-            setWidgets(arrayMove(widgets, currentIndex, newIndex));
+            if (currentIndex >= 0 && newIndex >= 0) {
+                setWidgets(arrayMove(widgets, currentIndex, newIndex));
+            }
         }
     };
 
