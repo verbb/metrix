@@ -27,8 +27,8 @@ class LastWeek extends Period
 
     public static function getDateRange(): array
     {
-        $start = new DateTime('monday -2 weeks 00:00:00');
-        $end = new DateTime('monday -1 weeks 00:00:00');
+        $start = new DateTime('monday last week 00:00:00');
+        $end = new DateTime('sunday last week 23:59:59');
 
         return [
             'start' => $start,
@@ -38,8 +38,8 @@ class LastWeek extends Period
 
     public static function getPreviousDateRange(): array
     {
-        $start = new DateTime('monday -3 weeks 00:00:00');
-        $end = new DateTime('monday -2 weeks 00:00:00');
+        $start = new DateTime('monday -2 weeks 00:00:00');
+        $end = new DateTime('sunday -2 weeks 23:59:59');
 
         return [
             'start' => $start,
@@ -56,7 +56,7 @@ class LastWeek extends Period
     {
         $range = static::getCurrentDateRange();
         $start = (clone $range['start'])->setTime(0, 0, 0);
-        $end = (clone $range['end'])->setTime(0, 0, 0);
+        $end = (clone $range['end'])->modify('+1 day')->setTime(0, 0, 0);
 
         $interval = new DateInterval('P1D');
         $period = new DatePeriod($start, $interval, $end);

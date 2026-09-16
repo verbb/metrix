@@ -38,8 +38,11 @@ class YearToDate extends Period
 
     public static function getPreviousDateRange(): array
     {
-        $start = new DateTime('first day of January last year 00:00:00');
-        $end = new DateTime('now last year');
+        $current = static::getDateRange();
+        $start = (clone $current['start'])->modify('-1 year');
+        // Shift from the first day so month-end and leap-day dates cannot overflow.
+        $end = (clone $current['end'])->modify('first day of this month')->modify('-1 year');
+        $end->setDate((int)$end->format('Y'), (int)$end->format('m'), min((int)$current['end']->format('d'), (int)$end->format('t')));
 
         return [
             'start' => $start,

@@ -56,7 +56,7 @@ class Yesterday extends Period
     {
         $range = static::getCurrentDateRange();
         $start = (clone $range['start'])->setTime(0, 0, 0);
-        $end = (clone $start)->modify('+1 day')->setTime(1, 0, 0);
+        $end = (clone $start)->modify('+1 day')->setTime(0, 0, 0);
 
         $interval = new DateInterval('PT1H');
         $period = new DatePeriod($start, $interval, $end);

@@ -27,7 +27,7 @@ class Last7Days extends Period
 
     public static function getDateRange(): array
     {
-        $start = new DateTime('-7 days 00:00:00');
+        $start = new DateTime('-6 days 00:00:00');
         $end = new DateTime();
 
         return [
@@ -38,7 +38,7 @@ class Last7Days extends Period
 
     public static function getPreviousDateRange(): array
     {
-        $start = new DateTime('-14 days 00:00:00');
+        $start = new DateTime('-13 days 00:00:00');
         $end = new DateTime('-7 days 23:59:59');
 
         return [

@@ -27,7 +27,7 @@ class Last12Months extends Period
 
     public static function getDateRange(): array
     {
-        $start = new DateTime('-12 months 00:00:00');
+        $start = new DateTime('first day of -11 months 00:00:00');
         $end = new DateTime();
 
         return [
@@ -38,8 +38,8 @@ class Last12Months extends Period
 
     public static function getPreviousDateRange(): array
     {
-        $start = new DateTime('-24 months 00:00:00');
-        $end = new DateTime('-12 months 23:59:59');
+        $start = new DateTime('first day of -23 months 00:00:00');
+        $end = new DateTime('last day of -12 months 23:59:59');
 
         return [
             'start' => $start,

@@ -38,8 +38,11 @@ class MonthToDate extends Period
 
     public static function getPreviousDateRange(): array
     {
-        $start = new DateTime('first day of last month 00:00:00');
-        $end = new DateTime('now last month');
+        $current = static::getDateRange();
+        $start = (clone $current['start'])->modify('-1 month');
+        // Shift from the first day so month-end and leap-day dates cannot overflow.
+        $end = (clone $current['end'])->modify('first day of this month')->modify('-1 month');
+        $end->setDate((int)$end->format('Y'), (int)$end->format('m'), min((int)$current['end']->format('d'), (int)$end->format('t')));
 
         return [
             'start' => $start,
