@@ -13,9 +13,11 @@ Create a Google OAuth client so Metrix can read reporting data and list the anal
 5. Open **Clients**, create an OAuth client and choose **Web application**.
 6. Give the client a name that identifies this Craft environment.
 7. Under **Authorised redirect URIs**, add the exact **Redirect URI** shown by the Metrix Source. Add a URI for each environment that will connect independently.
-8. Copy the generated **Client ID** and **Client Secret** into the Metrix Source and save it.
-9. Click **Connect** and authorise read-only analytics access.
-10. Select the intended GA4 account and property in the Source settings, save again, and confirm the Source reports a connected account.
+8. Copy the generated **Client ID** and **Client Secret** into the Metrix Source. Leave **Enabled** off and save it.
+9. Reopen the Source, click **Connect** and authorise read-only analytics access.
+10. Open the **Provider** tab, click the refresh button beside **Account**, and select the intended account.
+11. Click the refresh button beside **Property** after selecting the account, then select the intended GA4 property.
+12. Turn **Enabled** on, save, and confirm a widget can load data from the selected property.
 
 
 ## Local Testing Proxy
