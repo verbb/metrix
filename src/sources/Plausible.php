@@ -4,6 +4,7 @@ namespace verbb\metrix\sources;
 use verbb\metrix\base\CredentialsSource;
 use verbb\metrix\base\Period;
 use verbb\metrix\base\WidgetDataInterface;
+use verbb\metrix\helpers\ProviderUrl;
 use verbb\metrix\models\AnalyticsScope;
 use verbb\metrix\widgets\Counter;
 
@@ -77,6 +78,11 @@ class Plausible extends CredentialsSource
         $baseUrl = App::parseEnv($this->baseUrl);
 
         return rtrim($baseUrl, '/') . '/';
+    }
+
+    public function getEndpointAttributes(): array
+    {
+        return ['baseUrl'];
     }
 
     public function fetchAvailableMetrics(): array
@@ -196,13 +202,13 @@ class Plausible extends CredentialsSource
             return $this->_client;
         }
 
-        return $this->_client = Craft::createGuzzleClient([
+        return $this->_client = Craft::createGuzzleClient(array_merge([
             'base_uri' => $this->getBaseUrl() . 'api/v2/',
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->getApiKey(),
                 'Accept' => 'application/json',
             ],
-        ]);
+        ], ProviderUrl::requestOptions($this->getBaseUrl())));
     }
 
     public function supportsAnalyticsScope(): bool

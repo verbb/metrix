@@ -74,6 +74,27 @@ The cache duration for API requests as an [ISO 8601 duration string](https://www
 
 
 ::: reference
+### `allowedPrivateProviderHosts`
+
+**Type:** `array` · **Default:** `[]`
+
+Exact hostnames which may resolve to private or otherwise non-public IP addresses for self-hosted GoatCounter, Matomo, Plausible or Umami instances. Keep this list in `config/metrix.php` so only trusted configuration operators can approve internal network destinations. Do not include a scheme, port or path.
+
+Requests to these configurable provider URLs bypass Craft’s global `httpProxy` setting so the validated DNS answers can remain pinned to the connection.
+
+```php
+return [
+    'allowedPrivateProviderHosts' => [
+        'analytics.internal.example',
+    ],
+];
+```
+
+Publicly routable self-hosted hosts do not need to be listed. Provider URLs are otherwise limited to HTTP or HTTPS public destinations and cannot follow redirects.
+:::
+
+
+::: reference
 ### `realtimeInterval`
 
 **Type:** `int` · **Default:** `10`

@@ -32,6 +32,7 @@ class Settings extends Model
     public array|string $enabledWidgetTypes = '*';
     public array $enabledPeriods = []; // Set via config
     public array $periodSettings = [];
+    public array $allowedPrivateProviderHosts = []; // Set via config
 
 
     // Public Methods
@@ -250,6 +251,7 @@ class Settings extends Model
         $rules[] = [['realtimeInterval'], 'required'];
         // Browser timers use signed 32-bit millisecond delays.
         $rules[] = [['realtimeInterval'], 'integer', 'min' => 1, 'max' => 2147483];
+        $rules[] = [['allowedPrivateProviderHosts'], 'each', 'rule' => ['string']];
         $rules[] = [['cacheDuration'], function($attribute) {
             try {
                 $this->getCacheDuration();

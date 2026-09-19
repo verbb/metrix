@@ -4,14 +4,22 @@ declare(strict_types=1);
 
 use Tests\Support\AdminUser;
 use Tests\Support\NonAdminUser;
+use Tests\Support\ProviderHttp;
+use verbb\metrix\base\CredentialsSource;
 use verbb\metrix\Metrix;
 use verbb\metrix\helpers\DashboardPermissions;
 use verbb\metrix\helpers\Options;
+use verbb\metrix\helpers\ProviderUrl;
+use verbb\metrix\helpers\SourceSecurity;
 use verbb\metrix\models\AnalyticsScope;
+use verbb\metrix\sources\GoatCounter;
 use verbb\metrix\sources\GoogleAnalytics;
 use verbb\metrix\sources\Matomo;
 use verbb\metrix\sources\Plausible;
+use yii\base\InvalidArgumentException;
 use yii\web\ForbiddenHttpException;
+
+use GuzzleHttp\Client;
 
 describe('DashboardPermissions', function() {
     it('denies dashboard access for users without metrix-dashboard', function() {
@@ -151,4 +159,118 @@ describe('AuthController anonymous surface', function() {
 
         expect($prop->getValue($controller))->toBe(['callback']);
     });
+});
+
+describe('Provider URL security', function() {
+    beforeEach(function() {
+        $this->allowedPrivateProviderHosts = Metrix::$plugin->getSettings()->allowedPrivateProviderHosts;
+    });
+
+    afterEach(function() {
+        ProviderUrl::setResolver(null);
+        Metrix::$plugin->getSettings()->allowedPrivateProviderHosts = $this->allowedPrivateProviderHosts;
+    });
+
+    it('rejects private, mixed public-private, metadata, and credential-bearing destinations', function(string $url, array $ips) {
+        ProviderUrl::setResolver(static fn() => $ips);
+
+        expect(fn() => ProviderUrl::requestOptions($url))
+            ->toThrow(InvalidArgumentException::class);
+    })->with([
+        'private IPv4' => ['https://analytics.example.test', ['10.0.0.5']],
+        'mixed DNS answers' => ['https://analytics.example.test', ['93.184.216.34', '127.0.0.1']],
+        'metadata hostname' => ['http://metadata.google.internal', ['93.184.216.34']],
+        'URL userinfo' => ['https://token@analytics.example.test', ['93.184.216.34']],
+    ]);
+
+    it('pins public destinations and disables redirects', function() {
+        ProviderUrl::setResolver(static fn() => ['93.184.216.34']);
+        $options = ProviderUrl::requestOptions('https://analytics.example.test');
+
+        expect($options['allow_redirects'])->toBeFalse();
+
+        if (defined('CURLOPT_RESOLVE')) {
+            expect($options['curl'][CURLOPT_RESOLVE][0])->toContain('analytics.example.test:443:93.184.216.34');
+        }
+    });
+
+    it('preserves explicitly approved private self-hosted destinations', function() {
+        Metrix::$plugin->getSettings()->allowedPrivateProviderHosts = ['analytics.internal.example'];
+        ProviderUrl::setResolver(static fn() => ['10.0.0.5']);
+
+        expect(fn() => ProviderUrl::requestOptions('https://analytics.internal.example'))
+            ->not->toThrow(InvalidArgumentException::class);
+    });
+
+    it('removes a configured proxy from credential-bearing requests', function() {
+        $source = new GoatCounter(['siteUrl' => 'https://fixture.invalid', 'apiKey' => 'fixture']);
+        $history = [];
+        ProviderHttp::mock($source, [['ok' => true]], $history);
+        $clientProperty = new ReflectionProperty(CredentialsSource::class, '_client');
+        $config = $clientProperty->getValue($source)->getConfig();
+        $config['proxy'] = 'http://proxy.example.test:8080';
+        $clientProperty->setValue($source, new Client($config));
+
+        $source->request('GET', 'api/v0/me');
+
+        expect($history[0]['options'])->not->toHaveKey('proxy');
+    });
+});
+
+describe('Delegated Source settings', function() {
+    it('rejects new environment and alias references in every Craft-supported form', function(string $value) {
+        $source = new GoatCounter(['siteUrl' => 'https://analytics.example.test', 'apiKey' => $value]);
+
+        expect(SourceSecurity::validateDelegatedChange($source))->toBeFalse()
+            ->and($source->getErrors('apiKey'))->not->toBeEmpty();
+    })->with(['$METRIX_KEY', '${METRIX_KEY}', 'prefix/${METRIX_KEY}', '@secretAlias']);
+
+    it('allows ordinary settings changes while preserving administrator-owned references', function() {
+        $original = new Matomo([
+            'apiUrl' => 'https://analytics.example.test',
+            'apiToken' => '$MATOMO_TOKEN',
+            'siteId' => '1',
+        ]);
+        $changed = clone $original;
+        $changed->siteId = '2';
+
+        expect(SourceSecurity::validateDelegatedChange($changed, $original))->toBeTrue();
+    });
+
+    it('rejects destination changes while an environment-backed secret remains attached', function() {
+        $original = new Matomo([
+            'apiUrl' => 'https://analytics.example.test',
+            'apiToken' => '$MATOMO_TOKEN',
+            'siteId' => '1',
+        ]);
+        $changed = clone $original;
+        $changed->apiUrl = 'https://attacker.example.test';
+
+        expect(SourceSecurity::validateDelegatedChange($changed, $original))->toBeFalse()
+            ->and($changed->getErrors('apiUrl'))->not->toBeEmpty();
+    });
+});
+
+describe('Dashboard request bounds', function() {
+    it('strictly validates and stably deduplicates widget IDs', function() {
+        $controller = (new ReflectionClass(\verbb\metrix\controllers\DashboardController::class))->newInstanceWithoutConstructor();
+        $method = new ReflectionMethod($controller, '_normalizeWidgetIds');
+
+        expect($method->invoke($controller, [2, '1', 2]))->toBe([2, 1]);
+    });
+
+    it('rejects coerced or non-positive widget IDs', function(mixed $id) {
+        $controller = (new ReflectionClass(\verbb\metrix\controllers\DashboardController::class))->newInstanceWithoutConstructor();
+        $method = new ReflectionMethod($controller, '_normalizeWidgetIds');
+
+        expect(fn() => $method->invoke($controller, [$id]))
+            ->toThrow(\yii\web\BadRequestHttpException::class);
+    })->with([
+        'zero' => [0],
+        'negative' => [-1],
+        'float' => [1.5],
+        'boolean' => [true],
+        'numeric junk' => ['1x'],
+        'array' => [[]],
+    ]);
 });

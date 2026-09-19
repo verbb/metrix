@@ -226,7 +226,7 @@ describe('useWidgetStore duplicate lifecycle', () => {
         useWidgetStore.setState({ widgets: [widget] });
         let resolveOld;
         getMock.mockImplementationOnce(() => new Promise((resolve) => { resolveOld = resolve; }));
-        getMock.mockResolvedValueOnce({ data: { total: 25 } });
+        postMock.mockResolvedValueOnce({ data: { total: 25 } });
 
         const oldRequest = dashboard
             ? useWidgetStore.getState().fetchAllWidgetData()
@@ -235,6 +235,7 @@ describe('useWidgetStore duplicate lifecycle', () => {
         resolveOld({ data: { total: 10 } });
         await oldRequest;
 
+        expect(postMock).toHaveBeenCalledWith('widget-data', { id: 10, refresh: true });
         expect(useWidgetStore.getState().widgets[0].chartData.total).toBe(25);
         expect(useWidgetStore.getState().widgets[0].waitForData).toBe(false);
     });

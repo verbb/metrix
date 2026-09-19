@@ -38,6 +38,7 @@ class WidgetData extends Model implements WidgetDataInterface
         }
 
         $this->refreshCache = $refreshCache;
+        $requestStartedAt = microtime(true);
         $cacheDuration = Metrix::$plugin->getSettings()->getCacheDuration();
         $cacheKey = $this->getCacheKey();
 
@@ -46,11 +47,9 @@ class WidgetData extends Model implements WidgetDataInterface
             $cacheDuration = 1;
         }
 
-        $cache = Craft::$app->getCache();
+        $usesPersistentCache = $cacheDuration > 1;
 
-        if ($refreshCache) {
-            $cache->delete($cacheKey);
-        }
+        $cache = Craft::$app->getCache();
 
         $fromCache = false;
         $fetchedAt = time();
@@ -58,7 +57,7 @@ class WidgetData extends Model implements WidgetDataInterface
 
         // Prefer an envelope that stores provider fetch time with the payload so
         // “Updated …” reflects freshness, not merely delivery time (Astra).
-        if ($cacheDuration > 1 && !$refreshCache) {
+        if ($usesPersistentCache && !$refreshCache) {
             $cached = $cache->get($cacheKey);
 
             if ($cached !== false) {
@@ -70,16 +69,40 @@ class WidgetData extends Model implements WidgetDataInterface
         if ($rawData === null) {
             $mutex = Craft::$app->getMutex();
             $mutexName = 'metrix:widget-data:' . hash('sha256', serialize($cacheKey));
-            $hasLock = $cacheDuration > 1 && $mutex->acquire($mutexName, 10);
+            $hasLock = $mutex->acquire($mutexName, 10);
 
             try {
-                // Another request may have filled the cache while this one waited.
-                if ($hasLock && !$refreshCache) {
+                if (!$hasLock) {
                     $cached = $cache->get($cacheKey);
 
                     if ($cached !== false) {
-                        [$rawData, $fetchedAt] = $this->_unwrapCacheEnvelope($cached);
-                        $fromCache = true;
+                        [$cachedData, $cachedAt, $generatedAt] = $this->_unwrapCacheEnvelope($cached);
+
+                        if ($usesPersistentCache || $generatedAt >= $requestStartedAt) {
+                            $rawData = $cachedData;
+                            $fetchedAt = $cachedAt;
+                            $fromCache = true;
+                        }
+                    }
+
+                    if ($rawData === null) {
+                        throw new Exception(Craft::t('metrix', 'The widget data is already being refreshed. Please try again.'));
+                    }
+                }
+
+                // A refresh follower accepts the generation produced after its
+                // request began, coalescing concurrent refreshes into one fetch.
+                if ($hasLock) {
+                    $cached = $cache->get($cacheKey);
+
+                    if ($cached !== false) {
+                        [$cachedData, $cachedAt, $generatedAt] = $this->_unwrapCacheEnvelope($cached);
+
+                        if (($usesPersistentCache && !$refreshCache) || $generatedAt >= $requestStartedAt) {
+                            $rawData = $cachedData;
+                            $fetchedAt = $cachedAt;
+                            $fromCache = true;
+                        }
                     }
                 }
 
@@ -87,17 +110,18 @@ class WidgetData extends Model implements WidgetDataInterface
                     $rawData = $this->widget->fetchData($this);
                     $fetchedAt = time();
 
-                    if ($cacheDuration > 1) {
-                        $cache->set(
-                            $cacheKey,
-                            [
-                                'raw' => $rawData,
-                                'fetchedAt' => $fetchedAt,
-                            ],
-                            $cacheDuration,
-                            $this->getCacheDependency(),
-                        );
-                    }
+                    // Even when persistent caching is disabled, retain a
+                    // one-second coordination envelope for concurrent followers.
+                    $cache->set(
+                        $cacheKey,
+                        [
+                            'raw' => $rawData,
+                            'fetchedAt' => $fetchedAt,
+                            'generatedAt' => microtime(true),
+                        ],
+                        max(1, $cacheDuration),
+                        $this->getCacheDependency(),
+                    );
                 }
             } finally {
                 if ($hasLock) {
@@ -243,10 +267,10 @@ class WidgetData extends Model implements WidgetDataInterface
     private function _unwrapCacheEnvelope(mixed $cached): array
     {
         if (is_array($cached) && array_key_exists('raw', $cached) && array_key_exists('fetchedAt', $cached)) {
-            return [$cached['raw'], (int)$cached['fetchedAt']];
+            return [$cached['raw'], (int)$cached['fetchedAt'], (float)($cached['generatedAt'] ?? $cached['fetchedAt'])];
         }
 
         // Legacy bare payload (pre-envelope) — treat as just-fetched for honesty.
-        return [$cached, time()];
+        return [$cached, time(), 0.0];
     }
 }

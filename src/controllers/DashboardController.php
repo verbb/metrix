@@ -13,13 +13,23 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\web\Controller;
 
+use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\Response;
+use yii\web\TooManyRequestsHttpException;
 
 use Throwable;
 
 class DashboardController extends Controller
 {
+    // Constants
+    // =========================================================================
+
+    private const MAX_BATCH_ITEMS = 50;
+    private const MAX_BATCH_WIDGETS = 25;
+    private const REFRESH_COOLDOWN = 5;
+
+
     // Public Methods
     // =========================================================================
 
@@ -207,13 +217,22 @@ class DashboardController extends Controller
 
         try {
             DashboardPermissions::requireWidgetAccess($widget);
-
-            return $this->asJson($widget->getWidgetData(
-                $this->_getGlobalPeriodFromRequest(),
-                $this->_getRefreshFromRequest(),
-            ));
         } catch (ForbiddenHttpException $e) {
             return $this->asFailure($e->getMessage());
+        }
+
+        $refreshCache = $this->_getRefreshFromRequest();
+
+        if ($refreshCache) {
+            $this->requirePostRequest();
+            $this->_requireRefreshBudget($widget->id);
+        }
+
+        try {
+            return $this->asJson($widget->getWidgetData(
+                $this->_getGlobalPeriodFromRequest(),
+                $refreshCache,
+            ));
         } catch (Throwable $e) {
             if ($source = $widget->getSource()) {
                 if (Source::isOAuthReconnectFailure($e)) {
@@ -227,6 +246,7 @@ class DashboardController extends Controller
 
     public function actionBatchWidgetData(): Response
     {
+        $this->requirePostRequest();
         $this->requireAcceptsJson();
         DashboardPermissions::requireDashboardAccess();
 
@@ -234,6 +254,20 @@ class DashboardController extends Controller
 
         if (!is_array($ids) || $ids === []) {
             return $this->asFailure(Craft::t('metrix', 'Provide one or more widget IDs.'));
+        }
+
+        if (count($ids) > self::MAX_BATCH_ITEMS) {
+            throw new BadRequestHttpException(Craft::t('metrix', 'A batch can contain at most {count} widget IDs.', [
+                'count' => self::MAX_BATCH_ITEMS,
+            ]));
+        }
+
+        $ids = $this->_normalizeWidgetIds($ids);
+
+        if (count($ids) > self::MAX_BATCH_WIDGETS) {
+            throw new BadRequestHttpException(Craft::t('metrix', 'A batch can contain at most {count} unique widgets.', [
+                'count' => self::MAX_BATCH_WIDGETS,
+            ]));
         }
 
         $globalPeriod = $this->_getGlobalPeriodFromRequest();
@@ -254,6 +288,10 @@ class DashboardController extends Controller
 
             try {
                 DashboardPermissions::requireWidgetAccess($widget);
+
+                if ($refreshCache) {
+                    $this->_requireRefreshBudget($widgetId);
+                }
 
                 $results[$widgetId] = [
                     'success' => true,
@@ -452,6 +490,43 @@ class DashboardController extends Controller
 
     private function _getRefreshFromRequest(): bool
     {
-        return (bool)($this->request->getParam('refresh') ?? $this->request->getBodyParam('refresh'));
+        $value = $this->request->getParam('refresh') ?? $this->request->getBodyParam('refresh');
+
+        if ($value === null || $value === '') {
+            return false;
+        }
+
+        $refresh = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+        if ($refresh === null) {
+            throw new BadRequestHttpException(Craft::t('metrix', 'Refresh must be a boolean value.'));
+        }
+
+        return $refresh;
+    }
+
+    private function _normalizeWidgetIds(array $ids): array
+    {
+        $normalized = [];
+
+        foreach ($ids as $id) {
+            if ((!is_int($id) && !(is_string($id) && ctype_digit($id))) || (int)$id < 1) {
+                throw new BadRequestHttpException(Craft::t('metrix', 'Widget IDs must be positive integers.'));
+            }
+
+            $normalized[(int)$id] = (int)$id;
+        }
+
+        return array_values($normalized);
+    }
+
+    private function _requireRefreshBudget(int $widgetId): void
+    {
+        $userId = Craft::$app->getUser()->getId();
+        $cacheKey = 'metrix:widget-refresh:' . $userId . ':' . $widgetId;
+
+        if (!Craft::$app->getCache()->add($cacheKey, true, self::REFRESH_COOLDOWN)) {
+            throw new TooManyRequestsHttpException(Craft::t('metrix', 'This widget was refreshed recently. Please wait before refreshing it again.'));
+        }
     }
 }

@@ -10,6 +10,7 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
 use verbb\metrix\base\CredentialsSource;
+use verbb\metrix\helpers\ProviderUrl;
 
 final class ProviderHttp
 {
@@ -20,7 +21,14 @@ final class ProviderHttp
             $responses,
         )));
         $handler->push(Middleware::history($history));
-        $config = $source->getClient()->getConfig();
+        ProviderUrl::setResolver(static fn() => ['93.184.216.34']);
+
+        try {
+            $config = $source->getClient()->getConfig();
+        } finally {
+            ProviderUrl::setResolver(null);
+        }
+
         $config['handler'] = $handler;
         (new \ReflectionProperty(CredentialsSource::class, '_client'))->setValue($source, new Client($config));
     }

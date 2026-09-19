@@ -4,6 +4,7 @@ namespace verbb\metrix\sources;
 use verbb\metrix\base\CredentialsSource;
 use verbb\metrix\base\Period;
 use verbb\metrix\base\WidgetDataInterface;
+use verbb\metrix\helpers\ProviderUrl;
 use verbb\metrix\widgets\data\PlotData;
 
 use Craft;
@@ -66,6 +67,11 @@ class GoatCounter extends CredentialsSource
     public function getApiKey(): ?string
     {
         return App::parseEnv($this->apiKey);
+    }
+
+    public function getEndpointAttributes(): array
+    {
+        return ['siteUrl'];
     }
 
     public function fetchAvailableMetrics(): array
@@ -152,14 +158,14 @@ class GoatCounter extends CredentialsSource
             return $this->_client;
         }
 
-        return $this->_client = Craft::createGuzzleClient([
+        return $this->_client = Craft::createGuzzleClient(array_merge([
             'base_uri' => $this->getSiteUrl() . '/',
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->getApiKey(),
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
             ],
-        ]);
+        ], ProviderUrl::requestOptions($this->getSiteUrl())));
     }
 
 

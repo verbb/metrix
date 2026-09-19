@@ -4,6 +4,7 @@ namespace verbb\metrix\sources;
 use verbb\metrix\base\CredentialsSource;
 use verbb\metrix\base\Period;
 use verbb\metrix\base\WidgetDataInterface;
+use verbb\metrix\helpers\ProviderUrl;
 use verbb\metrix\models\AnalyticsScope;
 use verbb\metrix\widgets\data\PlotData;
 
@@ -72,6 +73,11 @@ class Matomo extends CredentialsSource
     public function getSiteId(): ?string
     {
         return App::parseEnv($this->siteId);
+    }
+
+    public function getEndpointAttributes(): array
+    {
+        return ['apiUrl'];
     }
 
     public function fetchSourceSettings(string $settingsKey): ?array
@@ -185,10 +191,10 @@ class Matomo extends CredentialsSource
             return $this->_client;
         }
 
-        return $this->_client = Craft::createGuzzleClient([
+        return $this->_client = Craft::createGuzzleClient(array_merge([
             'base_uri' => rtrim($this->getApiUrl(), '/') . '/',
             'headers' => ['Authorization' => 'Bearer ' . $this->getApiToken()],
-        ]);
+        ], ProviderUrl::requestOptions($this->getApiUrl())));
     }
 
     public function request(string $method, string $url, array $options = []): mixed

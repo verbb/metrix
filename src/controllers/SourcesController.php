@@ -2,8 +2,10 @@
 namespace verbb\metrix\controllers;
 
 use verbb\metrix\Metrix;
+use verbb\metrix\base\CredentialsSource;
 use verbb\metrix\base\SourceInterface;
 use verbb\metrix\helpers\Plugin;
+use verbb\metrix\helpers\SourceSecurity;
 
 use Craft;
 use craft\helpers\ArrayHelper;
@@ -108,6 +110,7 @@ class SourcesController extends Controller
         $sourcesService = Metrix::$plugin->getSources();
         $sourceId = $this->request->getParam('sourceId') ?: null;
         $type = $this->request->getParam('type');
+        $oldSource = null;
 
         if ($sourceId) {
             $oldSource = $sourcesService->getSourceById($sourceId);
@@ -125,6 +128,10 @@ class SourcesController extends Controller
             'enabled' => (bool)$this->request->getParam('enabled'),
             'settings' => $this->request->getParam("types.$type"),
         ]);
+
+        if (!$this->_validateDelegatedSourceChange($source, $oldSource)) {
+            return $this->asModelFailure($source, Craft::t('metrix', 'Couldn’t save source.'), 'source');
+        }
 
         if (!$sourcesService->saveSource($source)) {
             return $this->asModelFailure($source, Craft::t('metrix', 'Couldn’t save source.'), 'source');
@@ -157,11 +164,12 @@ class SourcesController extends Controller
 
     public function actionRefreshSettings(): Response
     {
+        $this->requirePostRequest();
         $this->requireAcceptsJson();
 
         $sourcesService = Metrix::$plugin->getSources();
 
-        $sourceData = $this->request->getBodyParam('sourceData');
+        $sourceData = $this->request->getBodyParam('sourceData', []);
         $sourceHandle = $this->request->getRequiredBodyParam('source');
         $setting = $this->request->getRequiredBodyParam('setting');
 
@@ -171,8 +179,22 @@ class SourcesController extends Controller
             throw new BadRequestHttpException("Invalid source: $sourceHandle");
         }
 
-        // Set any data provided by this call to the source
-        $source->setAttributes($sourceData, false);
+        if (!is_array($sourceData)) {
+            throw new BadRequestHttpException('Invalid source settings.');
+        }
+
+        $originalSource = clone $source;
+        $allowedAttributes = array_flip($source->settingsAttributes());
+
+        // A refresh may overlay only provider settings; base model state and
+        // config-owned values are not transient request inputs.
+        $source->setAttributes(array_intersect_key($sourceData, $allowedAttributes), false);
+
+        if (!$this->_validateDelegatedSourceChange($source, $originalSource)) {
+            return $this->asJson([
+                'error' => implode(' ', $source->getErrorSummary(true)),
+            ]);
+        }
 
         return $this->asJson($source->getSourceSettings($setting, false));
     }
@@ -207,5 +229,20 @@ class SourcesController extends Controller
         } catch (Exception $e) {
             return $this->asFailure($e->getMessage());
         }
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _validateDelegatedSourceChange(SourceInterface $source, ?SourceInterface $original): bool
+    {
+        if (Craft::$app->getUser()->getIsAdmin() || !$source instanceof CredentialsSource) {
+            return true;
+        }
+
+        $original = $original && get_class($original) === get_class($source) ? $original : null;
+
+        return SourceSecurity::validateDelegatedChange($source, $original);
     }
 }

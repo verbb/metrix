@@ -224,7 +224,9 @@ const useWidgetStore = create((set, get) => {
             try {
                 const payload = getWidgetDataParams(widget, { refresh });
 
-                const response = await api.get('widget-data', payload);
+                const response = refresh
+                    ? await api.post('widget-data', payload)
+                    : await api.get('widget-data', payload);
 
                 if (!isCurrentRequest()) {
                     return;

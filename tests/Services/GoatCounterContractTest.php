@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Tests\Support\ProviderHttp;
 use verbb\metrix\base\WidgetData;
+use verbb\metrix\helpers\ProviderUrl;
 use verbb\metrix\periods\Last7Days;
 use verbb\metrix\periods\Last12Months;
 use verbb\metrix\periods\Today;
@@ -46,7 +47,13 @@ it('retains empty and zero GoatCounter dimension labels', function() {
 it('sends the GoatCounter JSON content type', function() {
     $source = new GoatCounter(['siteUrl' => 'https://fixture.invalid', 'apiKey' => 'fixture']);
 
-    expect($source->getClient()->getConfig('headers')['Content-Type'] ?? null)->toBe('application/json');
+    ProviderUrl::setResolver(static fn() => ['93.184.216.34']);
+
+    try {
+        expect($source->getClient()->getConfig('headers')['Content-Type'] ?? null)->toBe('application/json');
+    } finally {
+        ProviderUrl::setResolver(null);
+    }
 });
 
 it('uses the first recorded GoatCounter hit for All Time', function() {

@@ -4,17 +4,17 @@ The Metrix Dashboard displays analytics from your connected sources. Arrange cha
 
 Each widget presents one part of the selected analytics data. For example, a content team can use a Sessions counter to see overall traffic, a line chart to spot changes over time and a table to identify popular pages. [Creating Your First Dashboard Widget](docs:get-started/creating-your-first-dashboard-widget) takes you through the first counter. The examples below show how the other presentation styles help answer different questions.
 
-![Sessions line chart widget (two-thirds width)](/_screenshots/feature-tour/widget-sessions-line.png)
+![Sessions line chart widget (two-thirds width)](../../screenshots/output/docs/feature-tour/widget-sessions-line.png)
 
-![Active users realtime counter widget](/_screenshots/feature-tour/widget-active-users.png)
+![Active users realtime counter widget](../../screenshots/output/docs/feature-tour/widget-active-users.png)
 
-![Sessions counter widget with period comparison](/_screenshots/feature-tour/widget-sessions-counter.png)
+![Sessions counter widget with period comparison](../../screenshots/output/docs/feature-tour/widget-sessions-counter.png)
 
-![Browser sessions pie chart widget](/_screenshots/feature-tour/widget-browser-pie.png)
+![Browser sessions pie chart widget](../../screenshots/output/docs/feature-tour/widget-browser-pie.png)
 
-![Operating system sessions table widget](/_screenshots/feature-tour/widget-os-table.png)
+![Operating system sessions table widget](../../screenshots/output/docs/feature-tour/widget-os-table.png)
 
-![Country sessions table widget with pagination](/_screenshots/feature-tour/widget-country-table.png)
+![Country sessions table widget with pagination](../../screenshots/output/docs/feature-tour/widget-country-table.png)
 
 Unlike Craft Dashboard widgets, which are configured per user, Metrix Views share one analytics layout with everyone who has permission to view it.
 
@@ -56,17 +56,17 @@ Fresh installs include seeded presets such as **Website Overview**, **Content Pe
 
 Widgets visualise data as charts, tables, or counters.
 
-![Dashboard settings panel listing widgets for the current view](/_screenshots/feature-tour/dashboard-settings.png)
+![Dashboard settings panel listing widgets for the current view](../../screenshots/output/docs/feature-tour/dashboard-settings.png)
 
 Widgets can take up 1, 2, or 3 thirds of the screen, and are responsive.
 
 Manage the widget list from the view settings (or the Widgets tab when configuring presets):
 
-![Widgets tab with line, counter, pie, and table widgets](/_screenshots/feature-tour/widgets.png)
+![Widgets tab with line, counter, pie, and table widgets](../../screenshots/output/docs/feature-tour/widgets.png)
 
 ### Widget Settings
 
-![Widget settings for source, chart type, width, period, and metric](/_screenshots/feature-tour/widget-settings.png)
+![Widget settings for source, chart type, width, period, and metric](../../screenshots/output/docs/feature-tour/widget-settings.png)
 
 Choose the Source and the question the widget should answer. A metric is the value you want to measure, such as sessions or pageviews. A dimension groups that value, such as by page, country or browser. A table of popular pages therefore needs a pageview metric and a page dimension; a sessions counter needs only the metric.
 

@@ -12,7 +12,7 @@
         "watch": "vite build --config src/web/assets/vite.config.js --watch",
         "test:frontend": "vitest run",
         "dev:plugin-docs": "npm run docs:dev --prefix docs",
-        "docs:screenshots": "npm --prefix docs run docs:screenshots --"
+        "screenshots": "npm --prefix screenshots run screenshots --"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.2.4",

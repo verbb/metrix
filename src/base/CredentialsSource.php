@@ -6,6 +6,7 @@ use craft\helpers\App;
 use craft\helpers\Json;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\RequestOptions;
 
 abstract class CredentialsSource extends Source
 {
@@ -42,6 +43,14 @@ abstract class CredentialsSource extends Source
     public function fetchConnection(): bool
     {
         return true;
+    }
+
+    /**
+     * Settings which determine where credentials are sent.
+     */
+    public function getEndpointAttributes(): array
+    {
+        return [];
     }
 
     public function isConfigured(): bool
@@ -88,6 +97,12 @@ abstract class CredentialsSource extends Source
     {
         try {
             $client = $this->getClient();
+            // Provider redirects must never move credentials away from the
+            // origin which was validated and pinned when the client was built.
+            $options[RequestOptions::ALLOW_REDIRECTS] = false;
+            // A proxy would resolve HTTPS CONNECT targets itself, bypassing
+            // the local DNS validation and CURLOPT_RESOLVE pinning.
+            $options[RequestOptions::PROXY] = null;
             $response = $client->request($method, $url, $options);
 
             return Json::decode($response->getBody()->getContents(), true);

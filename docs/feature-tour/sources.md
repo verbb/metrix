@@ -2,7 +2,7 @@
 
 Sources connect Metrix to analytics providers. Create them under **Metrix → Sources**, then pick a Source when configuring each widget.
 
-![Metrix Sources index with connected analytics providers](/_screenshots/feature-tour/sources.png)
+![Metrix Sources index with connected analytics providers](../../screenshots/output/docs/feature-tour/sources.png)
 
 You can mix Sources from different providers on the same dashboard. OAuth providers (such as Google Analytics) use a Connect handshake; others use API keys or client credentials you paste into the Source settings.
 

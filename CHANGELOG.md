@@ -38,6 +38,8 @@
 - Align documentation filenames with page titles and update internal links.
 
 ### Fixed
+- Fixed a high-severity server-side request forgery and information disclosure vulnerability.
+- Fixed a medium-severity resource exhaustion vulnerability.
 - Fix browser Back and Forward leaving the dashboard on a different view from its URL.
 - Fix Last Week comparisons using an invalid previous date range during most of the week.
 - Fix failed source connection checks retaining a previous Connected status.

@@ -4,6 +4,7 @@ namespace verbb\metrix\sources;
 use verbb\metrix\base\CredentialsSource;
 use verbb\metrix\base\Period;
 use verbb\metrix\base\WidgetDataInterface;
+use verbb\metrix\helpers\ProviderUrl;
 use verbb\metrix\widgets\data\PlotData;
 
 use Craft;
@@ -91,6 +92,11 @@ class Umami extends CredentialsSource
     public function getPassword(): ?string
     {
         return App::parseEnv($this->password);
+    }
+
+    public function getEndpointAttributes(): array
+    {
+        return ['baseUrl'];
     }
 
     public function fetchSourceSettings(string $settingsKey): ?array
@@ -233,9 +239,9 @@ class Umami extends CredentialsSource
             return $this->_client;
         }
 
-        return $this->_client = Craft::createGuzzleClient([
+        return $this->_client = Craft::createGuzzleClient(array_merge([
             'base_uri' => $this->getBaseUrl(),
-        ]);
+        ], ProviderUrl::requestOptions($this->getBaseUrl())));
     }
 
 
