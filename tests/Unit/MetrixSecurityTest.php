@@ -21,6 +21,7 @@ use verbb\metrix\sources\Plausible;
 use yii\base\InvalidArgumentException;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
+use yii\web\MethodNotAllowedHttpException;
 
 use GuzzleHttp\Client;
 
@@ -37,6 +38,29 @@ describe('OAuth callback transactions', function() {
         expect(fn() => $controller->runAction('callback'))
             ->toThrow(BadRequestHttpException::class, 'invalid or has expired');
     });
+});
+
+describe('OAuth management access', function() {
+    it('requires POST for an authorized management request', function(string $action) {
+        AdminUser::login();
+        CpRequestContext::activate("actions/metrix/auth/{$action}", 'GET', true);
+
+        $controller = new AuthController('auth', Metrix::$plugin);
+
+        expect(fn() => $controller->runAction($action))
+            ->toThrow(MethodNotAllowedHttpException::class);
+    })->with(['connect', 'disconnect']);
+
+    it('requires source-management permission', function(string $action) {
+        NonAdminUser::login();
+        CpRequestContext::activate("actions/metrix/auth/{$action}", 'POST', true);
+
+        $controller = new AuthController('auth', Metrix::$plugin);
+        $controller->enableCsrfValidation = false;
+
+        expect(fn() => $controller->runAction($action))
+            ->toThrow(ForbiddenHttpException::class);
+    })->with(['connect', 'disconnect']);
 });
 
 describe('DashboardPermissions', function() {

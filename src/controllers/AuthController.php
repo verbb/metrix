@@ -4,6 +4,7 @@ namespace verbb\metrix\controllers;
 use verbb\metrix\Metrix;
 
 use Craft;
+use craft\elements\User;
 use craft\web\Controller;
 
 use yii\web\Response;
@@ -80,7 +81,7 @@ class AuthController extends Controller
             return $response;
         }
 
-        $oauth->claimCallback('metrix');
+        $oauth->claimAuthorizedCallback('metrix', fn(User $user): bool => $user->can('metrix-sources'));
         
         // Get both the origin (failure) and redirect (success) URLs
         $origin = Session::get('origin');
