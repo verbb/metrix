@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use Tests\Support\AdminUser;
+use Tests\Support\CpRequestContext;
 use Tests\Support\NonAdminUser;
 use Tests\Support\ProviderHttp;
 use verbb\metrix\base\CredentialsSource;
 use verbb\metrix\Metrix;
+use verbb\metrix\controllers\AuthController;
 use verbb\metrix\helpers\DashboardPermissions;
 use verbb\metrix\helpers\Options;
 use verbb\metrix\helpers\ProviderUrl;
@@ -17,9 +19,25 @@ use verbb\metrix\sources\GoogleAnalytics;
 use verbb\metrix\sources\Matomo;
 use verbb\metrix\sources\Plausible;
 use yii\base\InvalidArgumentException;
+use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 
 use GuzzleHttp\Client;
+
+describe('OAuth callback transactions', function() {
+    it('rejects an unknown transaction before processing the provider callback', function() {
+        CpRequestContext::activate('actions/metrix/auth/callback', 'GET', false);
+        Craft::$app->getRequest()->setQueryParams([
+            'state' => 'invalid-oauth-state-' . uniqid(),
+            'code' => 'unused-authorization-code',
+        ]);
+
+        $controller = new AuthController('auth', Metrix::$plugin);
+
+        expect(fn() => $controller->runAction('callback'))
+            ->toThrow(BadRequestHttpException::class, 'invalid or has expired');
+    });
+});
 
 describe('DashboardPermissions', function() {
     it('denies dashboard access for users without metrix-dashboard', function() {
