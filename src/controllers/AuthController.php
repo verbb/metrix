@@ -134,7 +134,7 @@ class AuthController extends Controller
 
         Session::setNotice('metrix', Craft::t('metrix', '{provider} connected.', ['provider' => $source->providerName]), true);
 
-        return $this->redirect($this->getView()->renderObjectTemplate($redirect, $source));
+        return $this->redirect($redirect);
     }
 
     public function actionDisconnect(): ?Response
