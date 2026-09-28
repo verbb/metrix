@@ -28,7 +28,7 @@ User groups can be limited with:
 
 - **Metrix → Dashboard** — access the dashboard (with nested permissions per view).
 - **Metrix → Sources** — manage Sources.
-- **Metrix → Views** — manage Views.
+- **Metrix → Manage views and dashboard layouts** — create and configure Views, and add, edit, reorder or remove their shared widgets.
 
 ### Multi-Site / Analytics Scope
 

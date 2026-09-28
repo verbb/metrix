@@ -12,6 +12,7 @@ const useAppStore = create((set) => {
         viewOptions: [],
         newWidget: {},
         periodOptions: [],
+        canManageViewLayouts: false,
 
         setCurrentView: (currentView) => {
             return set({ currentView });
@@ -43,6 +44,10 @@ const useAppStore = create((set) => {
 
         setPeriodOptions: (periodOptions) => {
             return set({ periodOptions });
+        },
+
+        setCanManageViewLayouts: (canManageViewLayouts) => {
+            return set({ canManageViewLayouts });
         },
     };
 });

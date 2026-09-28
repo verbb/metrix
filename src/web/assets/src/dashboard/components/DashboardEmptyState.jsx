@@ -15,6 +15,7 @@ export const DashboardEmptyState = ({
     errorPresets,
 }) => {
     const presets = useAppStore((state) => state.presets);
+    const canManageViewLayouts = useAppStore((state) => state.canManageViewLayouts);
 
     const sourcesUrl = typeof Craft.getCpUrl === 'function'
         ? Craft.getCpUrl('metrix/sources')
@@ -54,18 +55,22 @@ export const DashboardEmptyState = ({
                         {Craft.t('metrix', 'No views available')}
                     </h2>
 
-                    <p className="text-gray-500 mb-6">
-                        {Craft.t('metrix', 'Configure views to display your widgets.')}
+                    <p className={canManageViewLayouts ? 'text-gray-500 mb-6' : 'text-gray-500'}>
+                        {canManageViewLayouts
+                            ? Craft.t('metrix', 'Configure views to display your widgets.')
+                            : Craft.t('metrix', 'No dashboard views are available to you.')}
                     </p>
 
-                    <Button
-                        type="button"
-                        variant="primary"
-                        size="lg"
-                        onClick={() => { window.location.href = viewsUrl; }}
-                    >
-                        {Craft.t('metrix', 'Configure views')}
-                    </Button>
+                    {canManageViewLayouts ? (
+                        <Button
+                            type="button"
+                            variant="primary"
+                            size="lg"
+                            onClick={() => { window.location.href = viewsUrl; }}
+                        >
+                            {Craft.t('metrix', 'Configure views')}
+                        </Button>
+                    ) : null}
                 </div>
             );
         }
@@ -80,42 +85,46 @@ export const DashboardEmptyState = ({
                             {Craft.t('metrix', 'No widgets yet')}
                         </h2>
 
-                        <p className="text-gray-500 mb-6">
-                            {Craft.t('metrix', 'Start adding widgets to see your data at a glance.')}
+                        <p className={canManageViewLayouts ? 'text-gray-500 mb-6' : 'text-gray-500'}>
+                            {canManageViewLayouts
+                                ? Craft.t('metrix', 'Start adding widgets to see your data at a glance.')
+                                : Craft.t('metrix', 'No widgets have been added to this view.')}
                         </p>
                     </div>
 
-                    <div className="flex gap-4">
-                        <WidgetNew buttonSize="lg" />
+                    {canManageViewLayouts ? (
+                        <div className="flex gap-4">
+                            <WidgetNew buttonSize="lg" />
 
-                        {presets.length > 0 && (
-                            <DropdownMenu placement="bottom-end">
-                                <Button
-                                    slot="trigger"
-                                    type="button"
-                                    variant="primary"
-                                    size="lg"
-                                    withCaret
-                                    loading={loadingPresets}
-                                    disabled={loadingPresets}
-                                    title={Craft.t('metrix', 'Load preset widgets')}
-                                    aria-label={Craft.t('metrix', 'Load preset widgets')}
-                                >
-                                    {Craft.t('metrix', 'Load preset widgets')}
-                                </Button>
-
-                                {presets.map((preset) => (
-                                    <DropdownItem
-                                        key={preset.value}
-                                        value={preset.value}
-                                        onPkSelect={() => onPresetSelect(preset.value)}
+                            {presets.length > 0 && (
+                                <DropdownMenu placement="bottom-end">
+                                    <Button
+                                        slot="trigger"
+                                        type="button"
+                                        variant="primary"
+                                        size="lg"
+                                        withCaret
+                                        loading={loadingPresets}
+                                        disabled={loadingPresets}
+                                        title={Craft.t('metrix', 'Load preset widgets')}
+                                        aria-label={Craft.t('metrix', 'Load preset widgets')}
                                     >
-                                        {preset.label}
-                                    </DropdownItem>
-                                ))}
-                            </DropdownMenu>
-                        )}
-                    </div>
+                                        {Craft.t('metrix', 'Load preset widgets')}
+                                    </Button>
+
+                                    {presets.map((preset) => (
+                                        <DropdownItem
+                                            key={preset.value}
+                                            value={preset.value}
+                                            onPkSelect={() => onPresetSelect(preset.value)}
+                                        >
+                                            {preset.label}
+                                        </DropdownItem>
+                                    ))}
+                                </DropdownMenu>
+                            )}
+                        </div>
+                    ) : null}
 
                     {errorPresets && errorDetail && (
                         <div className="mt-8 text-error text-sm text-center w-full max-w-lg leading-relaxed">

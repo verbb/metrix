@@ -80,6 +80,7 @@ class DashboardController extends Controller
             'presets' => $presets,
             'periodOptions' => $periodOptions,
             'viewOptions' => $viewOptions,
+            'canManageViewLayouts' => DashboardPermissions::canManageViewLayouts(),
         ];
 
         $view->registerJs('new Craft.Metrix.Dashboard(' . Json::encode($data) . ');');
@@ -104,6 +105,7 @@ class DashboardController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
+        DashboardPermissions::requireViewLayoutManagement();
 
         $viewHandle = $this->request->getRequiredParam('view');
         $presetHandle = $this->request->getRequiredParam('preset');
@@ -178,7 +180,7 @@ class DashboardController extends Controller
     public function actionPropertyOptions(): Response
     {
         $this->requireAcceptsJson();
-        DashboardPermissions::requireDashboardAccess();
+        DashboardPermissions::requireViewLayoutManagement();
 
         $sourceHandle = $this->request->getParam('source');
         $property = $this->request->getParam('property');
@@ -324,7 +326,7 @@ class DashboardController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
-        DashboardPermissions::requireDashboardAccess();
+        DashboardPermissions::requireViewLayoutManagement();
 
         $id = $this->request->getParam('id');
         $widgetData = $this->request->getParam('widget', []) ?? [];
@@ -410,7 +412,7 @@ class DashboardController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
-        DashboardPermissions::requireDashboardAccess();
+        DashboardPermissions::requireViewLayoutManagement();
 
         $widgetIds = $this->request->getRequiredBodyParam('ids');
 
@@ -431,7 +433,7 @@ class DashboardController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
-        DashboardPermissions::requireDashboardAccess();
+        DashboardPermissions::requireViewLayoutManagement();
 
         $widgetId = (int)$this->request->getRequiredBodyParam('id');
         $widget = Metrix::$plugin->getWidgets()->getWidgetById($widgetId);
@@ -450,7 +452,7 @@ class DashboardController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
-        DashboardPermissions::requireDashboardAccess();
+        DashboardPermissions::requireViewLayoutManagement();
 
         $widgetId = (int)$this->request->getRequiredBodyParam('id');
 

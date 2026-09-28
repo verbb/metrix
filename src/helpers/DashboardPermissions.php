@@ -28,6 +28,15 @@ class DashboardPermissions
         }
     }
 
+    public static function requireViewLayoutManagement(): void
+    {
+        self::requireDashboardAccess();
+
+        if (!self::canManageViewLayouts()) {
+            throw new ForbiddenHttpException(Craft::t('metrix', 'You do not have permission to manage dashboard layouts.'));
+        }
+    }
+
     public static function requireViewAccess(?View $view): void
     {
         self::requireDashboardAccess();
@@ -63,6 +72,11 @@ class DashboardPermissions
     public static function canAccessView(View $view): bool
     {
         return self::user()->checkPermission('metrix-dashboard:' . $view->uid);
+    }
+
+    public static function canManageViewLayouts(): bool
+    {
+        return self::user()->checkPermission('metrix-views');
     }
 
     private static function user(): User

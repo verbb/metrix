@@ -7,6 +7,7 @@
 
 ### Changed
 - Require `verbb/auth` `^2.0.48` for secure OAuth callback transactions.
+- Require the Views permission to change shared dashboard widget layouts.
 
 ### Fixed
 - Fixed a high-severity information disclosure vulnerability.

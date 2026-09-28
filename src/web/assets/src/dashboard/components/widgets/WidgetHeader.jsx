@@ -54,6 +54,7 @@ export function WidgetHeader({ widget }) {
     const refreshWidgetData = useWidgetStore((state) => state.refreshWidgetData);
     const periodOptions = useAppStore((state) => state.periodOptions);
     const globalPeriod = useAppStore((state) => state.globalPeriod);
+    const canManageViewLayouts = useAppStore((state) => state.canManageViewLayouts);
     const getSettingsByType = useWidgetSettingsStore((state) => state.getSettingsByType);
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -153,7 +154,7 @@ export function WidgetHeader({ widget }) {
             </div>
 
             <div className="flex flex-row items-center flex-shrink-0 gap-1 metrix-widget-header-controls">
-                {hasPeriodField && (
+                {canManageViewLayouts && hasPeriodField && (
                     <GroupedPeriodSelect
                         className="metrix-widget-period-select"
                         periodOptions={periodOptions}
@@ -182,16 +183,18 @@ export function WidgetHeader({ widget }) {
                         <Icon icon="ellipsis-vertical" />
                     </Button>
 
-                    <DropdownItem
-                        value="settings"
-                        onPkSelect={() => {
-                            setTimeout(() => {
-                                setIsDialogOpen(true);
-                            }, 100);
-                        }}
-                    >
-                        {Craft.t('metrix', 'Settings')}
-                    </DropdownItem>
+                    {canManageViewLayouts ? (
+                        <DropdownItem
+                            value="settings"
+                            onPkSelect={() => {
+                                setTimeout(() => {
+                                    setIsDialogOpen(true);
+                                }, 100);
+                            }}
+                        >
+                            {Craft.t('metrix', 'Settings')}
+                        </DropdownItem>
+                    ) : null}
 
                     <DropdownItem
                         value="refresh"
@@ -203,7 +206,7 @@ export function WidgetHeader({ widget }) {
                             : Craft.t('metrix', 'Refresh')}
                     </DropdownItem>
 
-                    {hasPeriodField && globalPeriod && !inheritsDashboard ? (
+                    {canManageViewLayouts && hasPeriodField && globalPeriod && !inheritsDashboard ? (
                         <DropdownItem
                             value="use-dashboard-period"
                             onPkSelect={handleUseDashboardPeriod}
@@ -212,49 +215,55 @@ export function WidgetHeader({ widget }) {
                         </DropdownItem>
                     ) : null}
 
-                    <DropdownItem value="duplicate" onPkSelect={handleDuplicate}>
-                        {Craft.t('metrix', 'Duplicate')}
-                    </DropdownItem>
+                    {canManageViewLayouts ? (
+                        <>
+                            <DropdownItem value="duplicate" onPkSelect={handleDuplicate}>
+                                {Craft.t('metrix', 'Duplicate')}
+                            </DropdownItem>
 
-                    {/* Non-selectable row — only the width-picker columns are actionable. */}
-                    <div className="metrix-widget-menu-width-row">
-                        <span className="metrix-widget-menu-width-row__label">
-                            {Craft.t('metrix', 'Column Size')}
-                        </span>
-                        <WidthPicker
-                            value={widget.data.width}
-                            onChange={handleWidthChange}
-                        />
-                    </div>
+                            {/* Non-selectable row — only the width-picker columns are actionable. */}
+                            <div className="metrix-widget-menu-width-row">
+                                <span className="metrix-widget-menu-width-row__label">
+                                    {Craft.t('metrix', 'Column Size')}
+                                </span>
+                                <WidthPicker
+                                    value={widget.data.width}
+                                    onChange={handleWidthChange}
+                                />
+                            </div>
 
-                    <DropdownSeparator />
+                            <DropdownSeparator />
 
-                    <DropdownItem
-                        value="delete"
-                        destructive
-                        onPkSelect={handleRemove}
-                    >
-                        {Craft.t('metrix', 'Delete')}
-                    </DropdownItem>
+                            <DropdownItem
+                                value="delete"
+                                destructive
+                                onPkSelect={handleRemove}
+                            >
+                                {Craft.t('metrix', 'Delete')}
+                            </DropdownItem>
+                        </>
+                    ) : null}
                 </DropdownMenu>
 
-                <Dialog
-                    className="metrix-widget-settings-dialog"
-                    open={isDialogOpen}
-                    label={Craft.t('metrix', 'Widget Settings')}
-                    onPkOpenChange={(event) => {
-                        setIsDialogOpen(Boolean(event.detail?.open));
-                    }}
-                >
-                    {isDialogOpen ? (
-                        <Suspense fallback={<div role="status">{Craft.t('metrix', 'Loading…')}</div>}>
-                            <WidgetSettings
-                                widget={widget}
-                                onClose={() => setIsDialogOpen(false)}
-                            />
-                        </Suspense>
-                    ) : null}
-                </Dialog>
+                {canManageViewLayouts ? (
+                    <Dialog
+                        className="metrix-widget-settings-dialog"
+                        open={isDialogOpen}
+                        label={Craft.t('metrix', 'Widget Settings')}
+                        onPkOpenChange={(event) => {
+                            setIsDialogOpen(Boolean(event.detail?.open));
+                        }}
+                    >
+                        {isDialogOpen ? (
+                            <Suspense fallback={<div role="status">{Craft.t('metrix', 'Loading…')}</div>}>
+                                <WidgetSettings
+                                    widget={widget}
+                                    onClose={() => setIsDialogOpen(false)}
+                                />
+                            </Suspense>
+                        ) : null}
+                    </Dialog>
+                ) : null}
             </div>
         </div>
     );

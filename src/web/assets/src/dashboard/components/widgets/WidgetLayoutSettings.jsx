@@ -28,6 +28,7 @@ import { Popover } from '@verbb/plugin-kit-react/components/Popover';
 
 import { WidthPicker } from '@components/WidthPicker';
 
+import useAppStore from '@dashboard/hooks/useAppStore';
 import useWidgetStore from '@dashboard/hooks/useWidgetStore';
 
 import { cn } from '@utils';
@@ -131,6 +132,7 @@ const DraggableWidgetRow = ({
 };
 
 export const WidgetLayoutSettings = () => {
+    const canManageViewLayouts = useAppStore((state) => state.canManageViewLayouts);
     const widgets = useWidgetStore((state) => state.widgets);
     const reorderWidgets = useWidgetStore((state) => state.reorderWidgets);
     const updateWidget = useWidgetStore((state) => state.updateWidget);
@@ -142,6 +144,10 @@ export const WidgetLayoutSettings = () => {
         useSensor(PointerSensor, { activationConstraint: { delay: 0, tolerance: 5 } }),
         useSensor(KeyboardSensor),
     );
+
+    if (!canManageViewLayouts) {
+        return null;
+    }
 
     const handleDragEnd = async({ active, over }) => {
         if (active.id !== over?.id) {

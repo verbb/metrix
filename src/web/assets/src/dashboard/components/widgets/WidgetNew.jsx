@@ -13,6 +13,11 @@ const WidgetSettings = lazy(() => import('./WidgetSettings.jsx').then((module) =
 export function WidgetNew({ buttonSize }) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const newWidget = useAppStore((state) => state.newWidget);
+    const canManageViewLayouts = useAppStore((state) => state.canManageViewLayouts);
+
+    if (!canManageViewLayouts) {
+        return null;
+    }
 
     return (
         <>

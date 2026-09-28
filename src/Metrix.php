@@ -197,7 +197,7 @@ class Metrix extends Plugin
                             self::MANAGE_SOURCE_CREDENTIALS_PERMISSION => ['label' => Craft::t('metrix', 'Manage source credentials and connections')],
                         ],
                     ],
-                    'metrix-views' => ['label' => Craft::t('metrix', 'Views')],
+                    'metrix-views' => ['label' => Craft::t('metrix', 'Manage views and dashboard layouts')],
                 ],
             ];
         });

@@ -57,6 +57,7 @@ defineMetrixCpConstructor('Dashboard', (settings) => {
         setSources,
         setRealtimeInterval,
         setGlobalPeriod,
+        setCanManageViewLayouts,
     } = useAppStore.getState();
 
     const {
@@ -68,6 +69,7 @@ defineMetrixCpConstructor('Dashboard', (settings) => {
         viewOptions,
         presets,
         sources,
+        canManageViewLayouts,
     } = settings;
 
     loadWidgets(preloadWidgets(widgets));
@@ -79,6 +81,7 @@ defineMetrixCpConstructor('Dashboard', (settings) => {
     setPresets(presets);
     setSources(sources);
     setGlobalPeriod(null);
+    setCanManageViewLayouts(canManageViewLayouts);
 
     mountMetrixReactApp({
         mountNode,

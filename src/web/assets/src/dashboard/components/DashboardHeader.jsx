@@ -3,6 +3,7 @@ import { SelectInput } from '@verbb/plugin-kit-react/components/SelectInput';
 import { GroupedPeriodSelect } from '@components/GroupedPeriodSelect';
 import { WidgetNew } from '@dashboard/components/widgets/WidgetNew';
 import { WidgetLayoutSettings } from '@dashboard/components/widgets/WidgetLayoutSettings';
+import useAppStore from '@dashboard/hooks/useAppStore';
 import { normalizePeriodOptionGroups } from '@utils/periodOptions';
 
 export const DashboardHeader = ({
@@ -16,6 +17,7 @@ export const DashboardHeader = ({
     showHeaderActions,
     showGlobalPeriod,
 }) => {
+    const canManageViewLayouts = useAppStore((state) => state.canManageViewLayouts);
     const periodGroups = normalizePeriodOptionGroups(periodOptions);
 
     return showHeader && (
@@ -46,7 +48,7 @@ export const DashboardHeader = ({
                 )}
             </div>
 
-            {showHeaderActions && (
+            {showHeaderActions && canManageViewLayouts && (
                 <div className="flex gap-2 shrink-0">
                     <WidgetNew />
                     <WidgetLayoutSettings />
