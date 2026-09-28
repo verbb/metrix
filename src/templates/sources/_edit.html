@@ -9,6 +9,7 @@
 
 {% set fullPageForm = true %}
 {% set selectedSubnavItem = 'sources' %}
+{% set canManageSourceCredentials = currentUser.admin or currentUser.can('metrix-sources:credentials') %}
 
 {% set saveShortcutRedirect = 'metrix/sources/{handle}' %}
 
@@ -124,7 +125,7 @@
         </div>
     {% endif %}
 
-    {% if source.id and source.supportsConnection() %}
+    {% if source.id and source.supportsConnection() and canManageSourceCredentials %}
         {% if source.supportsOAuthConnection() %}
             <div class="field lightswitch-field pk-connect-field">
                 <pk-connect-oauth

@@ -47,6 +47,11 @@ class Fathom extends CredentialsSource
         return $rules;
     }
 
+    public function getCredentialAttributes(): array
+    {
+        return ['apiKey'];
+    }
+
     public function getPrimaryColor(): ?string
     {
         return '#846bff';

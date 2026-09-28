@@ -9,7 +9,7 @@ use verbb\auth\base\OAuthProviderInterface;
 use verbb\auth\base\OAuthProviderTrait;
 use verbb\auth\models\Token;
 
-abstract class OAuthSource extends Source implements OAuthProviderInterface
+abstract class OAuthSource extends Source implements CredentialSourceInterface, OAuthProviderInterface
 {
     // Static Methods
     // =========================================================================
@@ -48,6 +48,11 @@ abstract class OAuthSource extends Source implements OAuthProviderInterface
         $attributes[] = 'clientSecret';
 
         return $attributes;
+    }
+
+    public function getCredentialAttributes(): array
+    {
+        return ['clientId', 'clientSecret'];
     }
 
     public function defineRules(): array

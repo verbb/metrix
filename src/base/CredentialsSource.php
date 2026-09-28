@@ -8,7 +8,7 @@ use craft\helpers\Json;
 use GuzzleHttp\Client;
 use GuzzleHttp\RequestOptions;
 
-abstract class CredentialsSource extends Source
+abstract class CredentialsSource extends Source implements CredentialSourceInterface
 {
     // Static Methods
     // =========================================================================
@@ -43,6 +43,14 @@ abstract class CredentialsSource extends Source
     public function fetchConnection(): bool
     {
         return true;
+    }
+
+    /**
+     * Fail closed for custom providers until they classify ordinary settings separately.
+     */
+    public function getCredentialAttributes(): array
+    {
+        return $this->settingsAttributes();
     }
 
     /**

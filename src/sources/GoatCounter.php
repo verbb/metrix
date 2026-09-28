@@ -49,6 +49,11 @@ class GoatCounter extends CredentialsSource
         return $rules;
     }
 
+    public function getCredentialAttributes(): array
+    {
+        return ['apiKey'];
+    }
+
     public function getPrimaryColor(): ?string
     {
         return '#953B39';

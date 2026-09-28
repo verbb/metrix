@@ -9,8 +9,18 @@ putenv('CRAFT_EDITION=' . $edition->handle());
 $_ENV['CRAFT_EDITION'] = $_SERVER['CRAFT_EDITION'] = $edition->handle();
 $app = require CRAFT_VENDOR_PATH . '/craftcms/cms/bootstrap/console.php';
 $names = [];
+$collectNames = function(array $permissions) use (&$collectNames, &$names): void {
+    foreach ($permissions as $name => $config) {
+        $names[] = $name;
+
+        if (isset($config['nested'])) {
+            $collectNames($config['nested']);
+        }
+    }
+};
+
 foreach ($app->getUserPermissions()->getAllPermissions() as $group) {
-    $names = array_merge($names, array_keys($group['permissions']));
+    $collectNames($group['permissions']);
 }
 
 $teamGranted = null;

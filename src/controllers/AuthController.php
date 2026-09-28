@@ -39,6 +39,7 @@ class AuthController extends Controller
     public function actionConnect(): ?Response
     {
         $this->requirePermission('metrix-sources');
+        $this->requirePermission(Metrix::MANAGE_SOURCE_CREDENTIALS_PERMISSION);
         $this->requirePostRequest();
 
         $sourceHandle = $this->request->getRequiredParam('source');
@@ -81,7 +82,10 @@ class AuthController extends Controller
             return $response;
         }
 
-        $oauth->claimAuthorizedCallback('metrix', fn(User $user): bool => $user->can('metrix-sources'));
+        $oauth->claimAuthorizedCallback(
+            'metrix',
+            fn(User $user): bool => $user->can('metrix-sources') && $user->can(Metrix::MANAGE_SOURCE_CREDENTIALS_PERMISSION),
+        );
         
         // Get both the origin (failure) and redirect (success) URLs
         $origin = Session::get('origin');
@@ -140,6 +144,7 @@ class AuthController extends Controller
     public function actionDisconnect(): ?Response
     {
         $this->requirePermission('metrix-sources');
+        $this->requirePermission(Metrix::MANAGE_SOURCE_CREDENTIALS_PERMISSION);
         $this->requirePostRequest();
 
         $sourceHandle = $this->request->getRequiredParam('source');

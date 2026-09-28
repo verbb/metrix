@@ -29,6 +29,12 @@ use yii\base\Event;
 
 class Metrix extends Plugin
 {
+    // Constants
+    // =========================================================================
+
+    public const MANAGE_SOURCE_CREDENTIALS_PERMISSION = 'metrix-sources:credentials';
+
+
     // Properties
     // =========================================================================
 
@@ -185,7 +191,12 @@ class Metrix extends Plugin
                 'heading' => Craft::t('metrix', 'Metrix'),
                 'permissions' => [
                     'metrix-dashboard' => ['label' => Craft::t('metrix', 'Dashboard'), 'nested' => $viewPermissions],
-                    'metrix-sources' => ['label' => Craft::t('metrix', 'Sources')],
+                    'metrix-sources' => [
+                        'label' => Craft::t('metrix', 'Sources'),
+                        'nested' => [
+                            self::MANAGE_SOURCE_CREDENTIALS_PERMISSION => ['label' => Craft::t('metrix', 'Manage source credentials and connections')],
+                        ],
+                    ],
                     'metrix-views' => ['label' => Craft::t('metrix', 'Views')],
                 ],
             ];

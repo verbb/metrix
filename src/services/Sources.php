@@ -70,13 +70,13 @@ class Sources extends Component
         return $event->types;
     }
 
-    public function createSource(mixed $config): SourceInterface
+    public function createSource(mixed $config, bool $applyOverrides = true): SourceInterface
     {
         $handle = $config['handle'] ?? null;
         $settings = $config['settings'] ?? [];
 
         // Allow config settings to override source settings
-        if ($handle && $settings) {
+        if ($applyOverrides && $handle && $settings) {
             $configOverrides = $this->getSourceOverrides($handle);
 
             if ($configOverrides) {
@@ -143,6 +143,18 @@ class Sources extends Component
         return $source;
     }
 
+    /**
+     * Returns the database representation without config/metrix.php overrides.
+     */
+    public function getStoredSourceById(int $id): ?SourceInterface
+    {
+        $result = $this->_createSourceQuery()
+            ->where(['id' => $id])
+            ->one();
+
+        return $result ? $this->createSource($result, false) : null;
+    }
+
     public function getSourceByHandle(string $handle, bool $enabledOnly = false, bool $connectedOnly = false): ?SourceInterface
     {
         $source = $this->_sources()->firstWhere('handle', $handle, true);
@@ -161,7 +173,7 @@ class Sources extends Component
         return $this->getAllSourcesByParams($params)[0] ?? null;
     }
 
-    public function saveSource(SourceInterface $source, bool $runValidation = true): bool
+    public function saveSource(SourceInterface $source, bool $runValidation = true, ?array $settingsForPersistence = null): bool
     {
         $isNewSource = !$source->id;
 
@@ -179,7 +191,7 @@ class Sources extends Component
         }
 
         // Ensure we support Emoji's properly
-        $settings = $source->settings;
+        $settings = $settingsForPersistence ?? $source->settings;
 
         $sourceRecord = $this->_getSourceRecordById($source->id);
 

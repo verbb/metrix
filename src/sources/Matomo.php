@@ -50,6 +50,11 @@ class Matomo extends CredentialsSource
         return $rules;
     }
 
+    public function getCredentialAttributes(): array
+    {
+        return ['apiToken'];
+    }
+
     public function getPrimaryColor(): ?string
     {
         return '#4b77be';

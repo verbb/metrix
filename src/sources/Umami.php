@@ -53,6 +53,11 @@ class Umami extends CredentialsSource
         return $rules;
     }
 
+    public function getCredentialAttributes(): array
+    {
+        return ['apiKey', 'username', 'password'];
+    }
+
     public function getPrimaryColor(): ?string
     {
         return '#212121';

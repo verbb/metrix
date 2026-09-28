@@ -49,6 +49,11 @@ class Pirsch extends CredentialsSource
         return $rules;
     }
 
+    public function getCredentialAttributes(): array
+    {
+        return ['clientId', 'clientSecret'];
+    }
+
     public function getPrimaryColor(): ?string
     {
         return '#1F2937';

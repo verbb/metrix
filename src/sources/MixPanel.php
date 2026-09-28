@@ -53,6 +53,11 @@ class MixPanel extends CredentialsSource
         return $rules;
     }
 
+    public function getCredentialAttributes(): array
+    {
+        return ['username', 'password'];
+    }
+
     public function getPrimaryColor(): ?string
     {
         return '#1b0b3b';

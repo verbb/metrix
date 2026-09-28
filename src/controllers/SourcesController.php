@@ -2,7 +2,6 @@
 namespace verbb\metrix\controllers;
 
 use verbb\metrix\Metrix;
-use verbb\metrix\base\CredentialsSource;
 use verbb\metrix\base\SourceInterface;
 use verbb\metrix\helpers\Plugin;
 use verbb\metrix\helpers\SourceSecurity;
@@ -111,11 +110,13 @@ class SourcesController extends Controller
         $sourceId = $this->request->getParam('sourceId') ?: null;
         $type = $this->request->getParam('type');
         $oldSource = null;
+        $storedSource = null;
 
         if ($sourceId) {
             $oldSource = $sourcesService->getSourceById($sourceId);
+            $storedSource = $sourcesService->getStoredSourceById($sourceId);
             
-            if (!$oldSource) {
+            if (!$oldSource || !$storedSource) {
                 throw new BadRequestHttpException("Invalid source ID: $sourceId");
             }
         }
@@ -133,7 +134,13 @@ class SourcesController extends Controller
             return $this->asModelFailure($source, Craft::t('metrix', 'Couldn’t save source.'), 'source');
         }
 
-        if (!$sourcesService->saveSource($source)) {
+        $settingsForPersistence = null;
+
+        if ($storedSource && !Craft::$app->getUser()->checkPermission(Metrix::MANAGE_SOURCE_CREDENTIALS_PERMISSION)) {
+            $settingsForPersistence = SourceSecurity::settingsForPersistence($source, $storedSource);
+        }
+
+        if (!$sourcesService->saveSource($source, true, $settingsForPersistence)) {
             return $this->asModelFailure($source, Craft::t('metrix', 'Couldn’t save source.'), 'source');
         }
 
@@ -202,6 +209,7 @@ class SourcesController extends Controller
     public function actionCheckConnection(): Response
     {
         $this->requirePostRequest();
+        $this->requirePermission(Metrix::MANAGE_SOURCE_CREDENTIALS_PERMISSION);
 
         $request = $this->request;
         $type = $request->getParam('type');
@@ -237,11 +245,9 @@ class SourcesController extends Controller
 
     private function _validateDelegatedSourceChange(SourceInterface $source, ?SourceInterface $original): bool
     {
-        if (Craft::$app->getUser()->getIsAdmin() || !$source instanceof CredentialsSource) {
+        if (Craft::$app->getUser()->checkPermission(Metrix::MANAGE_SOURCE_CREDENTIALS_PERMISSION)) {
             return true;
         }
-
-        $original = $original && get_class($original) === get_class($source) ? $original : null;
 
         return SourceSecurity::validateDelegatedChange($source, $original);
     }

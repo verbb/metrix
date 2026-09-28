@@ -47,6 +47,11 @@ class SimpleAnalytics extends CredentialsSource
         return $rules;
     }
 
+    public function getCredentialAttributes(): array
+    {
+        return ['apiKey'];
+    }
+
     public function getPrimaryColor(): ?string
     {
         return '#FF5533';

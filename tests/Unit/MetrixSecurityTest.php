@@ -9,15 +9,22 @@ use Tests\Support\ProviderHttp;
 use verbb\metrix\base\CredentialsSource;
 use verbb\metrix\Metrix;
 use verbb\metrix\controllers\AuthController;
+use verbb\metrix\controllers\SourcesController;
 use verbb\metrix\helpers\DashboardPermissions;
 use verbb\metrix\helpers\Options;
 use verbb\metrix\helpers\ProviderUrl;
 use verbb\metrix\helpers\SourceSecurity;
 use verbb\metrix\models\AnalyticsScope;
+use verbb\metrix\sources\Cloudflare;
+use verbb\metrix\sources\Fathom;
 use verbb\metrix\sources\GoatCounter;
 use verbb\metrix\sources\GoogleAnalytics;
 use verbb\metrix\sources\Matomo;
+use verbb\metrix\sources\MixPanel;
+use verbb\metrix\sources\Pirsch;
 use verbb\metrix\sources\Plausible;
+use verbb\metrix\sources\SimpleAnalytics;
+use verbb\metrix\sources\Umami;
 use yii\base\InvalidArgumentException;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
@@ -61,6 +68,39 @@ describe('OAuth management access', function() {
         expect(fn() => $controller->runAction($action))
             ->toThrow(ForbiddenHttpException::class);
     })->with(['connect', 'disconnect']);
+
+    it('requires the dedicated credential permission', function(string $action) {
+        NonAdminUser::loginWithPermissions(['metrix-sources']);
+        CpRequestContext::activate("actions/metrix/auth/{$action}", 'POST', true);
+
+        $controller = new AuthController('auth', Metrix::$plugin);
+        $controller->enableCsrfValidation = false;
+
+        expect(fn() => $controller->runAction($action))
+            ->toThrow(ForbiddenHttpException::class);
+    })->with(['connect', 'disconnect']);
+
+    it('allows credential managers to reach request validation', function(string $action) {
+        NonAdminUser::loginWithPermissions(['metrix-sources', Metrix::MANAGE_SOURCE_CREDENTIALS_PERMISSION]);
+        CpRequestContext::activate("actions/metrix/auth/{$action}", 'POST', true);
+
+        $controller = new AuthController('auth', Metrix::$plugin);
+        $controller->enableCsrfValidation = false;
+
+        expect(fn() => $controller->runAction($action))
+            ->toThrow(BadRequestHttpException::class);
+    })->with(['connect', 'disconnect']);
+
+    it('requires the credential permission to check a saved connection', function() {
+        NonAdminUser::loginWithPermissions(['metrix-sources']);
+        CpRequestContext::activate('actions/metrix/sources/check-connection', 'POST', true);
+
+        $controller = new SourcesController('sources', Metrix::$plugin);
+        $controller->enableCsrfValidation = false;
+
+        expect(fn() => $controller->runAction('check-connection'))
+            ->toThrow(ForbiddenHttpException::class);
+    });
 });
 
 describe('DashboardPermissions', function() {
@@ -260,6 +300,23 @@ describe('Provider URL security', function() {
 });
 
 describe('Delegated Source settings', function() {
+    it('classifies the credential fields for every built-in credential provider', function(string $sourceClass, array $expected) {
+        $source = (new ReflectionClass($sourceClass))->newInstanceWithoutConstructor();
+
+        expect($source->getCredentialAttributes())->toBe($expected);
+    })->with([
+        Cloudflare::class => [Cloudflare::class, ['apiToken']],
+        Fathom::class => [Fathom::class, ['apiKey']],
+        GoatCounter::class => [GoatCounter::class, ['apiKey']],
+        GoogleAnalytics::class => [GoogleAnalytics::class, ['clientId', 'clientSecret']],
+        Matomo::class => [Matomo::class, ['apiToken']],
+        MixPanel::class => [MixPanel::class, ['username', 'password']],
+        Pirsch::class => [Pirsch::class, ['clientId', 'clientSecret']],
+        Plausible::class => [Plausible::class, ['apiKey']],
+        SimpleAnalytics::class => [SimpleAnalytics::class, ['apiKey']],
+        Umami::class => [Umami::class, ['apiKey', 'username', 'password']],
+    ]);
+
     it('rejects new environment and alias references in every Craft-supported form', function(string $value) {
         $source = new GoatCounter(['siteUrl' => 'https://analytics.example.test', 'apiKey' => $value]);
 
@@ -279,6 +336,37 @@ describe('Delegated Source settings', function() {
         expect(SourceSecurity::validateDelegatedChange($changed, $original))->toBeTrue();
     });
 
+    it('treats blank optional credentials as unchanged', function() {
+        $original = new SimpleAnalytics([
+            'apiKey' => null,
+            'hostname' => 'before.example.test',
+        ]);
+        $changed = clone $original;
+        $changed->apiKey = '';
+        $changed->hostname = 'after.example.test';
+
+        expect(SourceSecurity::validateDelegatedChange($changed, $original))->toBeTrue();
+    });
+
+    it('preserves stored protected values hidden by config overrides', function() {
+        $stored = new GoogleAnalytics([
+            'clientId' => '$METRIX_CLIENT_ID',
+            'clientSecret' => '$METRIX_CLIENT_SECRET',
+            'accountId' => 'accounts/1',
+        ]);
+        $effective = new GoogleAnalytics([
+            'clientId' => 'config-client-id',
+            'clientSecret' => 'config-client-secret',
+            'accountId' => 'accounts/2',
+        ]);
+
+        expect(SourceSecurity::settingsForPersistence($effective, $stored))->toMatchArray([
+            'clientId' => '$METRIX_CLIENT_ID',
+            'clientSecret' => '$METRIX_CLIENT_SECRET',
+            'accountId' => 'accounts/2',
+        ]);
+    });
+
     it('rejects destination changes while an environment-backed secret remains attached', function() {
         $original = new Matomo([
             'apiUrl' => 'https://analytics.example.test',
@@ -290,6 +378,54 @@ describe('Delegated Source settings', function() {
 
         expect(SourceSecurity::validateDelegatedChange($changed, $original))->toBeFalse()
             ->and($changed->getErrors('apiUrl'))->not->toBeEmpty();
+    });
+
+    it('rejects OAuth credential changes for ordinary source managers', function(string $value) {
+        $source = new GoogleAnalytics([
+            'clientId' => $value,
+            'clientSecret' => 'unchanged-secret',
+        ]);
+
+        expect(SourceSecurity::validateDelegatedChange($source))->toBeFalse()
+            ->and($source->getErrors('clientId'))->not->toBeEmpty();
+    })->with(['literal-client-id', '$METRIX_CLIENT_ID', '${METRIX_CLIENT_ID}', '@metrixClientId']);
+
+    it('allows ordinary OAuth settings to change while credentials remain unchanged', function() {
+        $original = new GoogleAnalytics([
+            'clientId' => '$METRIX_CLIENT_ID',
+            'clientSecret' => '$METRIX_CLIENT_SECRET',
+            'accountId' => 'accounts/1',
+        ]);
+        $changed = clone $original;
+        $changed->accountId = 'accounts/2';
+
+        expect(SourceSecurity::validateDelegatedChange($changed, $original))->toBeTrue();
+    });
+
+    it('allows credential managers to use environment-backed OAuth credentials', function() {
+        NonAdminUser::loginWithPermissions(['metrix-sources', Metrix::MANAGE_SOURCE_CREDENTIALS_PERMISSION]);
+        $source = new GoogleAnalytics([
+            'clientId' => '$METRIX_CLIENT_ID',
+            'clientSecret' => '$METRIX_CLIENT_SECRET',
+        ]);
+        $controller = (new ReflectionClass(SourcesController::class))->newInstanceWithoutConstructor();
+        $method = new ReflectionMethod($controller, '_validateDelegatedSourceChange');
+
+        expect($method->invoke($controller, $source, null))->toBeTrue();
+    });
+
+    it('rejects provider type changes without the credential permission', function() {
+        $original = new GoogleAnalytics([
+            'clientId' => '$METRIX_CLIENT_ID',
+            'clientSecret' => '$METRIX_CLIENT_SECRET',
+        ]);
+        $changed = new GoatCounter([
+            'siteUrl' => 'https://analytics.example.test',
+            'apiKey' => '$METRIX_API_KEY',
+        ]);
+
+        expect(SourceSecurity::validateDelegatedChange($changed, $original))->toBeFalse()
+            ->and($changed->getErrors('type'))->not->toBeEmpty();
     });
 });
 

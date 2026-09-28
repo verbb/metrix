@@ -49,6 +49,11 @@ class Cloudflare extends CredentialsSource
         return $rules;
     }
 
+    public function getCredentialAttributes(): array
+    {
+        return ['apiToken'];
+    }
+
     public function getPrimaryColor(): ?string
     {
         return '#F38020';

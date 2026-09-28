@@ -11,7 +11,9 @@ it('registers dashboard permissions in every Craft edition with user permissions
 
     expect(proc_close($process))->toBe(0, $errors);
     $result = json_decode($output, true, 512, JSON_THROW_ON_ERROR);
-    expect($result['edition'])->toBe($edition)->and($result['permissions'])->toContain('metrix-dashboard');
+    expect($result['edition'])->toBe($edition)
+        ->and($result['permissions'])->toContain('metrix-dashboard')
+        ->and($result['permissions'])->toContain('metrix-sources:credentials');
     if ($edition === 'team') {
         expect($result['teamGranted'])->toBeTrue();
     }

@@ -50,6 +50,11 @@ class Plausible extends CredentialsSource
         return $rules;
     }
 
+    public function getCredentialAttributes(): array
+    {
+        return ['apiKey'];
+    }
+
     public function getPrimaryColor(): ?string
     {
         return '#5046e5';
