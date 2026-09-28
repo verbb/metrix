@@ -5,6 +5,9 @@
 ### Added
 - Added a dedicated permission for managing Source credentials and connections. Existing non-admin Source managers must be granted this permission to continue managing credentials.
 
+### Changed
+- Require `verbb/auth` `^2.0.48` for secure OAuth callback transactions.
+
 ### Fixed
 - Fixed a high-severity information disclosure vulnerability.
 - Fixed OAuth callback transaction validation.
@@ -32,7 +35,7 @@
 - Reduce the Google Analytics OAuth scope to `analytics.readonly`.
 - Use Matomo Reporting API breakdown methods for browser, country, city, and referrer dimensions.
 - Require authenticated POST requests and the appropriate permissions when connecting, disconnecting, or managing sources, views, presets, and settings.
-- Require `verbb/auth` `^2.0.45` for OAuth reconnect handling when refresh tokens are permanently rejected.
+- Require `verbb/auth` `^2.0.48` for OAuth reconnect handling when refresh tokens are permanently rejected.
 - Link source setup screens to their provider guides and expand dashboard setup, provider prerequisites, configuration, and custom extension documentation.
 - Update Plugin Kit and lodash dependencies to their patched releases.
 
