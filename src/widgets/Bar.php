@@ -1,14 +1,8 @@
 <?php
 namespace verbb\metrix\widgets;
 
-use verbb\metrix\Metrix;
 use verbb\metrix\base\Widget;
 use verbb\metrix\helpers\Schema;
-
-use Craft;
-use craft\helpers\App;
-
-use Throwable;
 
 class Bar extends Widget
 {
@@ -25,11 +19,11 @@ class Bar extends Widget
         return [
             Schema::sources(),
             Schema::chartTypes(),
+            Schema::titles(),
+            Schema::subtitles(),
             Schema::widths(),
             Schema::periods(),
             Schema::metrics(),
         ];
     }
-
-
 }

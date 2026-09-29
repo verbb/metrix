@@ -1,6 +1,8 @@
 <?php
 namespace verbb\metrix\services;
 
+use verbb\metrix\Metrix;
+
 use verbb\metrix\events\ViewEvent;
 use verbb\metrix\models\View;
 use verbb\metrix\records\View as ViewRecord;
@@ -8,15 +10,12 @@ use verbb\metrix\records\View as ViewRecord;
 use Craft;
 use craft\base\MemoizableArray;
 use craft\db\Query;
-use craft\errors\MissingComponentException;
-use craft\events\RegisterComponentTypesEvent;
 use craft\helpers\ArrayHelper;
-use craft\helpers\Component as ComponentHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
 
 use yii\base\Component;
-use yii\base\InvalidConfigException;
+use yii\caching\TagDependency;
 
 use Exception;
 use Throwable;
@@ -93,6 +92,7 @@ class Views extends Component
         $viewRecord = $this->_getViewRecordById($view->id);
         $viewRecord->name = $view->name;
         $viewRecord->handle = $view->handle;
+        $viewRecord->settings = Json::encode($view->settings ?? []);
 
         if ($isNewView) {
             $maxSortOrder = (new Query())
@@ -107,6 +107,15 @@ class Views extends Component
         if (!$view->id) {
             $view->id = $viewRecord->id;
         }
+
+        if (!$view->uid) {
+            $view->uid = $viewRecord->uid;
+        }
+
+        // Clear caches
+        $this->_views = null;
+        Metrix::$plugin->getWidgets()->clearCachedWidgets();
+        $this->invalidateWidgetDataCache($view);
 
         // Fire an 'afterSaveView' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_VIEW)) {
@@ -137,6 +146,8 @@ class Views extends Component
             throw $e;
         }
 
+        $this->_views = null;
+
         return true;
     }
 
@@ -162,6 +173,11 @@ class Views extends Component
 
         Db::delete('{{%metrix_views}}', ['id' => $view->id]);
 
+        // Clear caches
+        $this->_views = null;
+        Metrix::$plugin->getWidgets()->clearCachedWidgets();
+        $this->invalidateWidgetDataCache($view);
+
         // Fire an 'afterDeleteView' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_VIEW)) {
             $this->trigger(self::EVENT_AFTER_DELETE_VIEW, new ViewEvent([
@@ -169,10 +185,26 @@ class Views extends Component
             ]));
         }
 
-        // Clear caches
-        $this->_views = null;
-
         return true;
+    }
+
+    /**
+     * Bust tagged widget-data cache entries for widgets in a view (or all Metrix tags).
+     */
+    public function invalidateWidgetDataCache(?View $view = null): void
+    {
+        $tags = $view
+            ? array_values(array_filter([
+                $view->id ? 'metrix.view.id.' . $view->id : null,
+                $view->handle ? 'metrix.view.' . $view->handle : null,
+            ]))
+            : ['metrix'];
+
+        if ($tags === []) {
+            $tags = ['metrix'];
+        }
+
+        TagDependency::invalidate(Craft::$app->getCache(), $tags);
     }
 
 
@@ -201,6 +233,7 @@ class Views extends Component
                 'id',
                 'name',
                 'handle',
+                'settings',
                 'sortOrder',
                 'dateCreated',
                 'dateUpdated',

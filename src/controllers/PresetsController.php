@@ -24,6 +24,18 @@ class PresetsController extends Controller
     // Public Methods
     // =========================================================================
 
+    public function beforeAction($action): bool
+    {
+        if (!parent::beforeAction($action)) {
+            return false;
+        }
+
+        // Presets live under Settings; templates already use {% requireAdmin %}.
+        $this->requireAdmin();
+
+        return true;
+    }
+
     public function actionIndex(): Response
     {
         $presets = Metrix::$plugin->getPresets()->getAllPresets();
@@ -60,7 +72,7 @@ class PresetsController extends Controller
 
         $settings = Metrix::$plugin->getSettings();
 
-        Plugin::registerAsset('src/apps/presets/metrix-presets.js');
+        Plugin::registerPresetsAssets();
         $this->view->registerJs('new Craft.Metrix.Presets(' . Json::encode($preset->getComponentSettings()) . ');');
 
         $firstSource = Metrix::$plugin->getSources()->getAllConfiguredSources()[0] ?? null;
@@ -82,7 +94,8 @@ class PresetsController extends Controller
         $presetsService = Metrix::$plugin->getPresets();
         $type = $this->request->getParam('type');
         $presetId = (int)$this->request->getParam('id');
-        $widgets = Json::decode($this->request->getParam('widgets', ''));
+        $widgets = Json::decodeIfJson($this->request->getParam('widgets', '[]'), true);
+        $widgets = is_array($widgets) ? $widgets : [];
         $savedPreset = null;
 
         if ($presetId) {
@@ -95,8 +108,8 @@ class PresetsController extends Controller
 
         $preset = new Preset([
             'id' => $presetId ?: null,
-            'name' => $this->request->getParam('name'),
-            'handle' => $this->request->getParam('handle'),
+            'name' => trim((string)$this->request->getParam('name', '')),
+            'handle' => trim((string)$this->request->getParam('handle', '')),
             'sortOrder' => $savedPreset->sortOrder ?? null,
             'enabled' => (bool)$this->request->getParam('enabled'),
             'uid' => $savedPreset->uid ?? null,
@@ -105,7 +118,10 @@ class PresetsController extends Controller
         $preset->setWidgets($widgets);
 
         if (!$presetsService->savePreset($preset)) {
-            $this->setFailFlash(Craft::t('metrix', 'Couldn’t save preset.'));
+            // Validation errors are shown on the fields; avoid a redundant flash toast.
+            if (!$preset->hasErrors()) {
+                $this->setFailFlash(Craft::t('metrix', 'Couldn’t save preset.'));
+            }
 
             // Send the preset back to the template
             Craft::$app->getUrlManager()->setRouteParams([

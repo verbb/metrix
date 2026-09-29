@@ -9,6 +9,7 @@ use verbb\metrix\helpers\Schema;
 use Craft;
 use craft\helpers\App;
 
+use Exception;
 use Throwable;
 
 class Realtime extends Widget
@@ -31,6 +32,8 @@ class Realtime extends Widget
         return [
             Schema::sources(),
             Schema::chartTypes(),
+            Schema::titles(),
+            Schema::subtitles(),
             Schema::widths(),
         ];
     }
@@ -46,7 +49,13 @@ class Realtime extends Widget
 
     public function fetchData(WidgetDataInterface $widgetData): array
     {
-        return $this->getSource()->fetchRealtimeData($widgetData);
+        $source = $this->getSource();
+
+        if (!$source || !$source->supportsRealtime()) {
+            throw new Exception(Craft::t('metrix', 'This source does not support realtime data.'));
+        }
+
+        return $source->fetchRealtimeData($widgetData);
     }
 
 

@@ -42,10 +42,13 @@ class AllTime extends Period
 
     public static function generatePlotDimensions(WidgetData $widgetData, array $rawData): array
     {
-        $firstDate = array_keys($rawData)[0] ?? '2015-01-01';
+        if (!$rawData) {
+            return [];
+        }
 
-        $start = new DateTime($firstDate . ' 00:00:00');
-        $end = new DateTime();
+        $firstDate = min(array_keys($rawData));
+        $start = (new DateTime($firstDate))->modify('first day of this month')->setTime(0, 0);
+        $end = new DateTime('first day of next month midnight');
 
         $interval = new DateInterval('P1M');
         $period = new DatePeriod($start, $interval, $end);

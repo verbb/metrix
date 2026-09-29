@@ -1,27 +1,28 @@
 # Custom Widget
-You can register your own Widget to add support for other types of widgets, or even extend an existing Widget
+Create a custom Widget when a different presentation would help your team interpret its analytics. This example displays a date range as a grid of values: darker cells indicate higher activity. Each cell includes its date and number, so colour is not the only way to read the result.
+
+Start with a bootstrapped [Craft module](https://craftcms.com/docs/5.x/extend/module-guide.html) using `modules\sitemodule`, a connected analytics Source and a working Line widget. Use the same Source and metric to verify this example. The JavaScript build below needs Node.js compatible with Vite.
+
+Create the three PHP files below beside your module's `Module.php`. Add these imports at the top of `Module.php`, then place the listener inside `init()`, after `parent::init()`. The registration snippet is partial module code:
 
 ```php
-namespace modules\sitemodule;
-
 use craft\events\RegisterComponentTypesEvent;
-use modules\sitemodule\MyWidget;
+use modules\sitemodule\Heatmap;
 use verbb\metrix\services\Widgets;
 use yii\base\Event;
 
 Event::on(Widgets::class, Widgets::EVENT_REGISTER_WIDGET_TYPES, function(RegisterComponentTypesEvent $event) {
-    $event->types[] = MyWidget::class;
+    $event->types[] = Heatmap::class;
 });
 ```
 
 ## Example Widget
-The first step is to register your widget as above with `Widgets::EVENT_REGISTER_WIDGET_TYPES`. Then, we'll need to define what type of data our widget uses, and what sort of settings it provides.
+After registering the Widget with `Widgets::EVENT_REGISTER_WIDGET_TYPES`, create `Heatmap.php` in the module namespace. The class identifies its data transformer, settings fields and asset bundle:
 
 ```php
 <?php
 namespace modules\sitemodule;
 
-use verbb\metrix\Metrix;
 use verbb\metrix\base\Widget;
 use verbb\metrix\helpers\Schema;
 
@@ -47,6 +48,7 @@ class Heatmap extends Widget
         return [
             Schema::sources(),
             Schema::chartTypes(),
+            Schema::titles(),
             Schema::widths(),
             Schema::periods(),
             Schema::metrics(),
@@ -60,22 +62,22 @@ class Heatmap extends Widget
 }
 ```
 
-The widget data will be covered in the next section, while the `getSettingsSchema()` needs to return a collection of field definitions. These define what fields are available as settings when editing the widget.
+`getSettingsSchema()` returns the fields shown when an editor configures the Widget. The classes returned by `getDataType()` and `getAssetBundle()` are defined below in the same module namespace.
 
 ## Widget Data
-Next is the widget data. Essentially, this handles transforming the raw data provided by the source into the structure for the widget. Any processing you need to do to the data, including formatting should go here.
+Create `HeatmapData.php` to transform the provider response into the rows required by the component. Extend `PlotData` for a custom time-series presentation so Sources request dated buckets instead of aggregate totals. Override `formatData()` to supply your component’s own response shape:
 
 ```php
 <?php
 namespace modules\sitemodule;
 
-use verbb\metrix\base\WidgetData;
+use verbb\metrix\widgets\data\PlotData;
 
 use Craft;
 
 use DateTime;
 
-class HeatmapData extends WidgetData
+class HeatmapData extends PlotData
 {
     // Protected Methods
     // =========================================================================
@@ -118,13 +120,13 @@ class HeatmapData extends WidgetData
 ```
 
 ## Asset Bundle
-You'll need to provide an asset bundle to serve your JS correctly.
+Create `HeatmapAsset.php` to publish the compiled JavaScript:
 
 ```php
 <?php
 namespace modules\sitemodule;
 
-use verbb\metrix\assetbundles\MetrixAsset;
+use verbb\metrix\web\assets\src\CpReactAsset;
 
 use craft\web\AssetBundle;
 
@@ -135,10 +137,10 @@ class HeatmapAsset extends AssetBundle
 
     public function init(): void
     {
-        $this->sourcePath = '@modules/sitemodule/widgets/assets/dist';
+        $this->sourcePath = __DIR__ . '/widgets/dist';
 
         $this->depends = [
-            MetrixAsset::class,
+            CpReactAsset::class,
         ];
 
         $this->js = [
@@ -151,42 +153,114 @@ class HeatmapAsset extends AssetBundle
 ```
 
 ## JavaScript
-Finally, you'll need to provide a React component to be used when rendering the widget. It will be up to you to build this component, as we cannot use the raw React component with Metrix.
 
-First, create a `main.js` file.
+Create `widgets/src/HeatmapWidget.js` under your module directory. The component receives Metrix's Widget props and uses `WidgetLarge` for the header, loading state and error handling. Its `renderContent` callback receives the data returned by `HeatmapData::formatData()`:
 
 ```js
-import { HeatmapWidget } from './HeatmapWidget.jsx';
+import { createElement as h } from 'react';
 
-document.addEventListener('onMetrixConfigReady', (e) => {
-    Craft.Metrix.Config.registerWidget('modules\\sitemodule\\widgets\\Heatmap', HeatmapWidget);
+export function HeatmapWidget(props) {
+    const { WidgetLarge } = window.Craft.Metrix.SharedComponents;
+
+    function renderContent(data) {
+        const maximum = Math.max(1, ...data.rows.map(row => Number(row.value) || 0));
+
+        return h('ul', {
+            'aria-label': 'Activity by date',
+            style: {
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))',
+                gap: '8px',
+                padding: '16px',
+                margin: 0,
+                listStyle: 'none',
+                overflow: 'auto',
+            },
+        }, data.rows.map(row => {
+            const value = row.value === null ? 'No data' : String(row.value);
+            const intensity = Math.max(0, Math.min(1, Number(row.value) / maximum));
+
+            return h('li', {
+                key: row.dimension,
+                style: {
+                    padding: '10px',
+                    borderRadius: '4px',
+                    background: `rgba(29, 78, 216, ${0.08 + intensity * 0.2})`,
+                    color: 'inherit',
+                },
+            }, [
+                h('time', { key: 'date', dateTime: row.dimension }, row.dimension),
+                h('strong', { key: 'value', style: { display: 'block' } }, value),
+            ]);
+        }));
+    }
+
+    return h(WidgetLarge, { ...props, renderContent });
+}
+
+HeatmapWidget.meta = { name: 'Heatmap' };
+```
+
+Create `widgets/src/main.js` beside it. Register the component immediately if Metrix is ready, or listen for its configuration event. The registration key must match the PHP class name:
+
+```js
+import { HeatmapWidget } from './HeatmapWidget.js';
+
+function registerHeatmap() {
+    window.Craft.Metrix.Config.registerWidget('modules\\sitemodule\\Heatmap', HeatmapWidget);
+}
+
+if (window.Craft?.Metrix?.Config) {
+    registerHeatmap();
+}
+
+document.addEventListener('onMetrixConfigReady', registerHeatmap);
+```
+
+## Build the Asset
+
+Create `widgets/package.json`. The component uses React 19, matching Metrix's React runtime. It creates elements without introducing a second React root:
+
+```json
+{
+    "private": true,
+    "type": "module",
+    "scripts": { "build": "vite build" },
+    "dependencies": { "react": "^19.2.5" },
+    "devDependencies": { "vite": "^8.0.10" }
+}
+```
+
+Create `widgets/vite.config.js` to bundle those imports into the `dist/main.js` file published by `HeatmapAsset`:
+
+```js
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+    define: { 'process.env.NODE_ENV': JSON.stringify('production') },
+    build: {
+        lib: {
+            entry: 'src/main.js',
+            name: 'MetrixHeatmap',
+            formats: ['iife'],
+            fileName: () => 'main.js',
+        },
+    },
 });
 ```
 
-Then, in our `HeatmapWidget.jsx` file:
+In a terminal, change to this `widgets` directory, install its dependencies and build:
 
-```js
-export const HeatmapWidget = (props) => {
-    const { WidgetLarge } = window.Craft.Metrix.SharedComponents;
-
-    const { widget } = props;
-
-    function renderContent(data) {
-        return (
-            <div className="mc-h-full mc-flex mc-flex-col mc-relative mc-pt-4">
-                <div className="mc-relative mc-w-full" style={{ height: '25.3rem' }}>
-                    // ...
-                </div>
-            </div>
-        );
-    }
-
-    return <WidgetLarge className="mc-h-[29rem]" renderContent={renderContent} {...props} />;
-}
-
-HeatmapWidget.meta = {
-    name: 'Heatmap',
-};
+```shell
+cd /path/to/project/modules/sitemodule/widgets
+npm install
+npm run build
 ```
 
-Don't forget to build these JavaScript files with your favourite bundler!
+Commit the built asset with your module or build it during deployment. `HeatmapAsset` must be able to find `widgets/dist/main.js` on the server.
+
+## Verify the Widget
+
+Reload the Metrix dashboard and add a **Heatmap** widget to a test View. Select the same Source, metric and **Last 7 Days** period as your working Line widget. Save it and compare the date buckets and values. The grid should show the same numbers, with the largest values using the darkest background.
+
+Change the period and refresh the widget. Check that a zero appears as `0`, a future bucket appears as “No data”, and a provider error appears in Metrix's error state. When updating the built script, clear Craft's published asset caches if the browser still loads an older copy.

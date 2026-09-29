@@ -1,21 +1,86 @@
 # Preset
 
-## Attributes
+A Preset contains reusable Widget configurations. Obtain one from Metrix's Presets service when a module needs to inspect or assemble a dashboard preset:
 
-Attribute | Description
---- | ---
-`id` | The unique identifier for the preset.
-`name` | The name of the preset.
-`handle` | The handle of the preset.
-`enabled` | Indicates if the preset is enabled.
-`widgets` | A collection of widgets associated with the preset.
-`dateCreated` | The timestamp when the preset was created.
-`dateUpdated` | The timestamp when the preset was last updated.
-`uid` | The unique identifier string for the preset.
+```php
+$preset = \verbb\metrix\Metrix::$plugin->getPresets()->getPresetByHandle('websiteOverview');
+
+if (!$preset) {
+    throw new \RuntimeException('The websiteOverview Metrix Preset does not exist.');
+}
+```
+
+<span id="attributes"></span>
+
+## Properties
+
+::: reference
+### `id`
+
+**Type:** `string|int|null`
+
+The unique identifier for the preset (when stored).
+:::
+
+::: reference
+### `name`
+
+**Type:** `string|null`
+
+The name of the preset.
+:::
+
+::: reference
+### `handle`
+
+**Type:** `string|null`
+
+The handle of the preset.
+:::
+
+::: reference
+### `enabled`
+
+**Type:** `bool`
+
+Whether the preset is enabled.
+:::
+
+::: reference
+### `widgets`
+
+**Type:** `array`
+
+Widget configs applied when the preset is used.
+:::
 
 ## Methods
 
-Method | Description
---- | ---
-`getWidgets()` | Retrieves all widgets associated with the preset.
-`setWidgets($widgets)` | Assigns a collection of widgets to the preset.
+::: reference
+### `getWidgets(): array`
+
+**Returns:** `array`
+
+Widget instances / configs for the preset.
+:::
+
+::: reference
+### `setWidgets(array $widgetConfigs): void`
+
+**Returns:** `void`
+
+Normalises and assigns Widget instances or configuration arrays.
+:::
+
+```php
+$preset->setWidgets([
+    [
+        'type' => \verbb\metrix\widgets\Counter::class,
+        'source' => 'analytics',
+        'canonicalMetric' => 'visitors',
+        'width' => 1,
+    ],
+]);
+
+$widgets = $preset->getWidgets();
+```

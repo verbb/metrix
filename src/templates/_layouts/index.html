@@ -1,6 +1,6 @@
 {% extends parentLayout ?? '_layouts/cp' %}
 
-{% do craft.metrix.registerAsset('src/apps/cp/metrix-cp.js') %}
+{% do craft.metrix.registerCpAssets() %}
 
 {% if title is not defined %}
     {% set title = 'Metrix' | t('metrix') %}

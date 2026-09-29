@@ -1,0 +1,31 @@
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { expect, it, vi } from 'vitest';
+const context = vi.hoisted(()=>({widgets:[],canManageViewLayouts:true}));
+vi.mock('react', async(original)=>({...await original(),useState:()=>[true,()=>{}]}));
+vi.mock('@dnd-kit/core',()=>({DndContext:({children})=>children,closestCenter:()=>{},useSensor:()=>{},useSensors:()=>{},PointerSensor:()=>{},KeyboardSensor:()=>{}}));
+vi.mock('@dnd-kit/modifiers',()=>({restrictToVerticalAxis:()=>{},restrictToParentElement:()=>{}}));
+vi.mock('@dnd-kit/sortable',()=>({SortableContext:({children})=>children,verticalListSortingStrategy:()=>{},useSortable:()=>({attributes:{},listeners:{},setNodeRef:()=>{},transform:null})}));
+vi.mock('@dnd-kit/utilities',()=>({CSS:{Translate:{toString:()=>''}}}));
+vi.mock('@verbb/plugin-kit-react/components/Popover',()=>({Popover:({children})=>children}));
+vi.mock('@verbb/plugin-kit-react/components/Button',()=>({Button:()=>null}));
+vi.mock('@verbb/plugin-kit-react/components/Icon',()=>({Icon:()=>null}));
+vi.mock('@components/WidthPicker',()=>({WidthPicker:()=>null}));
+vi.mock('@utils',()=>({cn:(...args)=>args.join(' ')}));
+vi.mock('@dashboard/hooks/useAppStore',()=>({default:(selector)=>selector({canManageViewLayouts:context.canManageViewLayouts})}));
+vi.mock('@dashboard/hooks/useWidgetStore',()=>({default:(selector)=>selector({widgets:context.widgets})}));
+import { WidgetLayoutSettings } from './WidgetLayoutSettings.jsx';
+it('keeps layout controls available when an extension widget has no browser component',()=>{
+ globalThis.React=React; globalThis.Craft={t:(_category,message)=>message};
+ context.canManageViewLayouts=true;
+ context.widgets=[{__id:'healthy',component:{meta:{name:'Counter'}},data:{metricLabel:'Visitors',periodLabel:'Last 7 Days',width:'1'}},{__id:'extension',component:null,data:{type:'modules\\site\\Heatmap',width:'1'}}];
+ const html=renderToStaticMarkup(<WidgetLayoutSettings/>);
+ expect(html).toContain('Counter').toContain('Widget type unavailable');
+ expect(html.match(/aria-label="Remove Widget"/g)).toHaveLength(2);
+});
+it('hides layout controls from view-only users',()=>{
+ globalThis.React=React; globalThis.Craft={t:(_category,message)=>message};
+ context.canManageViewLayouts=false;
+ context.widgets=[];
+ expect(renderToStaticMarkup(<WidgetLayoutSettings/>)).toBe('');
+});

@@ -38,6 +38,12 @@ class MixPanel extends CredentialsSource
     // Public Methods
     // =========================================================================
 
+    public function supportsDimensions(): bool
+    {
+        // Mixpanel is event-centric; Metrix dimension widgets are not supported.
+        return false;
+    }
+
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -45,6 +51,11 @@ class MixPanel extends CredentialsSource
         $rules[] = [['username', 'password', 'projectId'], 'required', 'when' => fn($model) => $model->enabled];
 
         return $rules;
+    }
+
+    public function getCredentialAttributes(): array
+    {
+        return ['username', 'password'];
     }
 
     public function getPrimaryColor(): ?string
@@ -77,8 +88,8 @@ class MixPanel extends CredentialsSource
         $data = $this->_getPropertyMetadata();
 
         return array_map(fn($metric) => [
-            'label' => $metric['event'],
-            'value' => $metric['event']
+            'label' => $metric,
+            'value' => $metric
         ], $data ?? []);
     }
 
@@ -86,6 +97,11 @@ class MixPanel extends CredentialsSource
     {
         $intervalDimension = $this->_getIntervalDimension($widgetData);
         $dateRange = $widgetData->period::getCurrentDateRange();
+
+        if (!$dateRange) {
+            $dateRange = ['start' => new DateTime('1970-01-01'), 'end' => new DateTime()];
+        }
+
         $startDate = $dateRange['start']->format('Y-m-d');
         $endDate = $dateRange['end']->format('Y-m-d');
 
@@ -102,17 +118,12 @@ class MixPanel extends CredentialsSource
 
         $data = $response['data'] ?? [];
         $series = $data['series'] ?? [];
-        $values = $data['values'] ?? [];
+        $values = $data['values'][$widgetData->metric] ?? [];
 
         $formattedData = [];
 
-        foreach ($series as $index => $dimension) {
-            $metric = $values[$index] ?? 0;
-
-            $formattedData[] = [
-                'dimension' => $dimension,
-                'metric' => (int)$metric,
-            ];
+        foreach ($series as $dimension) {
+            $formattedData[$dimension] = (int)($values[$dimension] ?? 0);
         }
 
         return $formattedData;
@@ -121,7 +132,13 @@ class MixPanel extends CredentialsSource
     public function fetchConnection(): bool
     {
         try {
-            $this->request('GET', 'https://mixpanel.com/api/app/me');
+            $this->request('GET', 'events/names', [
+                'query' => [
+                    'project_id' => $this->getProjectId(),
+                    'type' => 'general',
+                    'limit' => 1,
+                ],
+            ]);
         } catch (Throwable $e) {
             self::apiError($this, $e);
 
@@ -141,6 +158,16 @@ class MixPanel extends CredentialsSource
             'base_uri' => 'https://mixpanel.com/api/query/',
             'auth' => [$this->getUsername(), $this->getPassword()],
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function getCanonicalMetricMap(): array
+    {
+        // Mixpanel metrics are event names; canonical keys resolve when an event name matches.
+        return [];
     }
 
 

@@ -15,6 +15,18 @@ class SettingsController extends BaseSettingsController
     // Public Methods
     // =========================================================================
 
+    public function beforeAction($action): bool
+    {
+        if (!parent::beforeAction($action)) {
+            return false;
+        }
+
+        // Enforce what settings templates already declare via {% requireAdmin %}.
+        $this->requireAdmin();
+
+        return true;
+    }
+
     public function actionIndex(): Response
     {
         /* @var Settings $settings */

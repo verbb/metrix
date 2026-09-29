@@ -1,14 +1,8 @@
 <?php
 namespace verbb\metrix\widgets;
 
-use verbb\metrix\Metrix;
 use verbb\metrix\base\Widget;
 use verbb\metrix\helpers\Schema;
-
-use Craft;
-use craft\helpers\App;
-
-use Throwable;
 
 class Pie extends Widget
 {
@@ -30,12 +24,13 @@ class Pie extends Widget
         return [
             Schema::sources(),
             Schema::chartTypes(),
+            Schema::titles(),
+            Schema::subtitles(),
             Schema::widths(),
             Schema::periods(),
             Schema::dimensions(),
             Schema::metrics(),
+            Schema::limits(['value' => '10']),
         ];
     }
-
-
 }

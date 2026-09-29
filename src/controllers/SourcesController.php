@@ -4,6 +4,7 @@ namespace verbb\metrix\controllers;
 use verbb\metrix\Metrix;
 use verbb\metrix\base\SourceInterface;
 use verbb\metrix\helpers\Plugin;
+use verbb\metrix\helpers\SourceSecurity;
 
 use Craft;
 use craft\helpers\ArrayHelper;
@@ -20,6 +21,18 @@ class SourcesController extends Controller
 {
     // Public Methods
     // =========================================================================
+
+    public function beforeAction($action): bool
+    {
+        if (!parent::beforeAction($action)) {
+            return false;
+        }
+
+        // Match CP nav: sources management is not covered by dashboard-only grants.
+        $this->requirePermission('metrix-sources');
+
+        return true;
+    }
 
     public function actionIndex(): Response
     {
@@ -50,7 +63,7 @@ class SourcesController extends Controller
         $sourceOptions = [];
 
         foreach ($allSourceTypes as $sourceType) {
-            /** @var SourceInterface $sourceInstance */
+            /* @var SourceInterface $sourceInstance */
             $sourceInstance = Craft::createObject($sourceType);
 
             if ($source === null) {
@@ -74,10 +87,11 @@ class SourcesController extends Controller
             $title = Craft::t('metrix', 'Create a new source');
         }
 
-        Plugin::registerAsset('src/apps/sources/metrix-sources.js');
-        $this->view->registerJs('new Craft.Metrix.SourceConnect(' . Json::encode([
-            'connected' => $source->isConnected(),
-        ]) . ');');
+        Plugin::registerSourcesCpJs();
+
+        if ($source->id && $source->supportsConnection()) {
+            Plugin::registerSourcesAssets();
+        }
 
         return $this->renderTemplate('metrix/sources/_edit', [
             'title' => $title,
@@ -95,11 +109,14 @@ class SourcesController extends Controller
         $sourcesService = Metrix::$plugin->getSources();
         $sourceId = $this->request->getParam('sourceId') ?: null;
         $type = $this->request->getParam('type');
+        $oldSource = null;
+        $storedSource = null;
 
         if ($sourceId) {
             $oldSource = $sourcesService->getSourceById($sourceId);
+            $storedSource = $sourcesService->getStoredSourceById($sourceId);
             
-            if (!$oldSource) {
+            if (!$oldSource || !$storedSource) {
                 throw new BadRequestHttpException("Invalid source ID: $sourceId");
             }
         }
@@ -113,7 +130,17 @@ class SourcesController extends Controller
             'settings' => $this->request->getParam("types.$type"),
         ]);
 
-        if (!$sourcesService->saveSource($source)) {
+        if (!$this->_validateDelegatedSourceChange($source, $oldSource)) {
+            return $this->asModelFailure($source, Craft::t('metrix', 'Couldn’t save source.'), 'source');
+        }
+
+        $settingsForPersistence = null;
+
+        if ($storedSource && !Craft::$app->getUser()->checkPermission(Metrix::MANAGE_SOURCE_CREDENTIALS_PERMISSION)) {
+            $settingsForPersistence = SourceSecurity::settingsForPersistence($source, $storedSource);
+        }
+
+        if (!$sourcesService->saveSource($source, true, $settingsForPersistence)) {
             return $this->asModelFailure($source, Craft::t('metrix', 'Couldn’t save source.'), 'source');
         }
 
@@ -134,22 +161,22 @@ class SourcesController extends Controller
     public function actionDelete(): Response
     {
         $this->requirePostRequest();
-        $this->requireAcceptsJson();
 
-        $sourceId = $this->request->getRequiredBodyParam('id');
+        $sourceId = $this->request->getBodyParam('sourceId') ?: $this->request->getRequiredBodyParam('id');
 
         Metrix::$plugin->getSources()->deleteSourceById($sourceId);
 
-        return $this->asSuccess();
+        return $this->asSuccess(Craft::t('metrix', 'Source deleted.'));
     }
 
     public function actionRefreshSettings(): Response
     {
+        $this->requirePostRequest();
         $this->requireAcceptsJson();
 
         $sourcesService = Metrix::$plugin->getSources();
 
-        $sourceData = $this->request->getBodyParam('sourceData');
+        $sourceData = $this->request->getBodyParam('sourceData', []);
         $sourceHandle = $this->request->getRequiredBodyParam('source');
         $setting = $this->request->getRequiredBodyParam('setting');
 
@@ -159,8 +186,22 @@ class SourcesController extends Controller
             throw new BadRequestHttpException("Invalid source: $sourceHandle");
         }
 
-        // Set any data provided by this call to the source
-        $source->setAttributes($sourceData, false);
+        if (!is_array($sourceData)) {
+            throw new BadRequestHttpException('Invalid source settings.');
+        }
+
+        $originalSource = clone $source;
+        $allowedAttributes = array_flip($source->settingsAttributes());
+
+        // A refresh may overlay only provider settings; base model state and
+        // config-owned values are not transient request inputs.
+        $source->setAttributes(array_intersect_key($sourceData, $allowedAttributes), false);
+
+        if (!$this->_validateDelegatedSourceChange($source, $originalSource)) {
+            return $this->asJson([
+                'error' => implode(' ', $source->getErrorSummary(true)),
+            ]);
+        }
 
         return $this->asJson($source->getSourceSettings($setting, false));
     }
@@ -168,6 +209,7 @@ class SourcesController extends Controller
     public function actionCheckConnection(): Response
     {
         $this->requirePostRequest();
+        $this->requirePermission(Metrix::MANAGE_SOURCE_CREDENTIALS_PERMISSION);
 
         $request = $this->request;
         $type = $request->getParam('type');
@@ -178,6 +220,10 @@ class SourcesController extends Controller
         }
 
         $source = Metrix::$plugin->getSources()->getSourceById($sourceId);
+
+        if (!$source) {
+            return $this->asFailure(Craft::t('metrix', 'Unknown source: “{id}”', ['id' => $sourceId]));
+        }
 
         if (!$source::supportsConnection()) {
             return $this->asFailure(Craft::t('metrix', '“{id}” does not support connection.', ['id' => $sourceId]));
@@ -191,5 +237,18 @@ class SourcesController extends Controller
         } catch (Exception $e) {
             return $this->asFailure($e->getMessage());
         }
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _validateDelegatedSourceChange(SourceInterface $source, ?SourceInterface $original): bool
+    {
+        if (Craft::$app->getUser()->checkPermission(Metrix::MANAGE_SOURCE_CREDENTIALS_PERMISSION)) {
+            return true;
+        }
+
+        return SourceSecurity::validateDelegatedChange($source, $original);
     }
 }

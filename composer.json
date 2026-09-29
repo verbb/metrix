@@ -2,7 +2,7 @@
     "name": "verbb/metrix",
     "description": "Display your analytics within Craft. Supports Google Analytics, Plausible, Fathom and more.",
     "type": "craft-plugin",
-    "version": "2.0.9",
+    "version": "2.1.0",
     "keywords": [
         "craft",
         "cms",
@@ -41,5 +41,29 @@
         "handle": "metrix",
         "changelogUrl": "https://raw.githubusercontent.com/verbb/metrix/craft-5/CHANGELOG.md",
         "class": "verbb\\metrix\\Metrix"
+    },
+    "require-dev": {
+        "craftcms/cms": "^5.9",
+        "pestphp/pest": "^3.8",
+        "pestphp/pest-plugin": "^3.0",
+        "vlucas/phpdotenv": "^5.6",
+        "yiisoft/yii2-shell": "^2.0.3"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "craftcms/plugin-installer": true,
+            "pestphp/pest-plugin": true,
+            "yiisoft/yii2-composer": true
+        }
+    },
+    "scripts": {
+        "test": "ddev test",
+        "test:all": "ddev test --suite=all",
+        "test:perf": "ddev test --suite=performance"
     }
 }

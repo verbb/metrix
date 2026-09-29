@@ -9,12 +9,17 @@ use verbb\auth\base\OAuthProviderInterface;
 use verbb\auth\base\OAuthProviderTrait;
 use verbb\auth\models\Token;
 
-abstract class OAuthSource extends Source implements OAuthProviderInterface
+abstract class OAuthSource extends Source implements CredentialSourceInterface, OAuthProviderInterface
 {
     // Static Methods
     // =========================================================================
 
     public static function supportsOAuthConnection(): bool
+    {
+        return true;
+    }
+
+    public static function supportsConnection(): bool
     {
         return true;
     }
@@ -45,6 +50,11 @@ abstract class OAuthSource extends Source implements OAuthProviderInterface
         return $attributes;
     }
 
+    public function getCredentialAttributes(): array
+    {
+        return ['clientId', 'clientSecret'];
+    }
+
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -60,7 +70,7 @@ abstract class OAuthSource extends Source implements OAuthProviderInterface
 
     public function isConfigured(): bool
     {
-        return $this->clientId && $this->clientSecret;
+        return (bool)($this->getClientId() && $this->getClientSecret());
     }
 
     public function isConnected(): bool

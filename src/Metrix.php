@@ -10,6 +10,7 @@ use verbb\metrix\variables\MetrixVariable;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin;
+use craft\enums\CmsEdition;
 use craft\events\RebuildConfigEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
@@ -21,16 +22,25 @@ use craft\services\Utilities;
 use craft\web\UrlManager;
 use craft\web\twig\variables\CraftVariable;
 
+use verbb\auth\events\TokenEvent;
+use verbb\auth\services\Tokens;
+
 use yii\base\Event;
 
 class Metrix extends Plugin
 {
+    // Constants
+    // =========================================================================
+
+    public const MANAGE_SOURCE_CREDENTIALS_PERMISSION = 'metrix-sources:credentials';
+
+
     // Properties
     // =========================================================================
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '1.0.0';
+    public string $schemaVersion = '1.1.0';
 
 
     // Traits
@@ -59,9 +69,12 @@ class Metrix extends Plugin
             $this->_registerSiteRoutes();
         }
         
-        if (Craft::$app->getEdition() === Craft::Pro) {
+        if (Craft::$app->edition->value >= CmsEdition::Team->value) {
             $this->_registerPermissions();
         }
+
+        // Bust widget caches when Auth deletes a Metrix OAuth token (expired refresh, disconnect, etc.).
+        $this->_registerAuthTokenListeners();
 
         $this->hasCpSection = $this->getSettings()->hasCpSection;
     }
@@ -178,8 +191,13 @@ class Metrix extends Plugin
                 'heading' => Craft::t('metrix', 'Metrix'),
                 'permissions' => [
                     'metrix-dashboard' => ['label' => Craft::t('metrix', 'Dashboard'), 'nested' => $viewPermissions],
-                    'metrix-sources' => ['label' => Craft::t('metrix', 'Sources')],
-                    'metrix-views' => ['label' => Craft::t('metrix', 'Views')],
+                    'metrix-sources' => [
+                        'label' => Craft::t('metrix', 'Sources'),
+                        'nested' => [
+                            self::MANAGE_SOURCE_CREDENTIALS_PERMISSION => ['label' => Craft::t('metrix', 'Manage source credentials and connections')],
+                        ],
+                    ],
+                    'metrix-views' => ['label' => Craft::t('metrix', 'Manage views and dashboard layouts')],
                 ],
             ];
         });
@@ -198,6 +216,24 @@ class Metrix extends Plugin
 
         Event::on(ProjectConfig::class, ProjectConfig::EVENT_REBUILD, function(RebuildConfigEvent $event) {
             $event->config['metrix'] = ProjectConfigHelper::rebuildProjectConfig();
+        });
+    }
+
+    private function _registerAuthTokenListeners(): void
+    {
+        // When Auth drops a dead refresh token (or any Metrix token is deleted), clear widget caches.
+        Event::on(Tokens::class, Tokens::EVENT_AFTER_DELETE_TOKEN, function(TokenEvent $event) {
+            $token = $event->token;
+
+            if (!$token || $token->ownerHandle !== 'metrix' || !$token->reference) {
+                return;
+            }
+
+            $source = $this->getSources()->getSourceById((int)$token->reference);
+
+            if ($source) {
+                $this->getSources()->invalidateWidgetDataCache($source);
+            }
         });
     }
 }

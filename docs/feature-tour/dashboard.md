@@ -1,66 +1,114 @@
 # Dashboard
-The Metrix Dashboard is your central hub for viewing analytics data from various sources. It provides a customizable and intuitive interface, allowing you to monitor and analyze your data at a glance.
 
-This differs to the Craft Dashboard (and not to be confused with it), where widgets are defined per-user. While this is benefitial in its own way, in practice this is a bit of a pain to setup and manage for your clients.
+The Metrix Dashboard displays analytics from your connected sources. Arrange charts, tables and counters into views for the people who need that information.
+
+Each widget presents one part of the selected analytics data. For example, a content team can use a Sessions counter to see overall traffic, a line chart to spot changes over time and a table to identify popular pages. [Creating Your First Dashboard Widget](docs:get-started/creating-your-first-dashboard-widget) takes you through the first counter. The examples below show how the other presentation styles help answer different questions.
+
+![Sessions line chart widget (two-thirds width)](../../screenshots/output/docs/feature-tour/widget-sessions-line.png)
+
+![Active users realtime counter widget](../../screenshots/output/docs/feature-tour/widget-active-users.png)
+
+![Sessions counter widget with period comparison](../../screenshots/output/docs/feature-tour/widget-sessions-counter.png)
+
+![Browser sessions pie chart widget](../../screenshots/output/docs/feature-tour/widget-browser-pie.png)
+
+![Operating system sessions table widget](../../screenshots/output/docs/feature-tour/widget-os-table.png)
+
+![Country sessions table widget with pagination](../../screenshots/output/docs/feature-tour/widget-country-table.png)
+
+Unlike Craft Dashboard widgets, which are configured per user, Metrix Views share one analytics layout with everyone who has permission to view it.
 
 ## Views
-**Views** in Metrix allow you to segment and organize your widgets based on specific data sources or goals. Each view represents a collection of widgets tailored to a particular focus area, such as website traffic, e-commerce performance, or social media engagement.
 
-Combined with user permissions, you can even allow only certain user groups to access views. Each Metrix install comes with a default view.
+**Views** group widgets around an audience or task. Use the default View for general website traffic, or create a separate View for a campaign so its widgets stay together. Create and name Views under **Metrix → Views**, then select the View on the dashboard to work with its widgets.
+
+### Permissions
+
+User groups can be limited with:
+
+- **Metrix → Dashboard** — access the dashboard (with nested permissions per view).
+- **Metrix → Sources** — manage Sources.
+- **Metrix → Manage views and dashboard layouts** — create and configure Views, and add, edit, reorder or remove their shared widgets.
+
+### Multi-Site / Analytics Scope
+
+A View can optionally limit widget data to a **Craft site**, **path prefix**, or **hostname**. Use this when one analytics property (e.g. a single GA4 property) covers multiple Craft sites.
+
+- **Craft site** — Metrix derives a hostname or path filter from the site base URL.
+- **Path prefix** — e.g. `/en` or `/fr/` for path-based multi-site.
+- **Hostname** — e.g. `fr.example.com` for domain-based multi-site on one property.
+
+For example, when one analytics property includes an English site under `/en` and a French site under `/fr`, edit the French View under **Metrix → Views**. Set **Scope** to the path option, enter `/fr` as **Path prefix**, and choose a prefix match. Save and compare a page breakdown with the provider to confirm only French paths are included.
+
+If each Craft site has its own analytics property or Plausible site, create separate Sources and Views for those connections.
+
+Providers that support View scope: **Google Analytics**, **Plausible** (path), and **Matomo**. Other sources ignore the scope.
+
+Google Analytics Realtime widgets require an unscoped View because Google’s Realtime API does not support hostname or path filters.
 
 ## Presets
-When first creating a new view, you'll have the choice to be able to add new widgets to it. While this is great for a few widgets, it can get tedious for multiple widgets, which can be compounded when you want to setup multiple views.
 
-Which is where **Presets** come in. Set in your plugin settings and project config, you can create one or many presets to quickly spin up widgets in an empty view.
+A **Preset** supplies a starting collection of widgets when you create a View. Choose one that matches your task, then review each widget's Source and metric against the connected provider. Presets are stored in plugin settings and project config, so they can be shared with the project's other configuration.
+
+Fresh installs include seeded presets such as **Website Overview**, **Content Performance**, **Acquisition**, and **Realtime**.
 
 ## Widgets
-Widgets are the building blocks of your Metrix dashboard. They allow you to visualize data in different formats, such as charts, tables, or counters. Metrix provides several widget types to cater to different data presentation needs.
 
-Widgets can visually take up 1, 2, or 3 thirds of the screen, and are responsive.
+Widgets visualise data as charts, tables, or counters.
+
+![Dashboard settings panel listing widgets for the current view](../../screenshots/output/docs/feature-tour/dashboard-settings.png)
+
+Widgets can take up 1, 2, or 3 thirds of the screen, and are responsive.
+
+Manage the widget list from the view settings (or the Widgets tab when configuring presets):
+
+![Widgets tab with line, counter, pie, and table widgets](../../screenshots/output/docs/feature-tour/widgets.png)
+
+### Widget Settings
+
+![Widget settings for source, chart type, width, period, and metric](../../screenshots/output/docs/feature-tour/widget-settings.png)
+
+Choose the Source and the question the widget should answer. A metric is the value you want to measure, such as sessions or pageviews. A dimension groups that value, such as by page, country or browser. A table of popular pages therefore needs a pageview metric and a page dimension; a sessions counter needs only the metric.
+
+Choose a chart type and width, then decide whether the widget should follow the View date range or use its own period. Give it a title that explains its purpose, such as “Most-read pages”; a subtitle can clarify the audience or filter. For a table or pie, set a row limit that keeps the result useful to scan.
+
+Save the widget and check it against the same data in the provider account. Use **Refresh** in its actions menu to bypass cached data. The header records when that data was fetched, which helps distinguish an old result from a provider that has not received any new traffic.
 
 ### Widget Types
 
 #### Bar
-The **Bar** widget displays data as vertical bars, making it ideal for comparing discrete categories or time periods. 
-- **Use Case**: Visualize daily traffic for the last 7 days or compare bounce rates across different referrers.
+Vertical bars for comparing categories or time periods — e.g. daily traffic for the last 7 days.
 
 #### Counter
-The **Counter** widget is a simple, yet powerful tool for showing key metrics at a glance. It also compares data to the previous period.
-- **Use Case**: Display the total number of visitors, pageviews, or conversions for a specific period.
+A key metric at a glance, with a comparison to the previous period.
 
 #### Line
-The **Line** widget is perfect for showing trends over time. It connects data points with lines to help you visualize changes.
-- **Use Case**: Track the growth of traffic or user engagement over the past month.
+Trends over time. Line widgets can also show a previous-period comparison series when the selected period supports it.
 
 #### Pie
-The **Pie** widget provides a visual breakdown of data in a circular chart, illustrating proportions between different segments.
-- **Use Case**: Show the distribution of traffic sources (e.g., direct, organic, referral).
+Proportions between segments — e.g. traffic by browser.
 
 #### Realtime
-The **Realtime** widget provides live updates on your data, displaying the current activity on your website or app.
-- **Use Case**: Monitor active visitors, real-time pageviews, or live conversion rates.
+Live activity (where the Source supports it).
 
 #### Table
-The **Table** widget organizes data into rows and columns, providing a detailed breakdown of metrics and dimensions.
-- **Use Case**: Display a list of pages ranked by pageviews or a breakdown of user sessions by device.
-
-Each widget is customizable, allowing you to configure data sources, metrics, dimensions, periods, and width.
+Rows and columns for ranked breakdowns — e.g. pages by pageviews.
 
 ## Periods
-**Periods** in Metrix define the time range for your data analysis. They determine the scope of data displayed in widgets and allow for quick comparisons across different time frames.
 
-This is something set into the settings of a widget, but can be easily switched when viewing a widget (without needing to update and save a widget).
+Once a View contains a widget, the dashboard header has a **date range** control. This selection applies while you are viewing the dashboard and resets when you reload or switch Views. Widgets with inheritance enabled use the selection, falling back to **Last 30 Days** when no dashboard range is selected; other widgets retain their own period. Choose **Use dashboard date range** from a widget’s actions menu to enable inheritance after selecting a dashboard range.
 
-### Available Periods:
-- **Today**: Data from the current day, starting at midnight.
-- **Yesterday**: Data from the previous day.
-- **Last 7 Days**: Data from the past week.
-- **Week to Date**: Data from the beginning of the current week to today.
-- **Last Week**: Data from the previous week (Monday to Sunday).
-- **Last 30 Days**: Data from the past month.
-- **Month to Date**: Data from the first day of the current month to today.
-- **Last Month**: Data from the entire previous month.
-- **Last 12 Months**: Data from the past 12 months.
-- **Year to Date**: Data from the first day of the current year to today.
-- **Last Year**: Data from the previous year.
-- **All Time**: Data from the earliest available record to today.
+### Available Periods
+
+- **Today**
+- **Yesterday**
+- **Last 7 Days**
+- **Week to Date**
+- **Last Week**
+- **Last 30 Days**
+- **Month to Date**
+- **Last Month**
+- **Last 12 Months**
+- **Year to Date**
+- **Last Year**
+- **All Time**

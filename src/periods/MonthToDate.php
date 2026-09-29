@@ -38,8 +38,11 @@ class MonthToDate extends Period
 
     public static function getPreviousDateRange(): array
     {
-        $start = new DateTime('first day of last month 00:00:00');
-        $end = new DateTime('now last month');
+        $current = static::getDateRange();
+        $start = (clone $current['start'])->modify('-1 month');
+        // Shift from the first day so month-end and leap-day dates cannot overflow.
+        $end = (clone $current['end'])->modify('first day of this month')->modify('-1 month');
+        $end->setDate((int)$end->format('Y'), (int)$end->format('m'), min((int)$current['end']->format('d'), (int)$end->format('t')));
 
         return [
             'start' => $start,
@@ -54,8 +57,9 @@ class MonthToDate extends Period
 
     public static function generatePlotDimensions(WidgetData $widgetData, array $rawData): array
     {
-        $start = new DateTime('first day of this month 00:00:00');
-        $end = new DateTime('first day of next month 00:00:00');
+        $range = static::getCurrentDateRange();
+        $start = (clone $range['start'])->setTime(0, 0, 0);
+        $end = (clone $start)->modify('first day of next month')->setTime(0, 0, 0);
 
         $interval = new DateInterval('P1D');
         $period = new DatePeriod($start, $interval, $end);

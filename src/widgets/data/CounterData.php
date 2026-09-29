@@ -2,8 +2,6 @@
 namespace verbb\metrix\widgets\data;
 
 use verbb\metrix\base\WidgetData;
-use verbb\metrix\base\WidgetDataInterface;
-
 use Craft;
 
 class CounterData extends WidgetData
@@ -23,36 +21,38 @@ class CounterData extends WidgetData
 
             return [
                 'cols' => [
-                    ['type' => 'integer', 'labelFormat' => 'numberLong'],
+                    ['type' => is_float($total) ? 'float' : 'integer', 'labelFormat' => $this->getMetricFormat('numberLong')],
                     ['type' => 'float', 'labelFormat' => 'percentageChange', 'label' => $previousLabel],
                 ],
-                'rows' => [[(int)$total, $change]],
+                'rows' => [[$total, $change]],
             ];
         }
 
         return [
             'cols' => [
-                ['type' => 'integer', 'labelFormat' => 'numberLong'],
+                ['type' => is_float($total) ? 'float' : 'integer', 'labelFormat' => $this->getMetricFormat('numberLong')],
             ],
-            'rows' => [[(int)$total]],
+            'rows' => [[$total]],
         ];
     }
 
-    protected function calculatePercentageChange(int $currentValue): float
+    protected function calculatePercentageChange(int|float $currentValue): float
     {
-        // Fetch the previous period's data
         $previousPeriodRange = $this->period::getPreviousDateRange();
+        $originalRange = $this->period::$currentDateRange;
+        // Retain the view scope and cache policy when comparing the same audience.
+        $previousWidgetData = clone $this;
 
-        // Change the period's current date range for sources to handle
-        $this->period::$currentDateRange = $previousPeriodRange;
+        try {
+            $this->period::$currentDateRange = $previousPeriodRange;
 
-        $previousData = $this->source->fetchData(new static([
-            'widget' => $this->widget,
-            'source' => $this->source,
-            'period' => $this->period,
-            'metric' => $this->metric,
-            'dimension' => $this->dimension,
-        ]));
+            $previousData = $previousWidgetData->remember(
+                'previous',
+                fn() => $this->source->fetchData($previousWidgetData),
+            );
+        } finally {
+            $this->period::$currentDateRange = $originalRange;
+        }
 
         $previousValue = array_sum($previousData);
 

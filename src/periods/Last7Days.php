@@ -27,7 +27,7 @@ class Last7Days extends Period
 
     public static function getDateRange(): array
     {
-        $start = new DateTime('-7 days 00:00:00');
+        $start = new DateTime('-6 days 00:00:00');
         $end = new DateTime();
 
         return [
@@ -38,7 +38,7 @@ class Last7Days extends Period
 
     public static function getPreviousDateRange(): array
     {
-        $start = new DateTime('-14 days 00:00:00');
+        $start = new DateTime('-13 days 00:00:00');
         $end = new DateTime('-7 days 23:59:59');
 
         return [
@@ -54,8 +54,9 @@ class Last7Days extends Period
 
     public static function generatePlotDimensions(WidgetData $widgetData, array $rawData): array
     {
-        $start = new DateTime('-7 days 00:00:00');
-        $end = new DateTime('tomorrow 00:00:00');
+        $range = static::getCurrentDateRange();
+        $start = (clone $range['start'])->setTime(0, 0, 0);
+        $end = (clone $range['end'])->modify('+1 day')->setTime(0, 0, 0);
 
         $interval = new DateInterval('P1D');
         $period = new DatePeriod($start, $interval, $end);

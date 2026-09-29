@@ -28,7 +28,7 @@ class LastWeek extends Period
     public static function getDateRange(): array
     {
         $start = new DateTime('monday last week 00:00:00');
-        $end = new DateTime('monday this week 00:00:00');
+        $end = new DateTime('sunday last week 23:59:59');
 
         return [
             'start' => $start,
@@ -38,9 +38,9 @@ class LastWeek extends Period
 
     public static function getPreviousDateRange(): array
     {
-        $start = new DateTime('monday this week 00:00:00');
-        $start->modify('-2 weeks');
-        $end = new DateTime('monday last week 00:00:00');
+        $range = static::getDateRange();
+        $start = (clone $range['start'])->modify('-1 week');
+        $end = (clone $range['end'])->modify('-1 week');
 
         return [
             'start' => $start,
@@ -55,9 +55,9 @@ class LastWeek extends Period
 
     public static function generatePlotDimensions(WidgetData $widgetData, array $rawData): array
     {
-        $dateRange = static::getDateRange();
-        $start = $dateRange['start'];
-        $end = $dateRange['end'];
+        $range = static::getCurrentDateRange();
+        $start = (clone $range['start'])->setTime(0, 0, 0);
+        $end = (clone $range['end'])->modify('+1 day')->setTime(0, 0, 0);
 
         $interval = new DateInterval('P1D');
         $period = new DatePeriod($start, $interval, $end);

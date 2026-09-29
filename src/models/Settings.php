@@ -5,7 +5,7 @@ use verbb\metrix\Metrix;
 use verbb\metrix\base\Widget;
 use verbb\metrix\base\WidgetInterface;
 use verbb\metrix\helpers\Options;
-use verbb\metrix\periods\Today;
+use verbb\metrix\periods\Last30Days;
 use verbb\metrix\widgets\Line;
 
 use Craft;
@@ -13,7 +13,10 @@ use craft\base\Model;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 
+use yii\base\InvalidConfigException;
+
 use DateInterval;
+use Exception;
 
 class Settings extends Model
 {
@@ -24,11 +27,12 @@ class Settings extends Model
     public bool $hasCpSection = true;
     public bool $enableCache = true;
     public string $cacheDuration = 'PT10M';
-    public int $realtimeInterval = 10;
+    public int|string|null $realtimeInterval = 10;
     public array $defaultWidgetConfig = [];
     public array|string $enabledWidgetTypes = '*';
     public array $enabledPeriods = []; // Set via config
     public array $periodSettings = [];
+    public array $allowedPrivateProviderHosts = []; // Set via config
 
 
     // Public Methods
@@ -39,7 +43,7 @@ class Settings extends Model
         if (!$this->defaultWidgetConfig) {
             $this->defaultWidgetConfig = [
                 'type' => Line::class,
-                'period' => Today::class,
+                'inheritPeriod' => true,
                 'width' => 1,
             ];
         }
@@ -163,13 +167,17 @@ class Settings extends Model
 
         // Convert flat structure to nested one
         foreach ($this->getPeriodSettingsRows() as $item) {
+            if (!$item['enabled']) {
+                continue;
+            }
+
             if (str_starts_with($item['id'], 'divider')) {
                 // If it's a divider, start a new group
                 if (!empty($currentGroup)) {
                     $nested[] = $currentGroup;
                     $currentGroup = [];
                 }
-            } else if ($item['enabled']) {
+            } else {
                 // Add enabled items to the current group
                 $currentGroup[] = $item['id'];
             }
@@ -183,13 +191,25 @@ class Settings extends Model
         return $nested;
     }
 
+    public function getDefaultGlobalPeriod(): string
+    {
+        return Last30Days::class;
+    }
+
     public function getNewWidgetConfig(): array
     {
-        $defaultWidget = Metrix::$plugin->getWidgets()->createWidget($this->defaultWidgetConfig);
+        $config = $this->defaultWidgetConfig;
+        $enabledTypes = $this->getEnabledWidgetTypes();
+
+        if ($enabledTypes && !in_array($config['type'] ?? null, $enabledTypes, true)) {
+            $config['type'] = $enabledTypes[0];
+        }
+
+        $defaultWidget = Metrix::$plugin->getWidgets()->createWidget($config);
 
         $firstSource = Metrix::$plugin->getSources()->getAllConfiguredSources()[0] ?? null;
 
-        if ($firstSource) {
+        if (!$defaultWidget->getSource() && $firstSource) {
             $defaultWidget->setSource($firstSource);
         }
 
@@ -202,12 +222,20 @@ class Settings extends Model
             return 1;
         }
 
-        return DateTimeHelper::intervalToSeconds(new DateInterval($this->cacheDuration));
+        $duration = trim($this->cacheDuration);
+
+        return ctype_digit($duration)
+            ? (int)$duration
+            : DateTimeHelper::intervalToSeconds(new DateInterval($duration));
     }
 
     public function getRealtimeInterval(): int
     {
-        return $this->realtimeInterval * 1000;
+        if (!$this->validate(['realtimeInterval'])) {
+            throw new InvalidConfigException(Craft::t('metrix', 'Real-time refresh interval must be a whole number between 1 and 2147483 seconds.'));
+        }
+
+        return (int)$this->realtimeInterval * 1000;
     }
 
 
@@ -220,6 +248,17 @@ class Settings extends Model
 
         $rules[] = [['pluginName'], 'trim'];
         $rules[] = [['pluginName'], 'required'];
+        $rules[] = [['realtimeInterval'], 'required'];
+        // Browser timers use signed 32-bit millisecond delays.
+        $rules[] = [['realtimeInterval'], 'integer', 'min' => 1, 'max' => 2147483];
+        $rules[] = [['allowedPrivateProviderHosts'], 'each', 'rule' => ['string']];
+        $rules[] = [['cacheDuration'], function($attribute) {
+            try {
+                $this->getCacheDuration();
+            } catch (Exception $e) {
+                $this->addError($attribute, Craft::t('metrix', 'Enter a valid date interval or a whole number of seconds.'));
+            }
+        }, 'skipOnEmpty' => false, 'when' => fn() => $this->enableCache];
 
         return $rules;
     }

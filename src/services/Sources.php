@@ -1,6 +1,8 @@
 <?php
 namespace verbb\metrix\services;
 
+use verbb\metrix\Metrix;
+
 use verbb\metrix\sources as sourceTypes;
 use verbb\metrix\base\SourceInterface;
 use verbb\metrix\events\SourceEvent;
@@ -17,6 +19,7 @@ use craft\helpers\Json;
 
 use yii\base\Component;
 use yii\base\InvalidConfigException;
+use yii\caching\TagDependency;
 
 use Exception;
 use Throwable;
@@ -48,10 +51,14 @@ class Sources extends Component
         $sourceTypes = [
             sourceTypes\Cloudflare::class,
             sourceTypes\Fathom::class,
+            sourceTypes\GoatCounter::class,
             sourceTypes\GoogleAnalytics::class,
             sourceTypes\Matomo::class,
             sourceTypes\MixPanel::class,
+            sourceTypes\Pirsch::class,
             sourceTypes\Plausible::class,
+            sourceTypes\SimpleAnalytics::class,
+            sourceTypes\Umami::class,
         ];
 
         $event = new RegisterComponentTypesEvent([
@@ -63,13 +70,13 @@ class Sources extends Component
         return $event->types;
     }
 
-    public function createSource(mixed $config): SourceInterface
+    public function createSource(mixed $config, bool $applyOverrides = true): SourceInterface
     {
         $handle = $config['handle'] ?? null;
         $settings = $config['settings'] ?? [];
 
         // Allow config settings to override source settings
-        if ($handle && $settings) {
+        if ($applyOverrides && $handle && $settings) {
             $configOverrides = $this->getSourceOverrides($handle);
 
             if ($configOverrides) {
@@ -136,6 +143,18 @@ class Sources extends Component
         return $source;
     }
 
+    /**
+     * Returns the database representation without config/metrix.php overrides.
+     */
+    public function getStoredSourceById(int $id): ?SourceInterface
+    {
+        $result = $this->_createSourceQuery()
+            ->where(['id' => $id])
+            ->one();
+
+        return $result ? $this->createSource($result, false) : null;
+    }
+
     public function getSourceByHandle(string $handle, bool $enabledOnly = false, bool $connectedOnly = false): ?SourceInterface
     {
         $source = $this->_sources()->firstWhere('handle', $handle, true);
@@ -154,7 +173,7 @@ class Sources extends Component
         return $this->getAllSourcesByParams($params)[0] ?? null;
     }
 
-    public function saveSource(SourceInterface $source, bool $runValidation = true): bool
+    public function saveSource(SourceInterface $source, bool $runValidation = true, ?array $settingsForPersistence = null): bool
     {
         $isNewSource = !$source->id;
 
@@ -172,9 +191,16 @@ class Sources extends Component
         }
 
         // Ensure we support Emoji's properly
-        $settings = $source->settings;
+        $settings = $settingsForPersistence ?? $source->settings;
 
         $sourceRecord = $this->_getSourceRecordById($source->id);
+
+        if (!$isNewSource && ($sourceRecord->type !== get_class($source) || Json::decodeIfJson($sourceRecord->settings) != $settings)) {
+            // Tokens, connection status and option lists belong to the saved provider configuration.
+            $source->cache = [];
+            $sourceRecord->cache = Json::encode([]);
+        }
+
         $sourceRecord->name = $source->name;
         $sourceRecord->handle = $source->handle;
         $sourceRecord->enabled = $source->enabled;
@@ -194,6 +220,12 @@ class Sources extends Component
         if (!$source->id) {
             $source->id = $sourceRecord->id;
         }
+
+        $this->_sources = null;
+        Metrix::$plugin->getWidgets()->clearCachedWidgets();
+
+        // Settings/token changes can leave stale widget payloads under old keys.
+        $this->invalidateWidgetDataCache($source);
 
         // Fire an 'afterSaveSource' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_SOURCE)) {
@@ -223,6 +255,8 @@ class Sources extends Component
 
             throw $e;
         }
+
+        $this->_sources = null;
 
         return true;
     }
@@ -260,6 +294,10 @@ class Sources extends Component
             ->delete('{{%metrix_sources}}', ['id' => $source->id])
             ->execute();
 
+        $this->_sources = null;
+        Metrix::$plugin->getWidgets()->clearCachedWidgets();
+        $this->invalidateWidgetDataCache($source);
+
         // Fire an 'afterDeleteSource' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_SOURCE)) {
             $this->trigger(self::EVENT_AFTER_DELETE_SOURCE, new SourceEvent([
@@ -267,10 +305,26 @@ class Sources extends Component
             ]));
         }
 
-        // Clear caches
-        $this->_sources = null;
-
         return true;
+    }
+
+    /**
+     * Bust tagged widget-data cache entries for a source (or all Metrix tags).
+     */
+    public function invalidateWidgetDataCache(?SourceInterface $source = null): void
+    {
+        $tags = $source
+            ? array_values(array_filter([
+                $source->handle ? 'metrix.source.' . $source->handle : null,
+                $source->id ? 'metrix.source.id.' . $source->id : null,
+            ]))
+            : ['metrix'];
+
+        if ($tags === []) {
+            $tags = ['metrix'];
+        }
+
+        TagDependency::invalidate(Craft::$app->getCache(), $tags);
     }
 
 

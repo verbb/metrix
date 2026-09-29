@@ -4,6 +4,9 @@ namespace verbb\metrix\sources;
 use verbb\metrix\base\CredentialsSource;
 use verbb\metrix\base\Period;
 use verbb\metrix\base\WidgetDataInterface;
+use verbb\metrix\helpers\ProviderUrl;
+use verbb\metrix\models\AnalyticsScope;
+use verbb\metrix\widgets\Counter;
 
 use Craft;
 use craft\helpers\App;
@@ -47,6 +50,11 @@ class Plausible extends CredentialsSource
         return $rules;
     }
 
+    public function getCredentialAttributes(): array
+    {
+        return ['apiKey'];
+    }
+
     public function getPrimaryColor(): ?string
     {
         return '#5046e5';
@@ -77,6 +85,11 @@ class Plausible extends CredentialsSource
         return rtrim($baseUrl, '/') . '/';
     }
 
+    public function getEndpointAttributes(): array
+    {
+        return ['baseUrl'];
+    }
+
     public function fetchAvailableMetrics(): array
     {
         // Hardcoded list of metrics based on Plausible documentation
@@ -105,7 +118,7 @@ class Plausible extends CredentialsSource
             'visit:country' => 'Country',
             'visit:entry_page' => 'Entry Page',
             'visit:exit_page' => 'Exit Page',
-            'visit:page' => 'Page',
+            'event:page' => 'Page',
         ];
 
         return array_map(fn($key, $label) => [
@@ -118,20 +131,20 @@ class Plausible extends CredentialsSource
     {
         $intervalDimension = $this->_getIntervalDimension($widgetData);
         $dateRange = $widgetData->period::getCurrentDateRange();
-        $startDate = $dateRange['start']->format('Y-m-d');
-        $endDate = $dateRange['end']->format('Y-m-d');
 
         $payload = [
             'site_id' => $this->getSiteId(),
-            'date_range' => [$startDate, $endDate],
+            'date_range' => $dateRange ? [$dateRange['start']->format(DATE_ATOM), $dateRange['end']->format(DATE_ATOM)] : 'all',
             'metrics' => [$widgetData->metric],
         ];
 
         if ($widgetData->widget::supportsDimensions() && $widgetData->dimension) {
-            $payload['dimensions'][] = $widgetData->dimension;
-        } else {
+            $payload['dimensions'][] = $widgetData->dimension === 'visit:page' ? 'event:page' : $widgetData->dimension;
+        } elseif (!$widgetData->widget instanceof Counter) {
             $payload['dimensions'][] = $intervalDimension;
         }
+
+        $this->applyWidgetAnalyticsScope($payload, $widgetData);
 
         $response = $this->request('POST', 'query', [
             'json' => $payload,
@@ -143,9 +156,9 @@ class Plausible extends CredentialsSource
 
         foreach ($results as $result) {
             $metric = $result['metrics'][0] ?? null;
-            $dimension = $result['dimensions'][0] ?? null;
+            $dimension = $result['dimensions'][0] ?? ($widgetData->widget instanceof Counter ? 'total' : null);
 
-            if ($dimension) {
+            if ($dimension !== null) {
                 $data[$dimension] = $metric;
             }
         }
@@ -155,14 +168,17 @@ class Plausible extends CredentialsSource
 
     public function fetchRealtimeData(WidgetDataInterface $widgetData): array
     {
-        $response = $this->request('GET', $this->getBaseUrl() . 'api/v1/stats/realtime/visitors', [
-            'query' => [
-                'site_id' => $this->getSiteId(),
-            ],
-        ]);
+        $now = new DateTime();
+        $payload = [
+            'site_id' => $this->getSiteId(),
+            'metrics' => ['visitors'],
+            'date_range' => [(clone $now)->modify('-5 minutes')->format(DATE_ATOM), $now->format(DATE_ATOM)],
+        ];
+        $this->applyWidgetAnalyticsScope($payload, $widgetData);
+        $response = $this->request('POST', 'query', ['json' => $payload]);
 
         return [
-            Craft::t('metrix', 'Active users') => $response,
+            Craft::t('metrix', 'Active users') => $response['results'][0]['metrics'][0] ?? 0,
         ];
     }
 
@@ -191,13 +207,69 @@ class Plausible extends CredentialsSource
             return $this->_client;
         }
 
-        return $this->_client = Craft::createGuzzleClient([
+        return $this->_client = Craft::createGuzzleClient(array_merge([
             'base_uri' => $this->getBaseUrl() . 'api/v2/',
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->getApiKey(),
                 'Accept' => 'application/json',
             ],
-        ]);
+        ], ProviderUrl::requestOptions($this->getBaseUrl())));
+    }
+
+    public function supportsAnalyticsScope(): bool
+    {
+        return true;
+    }
+
+    public function applyAnalyticsScope(array &$request, AnalyticsScope $scope): void
+    {
+        $filters = $request['filters'] ?? [];
+
+        // Plausible site_id is already a domain — path filters are the useful View scope.
+        if ($path = $scope->getResolvedPathPrefix()) {
+            $match = $scope->getPathMatch();
+
+            if ($match === AnalyticsScope::MATCH_EXACT) {
+                $filters[] = ['is', 'event:page', [$path]];
+            } elseif ($match === AnalyticsScope::MATCH_CONTAINS) {
+                $filters[] = ['contains', 'event:page', [$path]];
+            } else {
+                // begins_with — Stats API `matches` with a anchored regex (not substring contains).
+                $filters[] = ['matches', 'event:page', ['^' . preg_quote($path, '/')]];
+            }
+        }
+
+        if ($filters !== []) {
+            $request['filters'] = $filters;
+        }
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function getCanonicalMetricMap(): array
+    {
+        return [
+            'visitors' => 'visitors',
+            'pageviews' => 'pageviews',
+            'bounce_rate' => 'bounce_rate',
+            'avg_duration' => 'visit_duration',
+            'events' => 'events',
+        ];
+    }
+
+    protected function getCanonicalDimensionMap(): array
+    {
+        return [
+            'page' => 'event:page',
+            'entry_page' => 'visit:entry_page',
+            'source' => 'visit:source',
+            'referrer' => 'visit:referrer',
+            'country' => 'visit:country',
+            'device' => 'visit:device',
+            'browser' => 'visit:browser',
+        ];
     }
 
 

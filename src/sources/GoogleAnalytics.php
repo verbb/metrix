@@ -5,6 +5,8 @@ use verbb\metrix\Metrix;
 use verbb\metrix\base\OAuthSource;
 use verbb\metrix\base\Period;
 use verbb\metrix\base\WidgetDataInterface;
+use verbb\metrix\models\AnalyticsScope;
+use verbb\metrix\widgets\Counter;
 
 use Craft;
 use craft\helpers\App;
@@ -95,8 +97,7 @@ class GoogleAnalytics extends OAuthSource
         return [
             'https://www.googleapis.com/auth/userinfo.profile',
             'https://www.googleapis.com/auth/userinfo.email',
-            'https://www.googleapis.com/auth/analytics',
-            'https://www.googleapis.com/auth/analytics.edit',
+            'https://www.googleapis.com/auth/analytics.readonly',
         ];
     }
 
@@ -112,47 +113,25 @@ class GoogleAnalytics extends OAuthSource
     public function fetchSourceSettings(string $settingsKey): ?array
     {
         try {
-            if ($settingsKey === 'accountId') {
+            if ($settingsKey === 'accountId' || $settingsKey === 'propertyId') {
+                $resource = $settingsKey === 'accountId' ? 'accounts' : 'properties';
+                $query = $settingsKey === 'propertyId' ? ['filter' => 'parent:' . $this->getAccountId()] : [];
                 $options = [];
 
-                $response = $this->request('GET', 'https://analyticsadmin.googleapis.com/v1beta/accounts');
-                $accounts = $response['accounts'] ?? [];
+                do {
+                    $response = $this->request('GET', 'https://analyticsadmin.googleapis.com/v1beta/' . $resource, ['query' => $query]);
 
-                foreach ($accounts as $account) {
-                    $options[] = [
-                        'label' => $account['displayName'],
-                        'value' => $account['name'],
-                    ];
-                }
+                    foreach ($response[$resource] ?? [] as $item) {
+                        $options[] = [
+                            'label' => $item['displayName'],
+                            'value' => $item['name'],
+                        ];
+                    }
 
-                // Sort the options alphabetically by label
-                usort($options, function ($a, $b) {
-                    return strcmp($a['label'], $b['label']);
-                });
+                    $query['pageToken'] = $response['nextPageToken'] ?? null;
+                } while ($query['pageToken']);
 
-                return $options;
-            }
-
-            if ($settingsKey === 'propertyId') {
-                $options = [];
-
-                $response = $this->request('GET', 'https://analyticsadmin.googleapis.com/v1beta/properties', [
-                    'query' => [
-                        'filter' => 'parent:' . $this->getAccountId(),
-                    ],
-                ]);
-
-                $properties = $response['properties'] ?? [];
-
-                foreach ($properties as $property) {
-                    $options[] = [
-                        'label' => $property['displayName'],
-                        'value' => $property['name'],
-                    ];
-                }
-
-                // Sort the options alphabetically by label
-                usort($options, function ($a, $b) {
+                usort($options, function($a, $b) {
                     return strcmp($a['label'], $b['label']);
                 });
 
@@ -187,73 +166,185 @@ class GoogleAnalytics extends OAuthSource
 
     public function fetchData(WidgetDataInterface $widgetData): array
     {
-        $intervalDimension = $this->_getIntervalDimension($widgetData);
-        $dateRange = $widgetData->period::getCurrentDateRange();
-
-        // Check for "All Time" and set a wide date range
-        if ($widgetData->period === 'verbb\\metrix\\periods\\AllTime') {
-            $startDate = $this->_getPropertyCreationDate();
-            $endDate = (new DateTime())->format('Y-m-d');
-        } else {
+        try {
+            $intervalDimension = $this->_getIntervalDimension($widgetData);
             $dateRange = $widgetData->period::getCurrentDateRange();
-            $startDate = $dateRange['start']->format('Y-m-d');
-            $endDate = $dateRange['end']->format('Y-m-d');
-        }
 
-        $payload = [
-            'metrics' => [['name' => $widgetData->metric]],
-            'dateRanges' => [[
-                'startDate' => $startDate,
-                'endDate' => $endDate,
-            ]],
-        ];
-
-        if ($widgetData->widget::supportsDimensions() && $widgetData->dimension) {
-            $payload['dimensions'] = [['name' => $widgetData->dimension]];
-        } else {
-            $payload['dimensions'] = [['name' => $intervalDimension]];
-        }
-
-        $response = $this->request('POST', 'https://analyticsdata.googleapis.com/v1beta/' . $this->getPropertyId() . ':runReport', [
-            'json' => $payload,
-        ]);
-
-        $results = $response['rows'] ?? [];
-        $data = [];
-
-        foreach ($results as $result) {
-            $metric = $result['metricValues'][0]['value'] ?? null;
-            $dimension = $this->_formatDimension($widgetData, $result['dimensionValues'][0]['value'] ?? null);
-
-            if ($dimension) {
-                $data[$dimension] = $metric;
+            // Check for "All Time" and set a wide date range
+            if ($widgetData->period === 'verbb\\metrix\\periods\\AllTime') {
+                $startDate = $this->_getPropertyCreationDate();
+                $endDate = (new DateTime())->format('Y-m-d');
+            } else {
+                $dateRange = $widgetData->period::getCurrentDateRange();
+                $startDate = $dateRange['start']->format('Y-m-d');
+                $endDate = $dateRange['end']->format('Y-m-d');
             }
+
+            $payload = [
+                'metrics' => [['name' => $widgetData->metric]],
+                'dateRanges' => [[
+                    'startDate' => $startDate,
+                    'endDate' => $endDate,
+                ]],
+            ];
+
+            if ($widgetData->widget::supportsDimensions() && $widgetData->dimension) {
+                $payload['dimensions'] = [['name' => $widgetData->dimension]];
+                $payload['limit'] = $widgetData->getRowLimit();
+                $payload['orderBys'] = [['metric' => ['metricName' => $widgetData->metric], 'desc' => true]];
+            } elseif (!$widgetData->widget instanceof Counter) {
+                $payload['dimensions'] = [['name' => $intervalDimension]];
+            }
+
+            $this->applyWidgetAnalyticsScope($payload, $widgetData);
+
+            $response = $this->request('POST', 'https://analyticsdata.googleapis.com/v1beta/' . $this->getPropertyId() . ':runReport', [
+                'json' => $payload,
+            ]);
+
+            $results = $response['rows'] ?? [];
+            $data = [];
+
+            foreach ($results as $result) {
+                $metric = $result['metricValues'][0]['value'] ?? null;
+
+                if ($widgetData->metric === 'bounceRate' && is_numeric($metric)) {
+                    $metric = round((float)$metric * 100, 10);
+                }
+                $dimension = $widgetData->widget instanceof Counter
+                    ? 'total'
+                    : $this->_formatDimension($widgetData, $result['dimensionValues'][0]['value'] ?? null);
+
+                if ($dimension !== null) {
+                    $data[$dimension] = $metric;
+                }
+            }
+
+            return $data;
+        } catch (Throwable $e) {
+            self::apiError($this, $e);
         }
 
-        return $data;
+        return [];
     }
 
     public function fetchRealtimeData(WidgetDataInterface $widgetData): array
     {
-        $payload = [
-            'metrics' => [['name' => 'activeUsers']],
-            'limit' => 100,
-        ];
+        if ($widgetData->scope?->isActive()) {
+            throw new \Exception(Craft::t('metrix', 'Google Analytics realtime does not support hostname or path filters. Use a view without analytics scope and a source for the intended property.'));
+        }
 
-        $response = $this->request('POST', 'https://analyticsdata.googleapis.com/v1beta/' . $this->getPropertyId() . ':runRealtimeReport', [
-            'json' => $payload,
-        ]);
+        try {
+            $payload = [
+                'metrics' => [['name' => 'activeUsers']],
+                'limit' => 100,
+            ];
 
-        $results = $response['rows'] ?? [];
+            $this->applyWidgetAnalyticsScope($payload, $widgetData);
 
+            $response = $this->request('POST', 'https://analyticsdata.googleapis.com/v1beta/' . $this->getPropertyId() . ':runRealtimeReport', [
+                'json' => $payload,
+            ]);
+
+            $results = $response['rows'] ?? [];
+
+            return [
+                Craft::t('metrix', 'Active users') => $results[0]['metricValues'][0]['value'] ?? null,
+            ];
+        } catch (Throwable $e) {
+            self::apiError($this, $e);
+        }
+
+        return [];
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    public function supportsAnalyticsScope(): bool
+    {
+        return true;
+    }
+
+    public function applyAnalyticsScope(array &$request, AnalyticsScope $scope): void
+    {
+        $filters = [];
+
+        if ($hostname = $scope->getResolvedHostname()) {
+            $filters[] = $this->_dimensionFilter('hostName', $hostname, $scope->getHostnameMatch());
+        }
+
+        if ($path = $scope->getResolvedPathPrefix()) {
+            $filters[] = $this->_dimensionFilter('pagePath', $path, $scope->getPathMatch());
+        }
+
+        if ($filters === []) {
+            return;
+        }
+
+        // Merge with any existing filter as an AND group.
+        if (isset($request['dimensionFilter'])) {
+            $filters[] = $request['dimensionFilter'];
+        }
+
+        $request['dimensionFilter'] = count($filters) === 1
+            ? $filters[0]
+            : ['andGroup' => ['expressions' => $filters]];
+    }
+
+    protected function getCanonicalMetricMap(): array
+    {
         return [
-            Craft::t('metrix', 'Active users') => $results[0]['metricValues'][0]['value'] ?? null,
+            'visitors' => 'activeUsers',
+            'pageviews' => 'screenPageViews',
+            'sessions' => 'sessions',
+            'bounce_rate' => 'bounceRate',
+            'avg_duration' => 'averageSessionDuration',
+            'events' => 'eventCount',
+        ];
+    }
+
+    protected function getCanonicalDimensionMap(): array
+    {
+        return [
+            'page' => 'pagePath',
+            'entry_page' => 'landingPage',
+            'source' => 'sessionSource',
+            'referrer' => 'sessionSource',
+            'country' => 'country',
+            'region' => 'region',
+            'device' => 'deviceCategory',
+            'browser' => 'browser',
+            'os' => 'operatingSystem',
         ];
     }
 
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function _dimensionFilter(string $fieldName, string $value, string $match): array
+    {
+        $matchType = match ($match) {
+            AnalyticsScope::MATCH_EXACT => 'EXACT',
+            AnalyticsScope::MATCH_CONTAINS => 'CONTAINS',
+            default => 'BEGINS_WITH',
+        };
+
+        return [
+            'filter' => [
+                'fieldName' => $fieldName,
+                'stringFilter' => [
+                    'matchType' => $matchType,
+                    'value' => $value,
+                ],
+            ],
+        ];
+    }
 
     private function _getPropertyMetadata(): array
     {
@@ -306,10 +397,10 @@ class GoogleAnalytics extends OAuthSource
         return 'date';
     }
 
-    private function _formatDimension(WidgetDataInterface $widgetData, ?string $dimension): string
+    private function _formatDimension(WidgetDataInterface $widgetData, ?string $dimension): ?string
     {
         if ($dimension === null) {
-            return '';
+            return null;
         }
 
         // For plot data, ensure we format the date correctly

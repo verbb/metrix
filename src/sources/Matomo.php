@@ -4,12 +4,15 @@ namespace verbb\metrix\sources;
 use verbb\metrix\base\CredentialsSource;
 use verbb\metrix\base\Period;
 use verbb\metrix\base\WidgetDataInterface;
+use verbb\metrix\helpers\ProviderUrl;
+use verbb\metrix\models\AnalyticsScope;
+use verbb\metrix\widgets\data\PlotData;
 
 use Craft;
 use craft\helpers\App;
-use craft\helpers\Json;
 
 use DateTime;
+use Exception;
 use Throwable;
 
 use GuzzleHttp\Client;
@@ -47,6 +50,11 @@ class Matomo extends CredentialsSource
         return $rules;
     }
 
+    public function getCredentialAttributes(): array
+    {
+        return ['apiToken'];
+    }
+
     public function getPrimaryColor(): ?string
     {
         return '#4b77be';
@@ -72,6 +80,11 @@ class Matomo extends CredentialsSource
         return App::parseEnv($this->siteId);
     }
 
+    public function getEndpointAttributes(): array
+    {
+        return ['apiUrl'];
+    }
+
     public function fetchSourceSettings(string $settingsKey): ?array
     {
         try {
@@ -94,8 +107,7 @@ class Matomo extends CredentialsSource
                     ];
                 }
 
-                // Sort the options alphabetically by label
-                usort($options, function ($a, $b) {
+                usort($options, function($a, $b) {
                     return strcmp($a['label'], $b['label']);
                 });
 
@@ -110,7 +122,6 @@ class Matomo extends CredentialsSource
 
     public function fetchAvailableMetrics(): array
     {
-        // Hardcoded metrics based on Matomo documentation
         $metrics = [
             'nb_visits' => 'Total Visits',
             'nb_uniq_visitors' => 'Unique Visitors',
@@ -127,7 +138,6 @@ class Matomo extends CredentialsSource
 
     public function fetchAvailableDimensions(): array
     {
-        // Hardcoded list of dimensions based on Matomo documentation
         $dimensions = [
             'browser' => 'Browser',
             'country' => 'Country',
@@ -143,30 +153,17 @@ class Matomo extends CredentialsSource
 
     public function fetchData(WidgetDataInterface $widgetData): array
     {
-        $intervalDimension = $this->_getIntervalDimension($widgetData);
-        $dateRange = $widgetData->period::getCurrentDateRange();
-        $startDate = $dateRange['start']->format('Y-m-d');
-        $endDate = $dateRange['end']->format('Y-m-d');
+        try {
+            if ($widgetData->widget::supportsDimensions() && $widgetData->dimension) {
+                return $this->_fetchDimensionData($widgetData);
+            }
 
-        $params = [
-            'module' => 'API',
-            'method' => 'VisitsSummary.get',
-            'idSite' => $this->getSiteId(),
-            'period' => $intervalDimension,
-            'date' => "$startDate,$endDate",
-            'format' => 'json',
-            'token_auth' => $this->getApiToken(),
-        ];
-
-        $response = $this->request('POST', '', ['form_params' => $params]);
-
-        $data = [];
-
-        foreach ($response as $key => $result) {
-            $data[$key] = $result[$widgetData->metric] ?? null;
+            return $this->_fetchSummaryData($widgetData);
+        } catch (Throwable $e) {
+            self::apiError($this, $e);
         }
 
-        return $data;
+        return [];
     }
 
     public function fetchConnection(): bool
@@ -199,15 +196,239 @@ class Matomo extends CredentialsSource
             return $this->_client;
         }
 
-        return $this->_client = Craft::createGuzzleClient([
+        return $this->_client = Craft::createGuzzleClient(array_merge([
             'base_uri' => rtrim($this->getApiUrl(), '/') . '/',
             'headers' => ['Authorization' => 'Bearer ' . $this->getApiToken()],
-        ]);
+        ], ProviderUrl::requestOptions($this->getApiUrl())));
+    }
+
+    public function request(string $method, string $url, array $options = []): mixed
+    {
+        $response = parent::request($method, $url, $options);
+
+        if (is_array($response) && ($response['result'] ?? null) === 'error') {
+            throw new Exception('Matomo could not provide the requested report. Check the site, token and report settings.');
+        }
+
+        return $response;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    public function supportsAnalyticsScope(): bool
+    {
+        return true;
+    }
+
+    public function applyAnalyticsScope(array &$request, AnalyticsScope $scope): void
+    {
+        $parts = [];
+
+        if ($hostname = $scope->getResolvedHostname()) {
+            $parts[] = 'pageHostname' . $this->_matomoOperator($scope->getHostnameMatch()) . $hostname;
+        }
+
+        if ($path = $scope->getResolvedPathPrefix()) {
+            // pageUrl segment operators apply to the full URL; path matching is best-effort.
+            $parts[] = 'pageUrl' . $this->_matomoOperator($scope->getPathMatch()) . $path;
+        }
+
+        if ($parts === []) {
+            return;
+        }
+
+        $segment = implode(';', $parts);
+
+        if (!empty($request['segment'])) {
+            $request['segment'] .= ';' . $segment;
+        } else {
+            $request['segment'] = $segment;
+        }
+    }
+
+    protected function getCanonicalMetricMap(): array
+    {
+        return [
+            'visitors' => 'nb_uniq_visitors',
+            'pageviews' => 'nb_pageviews',
+            'sessions' => 'nb_visits',
+            'bounce_rate' => 'bounce_rate',
+            'avg_duration' => 'avg_time_on_site',
+        ];
+    }
+
+    protected function getCanonicalDimensionMap(): array
+    {
+        return [
+            'referrer' => 'referrer',
+            'country' => 'country',
+            'browser' => 'browser',
+            'city' => 'city',
+        ];
     }
 
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * @param array<string, mixed> $params
+     * @return array<string, mixed>
+     */
+    private function _withAnalyticsScope(array $params, WidgetDataInterface $widgetData): array
+    {
+        $this->applyWidgetAnalyticsScope($params, $widgetData);
+
+        return $params;
+    }
+
+    private function _matomoOperator(string $match): string
+    {
+        return match ($match) {
+            AnalyticsScope::MATCH_EXACT => '==',
+            AnalyticsScope::MATCH_CONTAINS => '=@',
+            default => '=^',
+        };
+    }
+
+    private function _fetchSummaryData(WidgetDataInterface $widgetData): array
+    {
+        $intervalDimension = is_a($widgetData->widget::getDataType(), PlotData::class, true)
+            ? $this->_getIntervalDimension($widgetData)
+            : 'range';
+        $dateRange = $this->_getDateRange($widgetData);
+        $startDate = $dateRange['start']->format('Y-m-d');
+        $endDate = $dateRange['end']->format('Y-m-d');
+
+        $params = [
+            'module' => 'API',
+            'method' => $widgetData->metric === 'nb_pageviews' ? 'Actions.get' : 'VisitsSummary.get',
+            'idSite' => $this->getSiteId(),
+            'period' => $intervalDimension,
+            'date' => "$startDate,$endDate",
+            'format' => 'json',
+            'format_metrics' => 0,
+            'token_auth' => $this->getApiToken(),
+        ];
+
+        $this->applyWidgetAnalyticsScope($params, $widgetData);
+
+        $response = $this->request('POST', '', ['form_params' => $params]);
+        $data = [];
+
+        foreach ($response as $key => $result) {
+            // Single-day summary may be a flat metric map rather than date => metrics.
+            if (is_array($result) && array_key_exists($widgetData->metric, $result)) {
+                $date = new DateTime($key);
+                $dateKey = $intervalDimension === 'month' ? $date->format('Y-m-01') : $date->format('Y-m-d');
+                $data[$dateKey] = $this->_numericValue($result[$widgetData->metric], $widgetData->metric);
+            } elseif ($key === $widgetData->metric) {
+                $data['total'] = $this->_numericValue($result, $widgetData->metric);
+            }
+        }
+
+        return $data;
+    }
+
+    private function _numericValue(mixed $value, ?string $metric): float|int
+    {
+        if (is_string($value) && str_ends_with($value, '%')) {
+            return (float)$value;
+        }
+
+        if ($metric === 'bounce_rate' && is_numeric($value)) {
+            return round((float)$value * 100, 10);
+        }
+
+        return is_numeric($value) ? $value + 0 : 0;
+    }
+
+    private function _fetchDimensionData(WidgetDataInterface $widgetData): array
+    {
+        $method = match ($widgetData->dimension) {
+            'browser' => 'DevicesDetection.getBrowsers',
+            'country' => 'UserCountry.getCountry',
+            'city' => 'UserCountry.getCity',
+            'referrer' => 'Referrers.getReferrers',
+            default => null,
+        };
+
+        if (!$method) {
+            return [];
+        }
+
+        $dateRange = $this->_getDateRange($widgetData);
+        $startDate = $dateRange['start']->format('Y-m-d');
+        $endDate = $dateRange['end']->format('Y-m-d');
+        $metric = $widgetData->metric;
+        $limit = $widgetData->getRowLimit();
+
+        $response = $this->request('POST', '', [
+            'form_params' => $this->_withAnalyticsScope([
+                'module' => 'API',
+                'method' => $method,
+                'idSite' => $this->getSiteId(),
+                'period' => 'range',
+                'date' => "$startDate,$endDate",
+                'format' => 'json',
+                'format_metrics' => 0,
+                'filter_limit' => $limit,
+                'filter_sort_column' => $metric,
+                'filter_sort_order' => 'desc',
+                'token_auth' => $this->getApiToken(),
+            ], $widgetData),
+        ]);
+
+        if (!is_array($response)) {
+            return [];
+        }
+
+        $data = [];
+
+        foreach ($response as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $label = $row['label'] ?? null;
+
+            if ($label === null || $label === '') {
+                continue;
+            }
+
+            $value = $row[$metric] ?? null;
+
+            $data[(string)$label] = $this->_numericValue($value, $metric);
+        }
+
+        return $data;
+    }
+
+    private function _getDateRange(WidgetDataInterface $widgetData): array
+    {
+        $range = $widgetData->period::getCurrentDateRange();
+
+        if ($range) {
+            return $range;
+        }
+
+        $site = $this->request('POST', '', ['form_params' => [
+            'module' => 'API',
+            'method' => 'SitesManager.getSiteFromId',
+            'idSite' => $this->getSiteId(),
+            'format' => 'json',
+            'token_auth' => $this->getApiToken(),
+        ]]);
+        $created = $site['ts_created'] ?? $site[0]['ts_created'] ?? null;
+
+        if (!$created) {
+            throw new Exception(Craft::t('metrix', 'Unable to determine the Matomo site’s reporting start date.'));
+        }
+
+        return ['start' => new DateTime($created), 'end' => new DateTime()];
+    }
 
     private function _getIntervalDimension(WidgetDataInterface $widgetData): string
     {

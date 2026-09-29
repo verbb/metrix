@@ -5,6 +5,8 @@
 
 {% requireAdmin %}
 
+{% do craft.metrix.registerCpAssets() %}
+
 {% set crumbs = [
     { label: 'Settings' | t('app'), url: url('settings') },
     { label: 'Plugins' | t('app'), url: url('settings/plugins') },

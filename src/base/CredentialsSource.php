@@ -2,11 +2,13 @@
 namespace verbb\metrix\base;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\Json;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\RequestOptions;
 
-abstract class CredentialsSource extends Source
+abstract class CredentialsSource extends Source implements CredentialSourceInterface
 {
     // Static Methods
     // =========================================================================
@@ -43,9 +45,36 @@ abstract class CredentialsSource extends Source
         return true;
     }
 
+    /**
+     * Fail closed for custom providers until they classify ordinary settings separately.
+     */
+    public function getCredentialAttributes(): array
+    {
+        return $this->settingsAttributes();
+    }
+
+    /**
+     * Settings which determine where credentials are sent.
+     */
+    public function getEndpointAttributes(): array
+    {
+        return [];
+    }
+
     public function isConfigured(): bool
     {
-        return true;
+        // Validate resolved settings without replacing stored environment references or form errors.
+        $source = clone $this;
+        $source->enabled = true;
+        $attributes = $source->settingsAttributes();
+
+        foreach ($attributes as $attribute) {
+            if (is_string($source->$attribute)) {
+                $source->$attribute = App::parseEnv($source->$attribute) ?? '';
+            }
+        }
+
+        return $source->validate($attributes);
     }
 
     public function isConnected(): bool
@@ -61,19 +90,27 @@ abstract class CredentialsSource extends Source
             }
         }
 
-        $success = $this->fetchConnection();
+        $success = false;
 
-        if ($success) {
-            $this->setSettingCache(['connection' => self::CONNECT_SUCCESS]);
+        try {
+            $success = $this->fetchConnection();
+
+            return $success;
+        } finally {
+            $this->setSettingCache(['connection' => $success ? self::CONNECT_SUCCESS : null]);
         }
-
-        return $success;
     }
 
     public function request(string $method, string $url, array $options = []): mixed
     {
         try {
             $client = $this->getClient();
+            // Provider redirects must never move credentials away from the
+            // origin which was validated and pinned when the client was built.
+            $options[RequestOptions::ALLOW_REDIRECTS] = false;
+            // A proxy would resolve HTTPS CONNECT targets itself, bypassing
+            // the local DNS validation and CURLOPT_RESOLVE pinning.
+            $options[RequestOptions::PROXY] = null;
             $response = $client->request($method, $url, $options);
 
             return Json::decode($response->getBody()->getContents(), true);

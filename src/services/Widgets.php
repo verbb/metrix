@@ -64,6 +64,18 @@ class Widgets extends Component
         return $event->types;
     }
 
+    /**
+     * Whether `$type` is a registered, settings-enabled widget class (not arbitrary).
+     */
+    public function isAllowedWidgetType(mixed $type): bool
+    {
+        if (!is_string($type) || $type === '') {
+            return false;
+        }
+
+        return in_array($type, Metrix::$plugin->getSettings()->getEnabledWidgetTypes(), true);
+    }
+
     public function createWidget(mixed $config): WidgetInterface
     {
         try {
@@ -80,6 +92,11 @@ class Widgets extends Component
             unset($config['type']);
             return new widgetTypes\MissingWidget($config);
         }
+    }
+
+    public function clearCachedWidgets(): void
+    {
+        $this->_widgets = null;
     }
 
     public function getAllWidgets(): array
@@ -161,6 +178,8 @@ class Widgets extends Component
             $widget->id = $widgetRecord->id;
         }
 
+        $this->_widgets = null;
+
         // Fire an 'afterSaveWidget' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_WIDGET)) {
             $this->trigger(self::EVENT_AFTER_SAVE_WIDGET, new WidgetEvent([
@@ -190,6 +209,8 @@ class Widgets extends Component
             throw $e;
         }
 
+        $this->_widgets = null;
+
         return true;
     }
 
@@ -214,6 +235,7 @@ class Widgets extends Component
         }
 
         Db::delete('{{%metrix_widgets}}', ['id' => $widget->id]);
+        $this->_widgets = null;
 
         // Fire an 'afterDeleteWidget' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_WIDGET)) {
@@ -221,9 +243,6 @@ class Widgets extends Component
                 'widget' => $widget,
             ]));
         }
-
-        // Clear caches
-        $this->_widgets = null;
 
         return true;
     }

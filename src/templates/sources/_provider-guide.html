@@ -1,0 +1,10 @@
+{% set name = source.providerName %}
+{% set handle = providerDocsHandle ?? source.providerHandle | kebab %}
+
+{% set instructions %}
+To set up {name}, follow our <a href="https://verbb.io/craft-plugins/metrix/docs/providers/{handle}" target="_blank" rel="noopener">{name} provider guide</a>.
+{% endset %}
+
+<div class="metrix-settings-block">
+    {{ instructions | t('metrix', { name: name, handle: handle }) | md }}
+</div>

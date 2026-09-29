@@ -5,11 +5,15 @@ use verbb\metrix\Metrix;
 use verbb\metrix\base\Widget;
 use verbb\metrix\base\WidgetInterface;
 use verbb\metrix\helpers\Options;
+use verbb\metrix\records\Preset as PresetRecord;
 
+use Craft;
 use craft\base\SavableComponent;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
+use craft\validators\HandleValidator;
+use craft\validators\UniqueValidator;
 
 use DateTime;
 
@@ -46,6 +50,37 @@ class Preset extends SavableComponent
         parent::__construct($config);
     }
 
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['name', 'handle'], 'trim'];
+        $rules[] = [['name', 'handle'], 'required'];
+        $rules[] = [['name'], 'string', 'max' => 255];
+        $rules[] = [['handle'], 'string', 'max' => 64];
+        $rules[] = [
+            ['handle'],
+            HandleValidator::class,
+            'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title'],
+        ];
+        $rules[] = [
+            ['name', 'handle'],
+            UniqueValidator::class,
+            'targetClass' => PresetRecord::class,
+            'filter' => $this->id ? ['not', ['id' => $this->id]] : null,
+        ];
+
+        return $rules;
+    }
+
+    public function attributeLabels(): array
+    {
+        return [
+            'name' => Craft::t('metrix', 'Name'),
+            'handle' => Craft::t('app', 'Handle'),
+        ];
+    }
+
     public function getCpEditUrl(): string
     {
         return UrlHelper::cpUrl('metrix/settings/presets/edit/' . $this->id);
@@ -67,6 +102,7 @@ class Preset extends SavableComponent
             ArrayHelper::remove($widgetConfig, 'metricLabel');
             ArrayHelper::remove($widgetConfig, 'dimensionLabel');
             ArrayHelper::remove($widgetConfig, 'periodLabel');
+            ArrayHelper::remove($widgetConfig, 'displayTitle');
 
             // Null source is okay here, as that might not be setup yet
             if (array_key_exists('source', $widgetConfig) && $widgetConfig['source'] === null) {
@@ -100,22 +136,14 @@ class Preset extends SavableComponent
         // any sources exist. But when converting to widgets, they must have a source.
         $firstSource = Metrix::$plugin->getSources()->getAllConfiguredSources()[0] ?? null;
 
-        // It's a similar deal with views
-        $firstView = Metrix::$plugin->getViews()->getAllViews()[0] ?? null;
-
         foreach ($this->getWidgets() as $widget) {
             // Set a default source, if not already set
             if ($firstSource && !$widget->getSource()) {
                 $widget->setSource($firstSource);
             }
 
-            // Set a default view, if not already set
-            if ($firstView && !$widget->getView()) {
-                $widget->setView($firstView);
-            }
-
-            // Ensure that we only return widgets that have a source and/or view
-            if (!$widget->getSource() || !$widget->getView()) {
+            // Presets are independent of dashboard views, including when none exist.
+            if (!$widget->getSource()) {
                 continue;
             }
 
@@ -150,7 +178,7 @@ class Preset extends SavableComponent
     {
         $widgets = $this->getFrontEndWidgets();
         $widgetTypeOptions = Options::getEnabledWidgetTypeSchemaOptions();
-        $newWidget = Widget::getNewWigetConfig();
+        $newWidget = Widget::getNewWidgetConfig();
         $firstSource = Metrix::$plugin->getSources()->getAllConfiguredSources()[0] ?? null;
 
         return [
@@ -158,6 +186,7 @@ class Preset extends SavableComponent
             'widgetSettings' => $widgetTypeOptions,
             'newWidget' => $newWidget,
             'hasSource' => (bool)$firstSource,
+            'sources' => Options::getSourceOptions(),
         ];
     }
 }

@@ -14,7 +14,7 @@
     <a href="{{ url('metrix/settings/presets/new') }}" class="btn submit add icon">{{ 'New Preset' | t('metrix') }}</a>
 {% endblock %}
 
-{% block settingsContent %}
+{% block settingsMeta %}
     <div id="presets-vue-admin-table"></div>
 {% endblock %}
 
@@ -39,7 +39,7 @@ var columns = [
             if (value) {
                 return '<span class="status on"></span>' + Craft.t('metrix', 'Enabled');
             } else {
-                return '<span class="status"></span>' + Craft.t('metrix', 'Disabled');
+                return '<span class="status disabled"></span>' + Craft.t('metrix', 'Disabled');
             }
         }
     },
@@ -47,7 +47,7 @@ var columns = [
 
 new Craft.VueAdminTable({
     columns: columns,
-    container: '#{{ 'presets-vue-admin-table' | namespaceInputId('settings') }}',
+    container: '#presets-vue-admin-table',
     emptyMessage: Craft.t('metrix', 'No presets exist yet.'),
     tableData: {{ tableData | json_encode | raw }},
 

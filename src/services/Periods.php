@@ -106,6 +106,10 @@ class Periods extends Component
             ArrayHelper::remove($periodTypes, periodTypes\AllTime::class),
         ]);
 
+        if ($periodTypes) {
+            $groupedPeriods[] = array_values($periodTypes);
+        }
+
         return $groupedPeriods;
     }
 

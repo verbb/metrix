@@ -31,4 +31,20 @@ class Period extends Model implements PeriodInterface
     {
         return static::$currentDateRange ?: static::getDateRange();
     }
+
+    /**
+     * Run a callback while a temporary date range is active (e.g. previous-period plot buckets).
+     */
+    public static function withDateRange(array $dateRange, callable $callback): mixed
+    {
+        $originalRange = static::$currentDateRange;
+
+        try {
+            static::$currentDateRange = $dateRange;
+
+            return $callback();
+        } finally {
+            static::$currentDateRange = $originalRange;
+        }
+    }
 }

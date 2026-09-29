@@ -2,21 +2,28 @@
 namespace verbb\metrix\base;
 
 use verbb\metrix\Metrix;
+use verbb\metrix\helpers\Canonical;
+use verbb\metrix\models\AnalyticsScope;
+use verbb\metrix\records\Source as SourceRecord;
 
 use Craft;
 use craft\base\SavableComponent;
+use craft\helpers\App;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\validators\HandleValidator;
-
-use verbb\auth\helpers\Provider as ProviderHelper;
+use craft\validators\UniqueValidator;
 
 use DateTime;
 use Exception;
+use Throwable;
 
 use GuzzleHttp\Exception\RequestException;
+use verbb\auth\Auth;
+use verbb\auth\exceptions\OAuthTokenRefreshException;
+use verbb\auth\helpers\Provider as ProviderHelper;
 
 abstract class Source extends SavableComponent implements SourceInterface
 {
@@ -35,12 +42,28 @@ abstract class Source extends SavableComponent implements SourceInterface
 
     public static function apiError($source, $exception, $throwError = true): void
     {
-        $messageText = $exception->getMessage();
+        // Permanent OAuth failure — flip Connected off and surface a reconnect message.
+        if (self::isOAuthReconnectFailure($exception)) {
+            self::_disconnectOAuthAfterAuthFailure($source);
 
-        // Check for Guzzle errors, which are truncated in the exception `getMessage()`.
-        if ($exception instanceof RequestException && $exception->getResponse()) {
-            $messageText = (string)$exception->getResponse()->getBody();
+            $messageText = self::reconnectExceptionMessage();
+            $message = Craft::t('metrix', 'API error: “{message}” {file}:{line}', [
+                'message' => $messageText,
+                'file' => $exception->getFile(),
+                'line' => $exception->getLine(),
+            ]);
+
+            Metrix::error($source->name . ': ' . $message);
+            Metrix::error($exception->getTraceAsString());
+
+            if ($throwError) {
+                throw new Exception($messageText, (int)$exception->getCode(), $exception);
+            }
+
+            return;
         }
+
+        $messageText = self::formatExceptionMessage($exception);
 
         $message = Craft::t('metrix', 'API error: “{message}” {file}:{line}', [
             'message' => $messageText,
@@ -52,8 +75,135 @@ abstract class Source extends SavableComponent implements SourceInterface
         Metrix::error($exception->getTraceAsString());
 
         if ($throwError) {
-            throw new Exception($message);
+            throw new Exception($message, (int)$exception->getCode(), $exception);
         }
+    }
+
+    /**
+     * Short user-facing message for dashboard JSON errors (reconnect vs raw API dump).
+     */
+    public static function formatDashboardExceptionMessage(Throwable $exception): string
+    {
+        if (self::isOAuthReconnectFailure($exception)) {
+            return self::reconnectExceptionMessage();
+        }
+
+        return self::formatExceptionMessage($exception);
+    }
+
+    public static function reconnectExceptionMessage(): string
+    {
+        return Craft::t('metrix', 'This source needs to be reconnected. Open Sources, edit the source, and connect again.');
+    }
+
+    /**
+     * Whether the exception means the OAuth refresh/access token is permanently unusable.
+     */
+    public static function isOAuthReconnectFailure(Throwable $exception): bool
+    {
+        if (class_exists(OAuthTokenRefreshException::class) && self::_findException($exception, OAuthTokenRefreshException::class)) {
+            return true;
+        }
+
+        $haystack = strtolower(self::formatExceptionMessage($exception) . ' ' . $exception->getMessage());
+
+        return str_contains($haystack, 'invalid_grant')
+            || str_contains($haystack, 'token has been expired or revoked')
+            || (str_contains($haystack, 'unauthenticated') && str_contains($haystack, 'oauth'));
+    }
+
+    /**
+     * Prefer the full HTTP response body over Guzzle's truncated getMessage() summary.
+     * Redact secret-looking query parameters from request URIs before returning to the CP.
+     */
+    public static function formatExceptionMessage(Throwable $exception): string
+    {
+        $requestException = self::_findRequestException($exception);
+
+        if ($requestException && ($response = $requestException->getResponse())) {
+            $body = $response->getBody();
+
+            if ($body->isSeekable()) {
+                $body->rewind();
+            }
+
+            $responseBody = trim((string)$body);
+
+            if ($responseBody !== '') {
+                $decoded = Json::decodeIfJson($responseBody);
+                $prettyBody = is_array($decoded)
+                    ? Json::encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+                    : $responseBody;
+
+                $request = $requestException->getRequest();
+                $status = $response->getStatusCode() . ' ' . $response->getReasonPhrase();
+
+                return sprintf(
+                    "%s %s resulted in %s:\n%s",
+                    $request->getMethod(),
+                    self::redactUri((string)$request->getUri()),
+                    $status,
+                    $prettyBody
+                );
+            }
+        }
+
+        return self::redactUri($exception->getMessage());
+    }
+
+    /**
+     * Strip credential-like query values from URIs / error strings shown in the CP.
+     */
+    public static function redactUri(string $value): string
+    {
+        $value = (string)preg_replace('~(https?://)[^/\s@]+@~i', '$1***@', $value);
+
+        // Query keys commonly carrying tokens/secrets in analytics provider URLs.
+        $secretKeys = 'access_token|api_key|apikey|token|secret|password|key|auth|authorization|client_secret|refresh_token';
+
+        return (string)preg_replace_callback(
+            '/([?&](?:' . $secretKeys . ')=)([^&]*)/i',
+            static fn(array $m) => $m[1] . '***',
+            $value,
+        );
+    }
+
+    private static function _findRequestException(Throwable $exception): ?RequestException
+    {
+        return self::_findException($exception, RequestException::class);
+    }
+
+    /** Walk the exception chain to find the first instance of the requested class. */
+    private static function _findException(Throwable $exception, string $class): ?Throwable
+    {
+        $current = $exception;
+
+        while ($current) {
+            if ($current instanceof $class) {
+                return $current;
+            }
+
+            $current = $current->getPrevious();
+        }
+
+        return null;
+    }
+
+    /**
+     * Drop a dead OAuth token when Auth did not already (older Auth, or 401 without invalid_grant on refresh).
+     */
+    private static function _disconnectOAuthAfterAuthFailure($source): void
+    {
+        if (!$source instanceof OAuthSource || !$source->id) {
+            return;
+        }
+
+        // Auth 2.0.45+ already deletes on invalid_grant; this is a no-op then.
+        if ($source->getToken()) {
+            Auth::getInstance()->getTokens()->deleteTokenByOwnerReference('metrix', (string)$source->id);
+        }
+
+        Metrix::$plugin->getSources()->invalidateWidgetDataCache($source);
     }
 
 
@@ -79,7 +229,10 @@ abstract class Source extends SavableComponent implements SourceInterface
     {
         $rules = parent::defineRules();
 
+        $rules[] = [['name', 'handle'], 'trim'];
         $rules[] = [['name', 'handle'], 'required'];
+        $rules[] = [['name', 'handle'], 'string', 'max' => 255];
+        $rules[] = [['name', 'handle'], UniqueValidator::class, 'targetClass' => SourceRecord::class];
         $rules[] = [['id'], 'number', 'integerOnly' => true];
 
         $rules[] = [
@@ -90,6 +243,7 @@ abstract class Source extends SavableComponent implements SourceInterface
                 'dateUpdated',
                 'edit',
                 'id',
+                'new',
                 'title',
                 'uid',
             ],
@@ -150,7 +304,7 @@ abstract class Source extends SavableComponent implements SourceInterface
 
         $settings = $this->fetchSourceSettings($settingsKey);
 
-        if ($settings) {
+        if ($settings !== null) {
             $this->setSettingCache([$settingsKey => $settings]);
         }
 
@@ -165,19 +319,82 @@ abstract class Source extends SavableComponent implements SourceInterface
     public function getCacheKey(): string
     {
         $settings = $this->getSettings();
-        unset($settings['clientId'], $settings['clientSecret']);
+        array_walk_recursive($settings, static function(&$value) {
+            if (is_string($value)) {
+                $value = App::parseEnv($value);
+            }
+        });
 
-        return md5(Json::encode($settings));
+        return hash('sha256', Json::encode([static::class, $settings]));
+    }
+
+    public function getCapabilities(): array
+    {
+        return [
+            'realtime' => $this->supportsRealtime(),
+            'dimensions' => $this->supportsDimensions(),
+            'connection' => static::supportsConnection(),
+            'oauth' => static::supportsOAuthConnection(),
+            'analyticsScope' => $this->supportsAnalyticsScope(),
+        ];
+    }
+
+    public function supportsRealtime(): bool
+    {
+        return method_exists($this, 'fetchRealtimeData');
+    }
+
+    /**
+     * Whether this source can answer dimension-breakdown widgets (table/pie).
+     * Override to false for event-only providers (e.g. Mixpanel).
+     */
+    public function supportsDimensions(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Whether View analytics scope (path/hostname) can be applied to this provider.
+     */
+    public function supportsAnalyticsScope(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function applyAnalyticsScope(array &$request, AnalyticsScope $scope): void
+    {
+        // No-op by default — providers opt in via supportsAnalyticsScope() + override.
+    }
+
+    public function resolveCanonicalMetric(string $key): ?string
+    {
+        return $this->getCanonicalMetricMap()[$key] ?? null;
+    }
+
+    public function resolveCanonicalDimension(string $key): ?string
+    {
+        return $this->getCanonicalDimensionMap()[$key] ?? null;
     }
 
     public function getAvailableMetrics(): array
     {
-        return $this->fetchAvailableMetrics();
+        return Canonical::mergeGroupedPropertyOptions(
+            $this,
+            $this->fetchAvailableMetrics(),
+            'metrics',
+        );
     }
 
     public function getAvailableDimensions(): array
     {
-        return $this->fetchAvailableDimensions();
+        return Canonical::mergeGroupedPropertyOptions(
+            $this,
+            $this->fetchAvailableDimensions(),
+            'dimensions',
+        );
     }
 
     public function fetchAvailableMetrics(): array
@@ -194,8 +411,21 @@ abstract class Source extends SavableComponent implements SourceInterface
     // Protected Methods
     // =========================================================================
 
+    /** Apply the widget’s View scope to a request when active and supported. */
+    protected function applyWidgetAnalyticsScope(array &$request, WidgetDataInterface $widgetData): void
+    {
+        $scope = $widgetData->scope ?? null;
+
+        if (!$scope instanceof AnalyticsScope || !$scope->isActive() || !$this->supportsAnalyticsScope()) {
+            return;
+        }
+
+        $this->applyAnalyticsScope($request, $scope);
+    }
+
     protected function setSettingCache(array $values): void
     {
+        $this->_ensureSettingCache();
         $this->cache = array_merge($this->cache, $values);
 
         $data = Json::encode($this->cache);
@@ -206,6 +436,34 @@ abstract class Source extends SavableComponent implements SourceInterface
 
     protected function getSettingCache(string $key): mixed
     {
+        $this->_ensureSettingCache();
+
         return $this->cache[$key] ?? null;
+    }
+
+    /** Map curated canonical metric keys to this provider's native API values. */
+    protected function getCanonicalMetricMap(): array
+    {
+        return [];
+    }
+
+    /** Map curated canonical dimension keys to this provider's native API values. */
+    protected function getCanonicalDimensionMap(): array
+    {
+        return [];
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _ensureSettingCache(): void
+    {
+        // Configuration and environment values can change without saving the source.
+        $settingsKey = $this->getCacheKey();
+
+        if (($this->cache['_settingsKey'] ?? null) !== $settingsKey) {
+            $this->cache = ['_settingsKey' => $settingsKey];
+        }
     }
 }

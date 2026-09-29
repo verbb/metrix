@@ -2,6 +2,7 @@
 namespace verbb\metrix\helpers;
 
 use verbb\metrix\Metrix;
+use verbb\metrix\helpers\SemanticPresets;
 
 use Craft;
 
@@ -15,7 +16,11 @@ class Options
         $options = [];
 
         foreach (Metrix::$plugin->getSources()->getAllConfiguredSources() as $source) {
-            $options[] = ['label' => $source->name, 'value' => $source->handle];
+            $options[] = [
+                'label' => $source->name,
+                'value' => $source->handle,
+                'capabilities' => $source->getCapabilities(),
+            ];
         }
 
         return $options;
@@ -24,9 +29,14 @@ class Options
     public static function getPresetOptions(): array
     {
         $options = [];
+        $definitions = SemanticPresets::getDefinitions();
 
         foreach (Metrix::$plugin->getPresets()->getAllEnabledPresets() as $preset) {
-            $options[] = ['label' => $preset->name, 'value' => $preset->handle];
+            $options[] = [
+                'label' => $preset->name,
+                'value' => $preset->handle,
+                'description' => $definitions[$preset->handle]['description'] ?? '',
+            ];
         }
 
         return $options;
@@ -118,10 +128,28 @@ class Options
         $options = [];
 
         foreach (Metrix::$plugin->getViews()->getAllViewableViews() as $view) {
-            $options[] = ['label' => $view->name, 'value' => $view->handle];
+            $scope = $view->getAnalyticsScope();
+
+            $options[] = [
+                'label' => $view->name,
+                'value' => $view->handle,
+                'analyticsScope' => $scope->isActive() ? [
+                    'mode' => $scope->mode,
+                    'summary' => $scope->getSummaryLabel(),
+                ] : null,
+            ];
         }
 
         return $options;
+    }
+
+    public static function resolveViewHandle(?string $requestedHandle, array $viewOptions): ?string
+    {
+        $handles = array_column($viewOptions, 'value');
+
+        return in_array($requestedHandle, $handles, true)
+            ? $requestedHandle
+            : ($handles[0] ?? null);
     }
 
 }
