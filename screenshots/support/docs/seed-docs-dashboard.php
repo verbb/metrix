@@ -1,8 +1,8 @@
 /**
  * Seed a Demo Analytics source + screen-2-style Default dashboard for Metrix docs.
  *
- * Also upserts six showcase Sources (GA / Plausible / Matomo / Fathom / Cloudflare /
- * MixPanel) with dummy credentials so the Sources index shows real provider icons.
+ * Also upserts ten showcase Sources with dummy credentials so the Sources index
+ * shows every supported provider with its real icon.
  * Connected state is faked (cache / OAuth token) — no live API calls.
  *
  * Widgets (grid order): Sessions line (2), Active users realtime (1), Sessions
@@ -27,9 +27,13 @@ use verbb\metrix\periods\Last7Days;
 use verbb\metrix\sources\Cloudflare;
 use verbb\metrix\sources\Fathom;
 use verbb\metrix\sources\GoogleAnalytics;
+use verbb\metrix\sources\GoatCounter;
 use verbb\metrix\sources\Matomo;
 use verbb\metrix\sources\MixPanel;
+use verbb\metrix\sources\Pirsch;
 use verbb\metrix\sources\Plausible;
+use verbb\metrix\sources\SimpleAnalytics;
+use verbb\metrix\sources\Umami;
 use verbb\metrix\widgets\Counter;
 use verbb\metrix\widgets\Line;
 use verbb\metrix\widgets\Pie;
@@ -197,6 +201,49 @@ $showcaseSources = [
             'username' => 'docs-fake-user',
             'password' => 'docs-fake-password',
             'projectId' => '123456',
+        ],
+    ]),
+    $upsertShowcaseSource([
+        'type' => Umami::class,
+        'name' => 'Umami',
+        'handle' => 'umami',
+        'enabled' => true,
+        'settings' => [
+            'baseUrl' => 'https://analytics.example.com/',
+            'websiteId' => 'docs-example-website',
+            'apiKey' => 'docs-fake-api-key',
+        ],
+    ]),
+    $upsertShowcaseSource([
+        'type' => GoatCounter::class,
+        'name' => 'GoatCounter',
+        'handle' => 'goatCounter',
+        'enabled' => true,
+        'settings' => [
+            'siteUrl' => 'https://docs.goatcounter.com/',
+            'apiKey' => 'docs-fake-api-key',
+        ],
+    ]),
+    $upsertShowcaseSource([
+        'type' => SimpleAnalytics::class,
+        'name' => 'Simple Analytics',
+        'handle' => 'simpleAnalytics',
+        'enabled' => true,
+        'settings' => [
+            'hostname' => 'docs.example.com',
+            'apiKey' => 'docs-fake-api-key',
+            'timezone' => 'Australia/Melbourne',
+        ],
+    ]),
+    $upsertShowcaseSource([
+        'type' => Pirsch::class,
+        'name' => 'Pirsch',
+        'handle' => 'pirsch',
+        'enabled' => true,
+        'settings' => [
+            'clientId' => 'docs-fake-client-id',
+            'clientSecret' => 'docs-fake-client-secret',
+            'domainId' => 'docs-example-domain',
         ],
     ]),
 ];

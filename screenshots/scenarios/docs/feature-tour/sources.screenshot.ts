@@ -11,8 +11,7 @@ export default defineScreenshotScenario({
     id: 'feature-tour-sources',
     output: 'docs/feature-tour/sources.png',
     route: () => sourcesRoute,
-    // Wide enough for the admin table; short so the flush crop stays row-tight
-    // like the classic ~1024×298 screen-2 cutout (captured @2x).
+    // Wide enough for the admin table; captured at 2× for docs and marketing use.
     viewport: {
         width: 1100,
         height: 520,
@@ -23,8 +22,8 @@ export default defineScreenshotScenario({
         sourcesRoute = fixture.sourcesRoute;
     },
     waitFor: [
-        { type: 'selector', selector: '#sources-vue-admin-table', state: 'visible', timeout: 30000 },
-        { type: 'selector', selector: '#sources-vue-admin-table table tbody tr', state: 'visible', timeout: 30000 },
+        { type: 'selector', selector: '#metrix-docs-sources-stage', state: 'visible', timeout: 30000 },
+        { type: 'selector', selector: '#metrix-docs-sources-stage tbody tr', state: 'visible', timeout: 30000 },
     ],
     preSteps: [
         createMetrixCleanupStep(),
@@ -32,12 +31,12 @@ export default defineScreenshotScenario({
         { type: 'wait', waitFor: { type: 'timeout', ms: 200 } },
     ],
     steps: [],
-    // Crop the table itself — no #content padding / empty pane wash.
+    // Crop the staged table itself — no #content padding / empty pane wash.
     target: {
         type: 'selector',
-        selector: '#sources-vue-admin-table table',
+        selector: '#metrix-docs-sources-stage',
         padding: 0,
     },
     caption: 'Metrix Sources index with connected analytics providers.',
-    intent: 'Show the Sources index with six enabled, connected providers matching the classic cutout.',
+    intent: 'Show the Sources index with every supported analytics provider enabled and connected.',
 });

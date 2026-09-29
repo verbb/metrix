@@ -730,9 +730,9 @@ export function createPrepareMetrixSourcesIndexStep(): ScreenshotStep {
                 const visibleRows = [...table.querySelectorAll('tbody tr')].filter(
                     (row) => row instanceof HTMLElement && row.style.display !== 'none',
                 );
-                if (visibleRows.length < 6) {
+                if (visibleRows.length < 10) {
                     throw new Error(
-                        'Expected at least 6 showcase source rows, found ' + visibleRows.length,
+                        'Expected at least 10 showcase source rows, found ' + visibleRows.length,
                     );
                 }
 
@@ -773,24 +773,50 @@ export function createPrepareMetrixSourcesIndexStep(): ScreenshotStep {
                     row.classList.remove('sel', 'hover');
                 }
 
-                // The CP nests the table in several fixed-width / overflow-hidden panes.
-                // Walk the real ancestor chain and unclip it so the widened table paints
-                // in full — selector guesses miss whichever wrapper actually clips.
-                for (let node = table.parentElement; node && node !== document.body; node = node.parentElement) {
-                    node.style.setProperty('overflow', 'visible', 'important');
-                    node.style.setProperty('max-width', 'none', 'important');
-                    node.style.setProperty('width', 'max-content', 'important');
+                // The final two columns contain reorder and delete controls. They are
+                // useful in the CP, but add no product information to this tight crop.
+                for (const row of table.querySelectorAll('tr')) {
+                    const cells = [...row.children];
+                    for (const cell of cells.slice(-2)) {
+                        if (cell instanceof HTMLElement) {
+                            cell.style.setProperty('display', 'none', 'important');
+                        }
+                    }
                 }
 
-                // Collapse leftover empty pane height under the table.
-                root.style.height = 'auto';
-                root.style.minHeight = '0';
-                root.style.overflow = 'visible';
-                const pane = root.closest('.content-pane, #content');
-                if (pane instanceof HTMLElement) {
-                    pane.style.minHeight = '0';
-                    pane.style.height = 'auto';
-                }
+                // Move the genuine rendered table onto a neutral stage. This avoids the
+                // CP's horizontally offset content panes influencing the locator bounds.
+                document.getElementById('metrix-docs-sources-stage')?.remove();
+                const stage = document.createElement('div');
+                stage.id = 'metrix-docs-sources-stage';
+                stage.style.cssText = [
+                    'position:fixed',
+                    'left:0',
+                    'top:0',
+                    'z-index:2147483640',
+                    'background:#fff',
+                    'overflow:hidden',
+                ].join(';');
+                table.style.setProperty('position', 'static', 'important');
+                table.style.setProperty('margin', '0', 'important');
+                table.style.setProperty('transform', 'none', 'important');
+                stage.appendChild(table);
+                document.body.appendChild(stage);
+
+                const tableBox = table.getBoundingClientRect();
+                const visibleCells = [...table.querySelectorAll('th, td')].filter((cell) => {
+                    const row = cell.closest('tr');
+                    return row instanceof HTMLElement && getComputedStyle(row).display !== 'none' && getComputedStyle(cell).display !== 'none';
+                });
+                const right = Math.max(...visibleCells.map((cell) => cell.getBoundingClientRect().right));
+                stage.style.width = Math.ceil(right - tableBox.left) + 'px';
+                stage.style.height = Math.ceil(tableBox.height) + 'px';
+
+                Array.from(document.body.children).forEach((child) => {
+                    if (child instanceof HTMLElement && child.id !== stage.id) {
+                        child.style.setProperty('display', 'none', 'important');
+                    }
+                });
             })();
         `,
     };
