@@ -24,6 +24,7 @@
 - Require authenticated POST requests and the appropriate permissions when connecting, disconnecting, or managing sources, views, presets, and settings.
 - Require the Views permission to change shared dashboard widget layouts.
 - Require `verbb/auth` `^2.0.48` for secure OAuth callback transactions and reconnect handling when refresh tokens are permanently rejected.
+- Route plugin settings through the plugin’s authorised settings controller.
 - Link source setup screens to their provider guides and expand dashboard setup, provider prerequisites, configuration, and custom extension documentation.
 - Update Plugin Kit and lodash dependencies to their patched releases.
 
