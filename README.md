@@ -1,16 +1,21 @@
 <p align="center"><img src="https://assets.verbb.io/plugins/metrix/metrix-icon.svg" width="100" height="100" alt="Metrix icon"></p>
 <h1 align="center">Metrix for Craft CMS</h1>
 
-Metrix is a Craft CMS plugin for viewing your analytics data from a variety of different sources within the Craft control panel.
+Metrix is a Craft CMS plugin that brings the analytics a team watches into the control panel. Combine sources, arrange purpose-built widgets into permission-aware views and give authors useful context without another dashboard competing for attention.
+
+Create views as collections of counters, charts, realtime panels and tables. A marketing view can focus on acquisition while an editorial view highlights content performance, with permissions deciding who sees each one.
 
 ## Features
 
-- Create widgets for your analytics data in a dedicated dashboard.
-- Create multiple views as collections of widgets. Each can be set to different user permissions.
-- Create presets containing reusable collections of widgets.
-- Combine analytics data from multiple Sources in one View.
-- Filter a view by Craft site, path, or hostname for multi-site installs.
-- Events for adding or extending Source types.
+- Create focused dashboards for different teams and reporting needs, with permissions controlling who can see each one.
+- Present analytics as bars, lines, pies, counters, realtime panels or tables, with optional titles, subtitles and row limits.
+- Place widgets from different analytics services together in the same view.
+- Build widgets and presets with provider-neutral metrics and dimensions such as visitors, page views and referrers.
+- Start with the included reporting presets or save a useful widget collection for another dashboard.
+- Update inherited widget periods from the dashboard and compare line-chart results with the previous period.
+- Focus a view on a Craft site, path prefix or hostname without changing the connected source.
+- See when widget data was refreshed and request updated results when needed.
+- Register another analytics service or extend existing source and widget behaviour through plugin events.
 
 ## Sources
 
