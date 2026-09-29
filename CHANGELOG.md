@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.1.0 - 2026-09-
 
 ### Added
 - Add a dedicated permission for managing Source credentials and connections. Existing non-admin Source managers must be granted this permission to continue managing credentials.
