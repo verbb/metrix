@@ -3,21 +3,7 @@
 ## Unreleased
 
 ### Added
-- Added a dedicated permission for managing Source credentials and connections. Existing non-admin Source managers must be granted this permission to continue managing credentials.
-
-### Changed
-- Require `verbb/auth` `^2.0.48` for secure OAuth callback transactions.
-- Require the Views permission to change shared dashboard widget layouts.
-
-### Fixed
-- Fixed a high-severity information disclosure vulnerability.
-- Fixed OAuth callback transaction validation.
-- Revalidate source-management permission when OAuth callbacks return.
-- Fixed OAuth callback redirects being evaluated as Twig templates.
-
-## 2.1.0 - 2026-09-
-
-### Added
+- Add a dedicated permission for managing Source credentials and connections. Existing non-admin Source managers must be granted this permission to continue managing credentials.
 - Add new sources **Umami**, **GoatCounter**, **Simple Analytics**, and **Pirsch**.
 - Add View **analytics scope** controls to filter widget data by Craft site, path prefix, or hostname.
 - Add a Dashboard-level date range control, inherited widget periods, and previous-period comparison series.
@@ -36,14 +22,17 @@
 - Reduce the Google Analytics OAuth scope to `analytics.readonly`.
 - Use Matomo Reporting API breakdown methods for browser, country, city, and referrer dimensions.
 - Require authenticated POST requests and the appropriate permissions when connecting, disconnecting, or managing sources, views, presets, and settings.
-- Require `verbb/auth` `^2.0.48` for OAuth reconnect handling when refresh tokens are permanently rejected.
+- Require the Views permission to change shared dashboard widget layouts.
+- Require `verbb/auth` `^2.0.48` for secure OAuth callback transactions and reconnect handling when refresh tokens are permanently rejected.
 - Link source setup screens to their provider guides and expand dashboard setup, provider prerequisites, configuration, and custom extension documentation.
 - Update Plugin Kit and lodash dependencies to their patched releases.
 
 ### Fixed
+- Fixed a high-severity information disclosure vulnerability.
 - Fixed a high-severity server-side request forgery and information disclosure vulnerability.
 - Fixed a medium-severity resource exhaustion vulnerability.
 - Fixed information disclosure vulnerabilities.
+- Fixed OAuth callback security and redirect handling.
 - Fix dashboard permissions being unavailable in Craft Team and Enterprise.
 - Fix source status, connection checks, credentials, and provider options retaining stale or invalid state.
 - Fix Google Analytics and other OAuth sources staying connected after a permanently rejected refresh token.
