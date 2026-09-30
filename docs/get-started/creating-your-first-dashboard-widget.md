@@ -18,7 +18,7 @@ The dashboard date range control appears after the first widget is created. To m
 
 The counter shows the number of sessions for the selected range. The source determines what each metric means; sessions count visits and can include repeat visits from the same person.
 
-![Sessions counter with a previous-period comparison](../../screenshots/output/docs/feature-tour/widget-sessions-counter.png)
+![Sessions counter with a previous-period comparison](../../screenshots/widget-sessions-counter.png)
 
 ## Check the Result
 
