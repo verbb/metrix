@@ -146,7 +146,7 @@ class Settings extends Model
         // Ensure that we re-order rows based on saved data.
         $savedOrder = array_column($periodSettings, 'id');
 
-        usort($rows, function ($a, $b) use ($savedOrder) {
+        usort($rows, function($a, $b) use ($savedOrder) {
             $indexA = array_search($a['id'], $savedOrder);
             $indexB = array_search($b['id'], $savedOrder);
 

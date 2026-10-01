@@ -29,7 +29,7 @@ abstract class OAuthSource extends Source implements CredentialSourceInterface, 
     // =========================================================================
 
     use OAuthProviderTrait;
-    
+
 
     // Abstract Methods
     // =========================================================================

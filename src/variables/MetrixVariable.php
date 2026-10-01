@@ -77,5 +77,5 @@ class MetrixVariable
     {
         return Metrix::$plugin->getSources()->getSourceByHandle($handle);
     }
-    
+
 }

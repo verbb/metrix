@@ -67,7 +67,7 @@ class AuthController extends Controller
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
             ]);
-            
+
             Metrix::error($e);
 
             return $this->asFailure(Craft::t('metrix', 'Unable to authorize connect “{source}”.', ['source' => $sourceHandle]));
@@ -86,7 +86,7 @@ class AuthController extends Controller
             'metrix',
             fn(User $user): bool => $user->can('metrix-sources') && $user->can(Metrix::MANAGE_SOURCE_CREDENTIALS_PERMISSION),
         );
-        
+
         // Get both the origin (failure) and redirect (success) URLs
         $origin = Session::get('origin');
         $redirect = Session::get('redirect');

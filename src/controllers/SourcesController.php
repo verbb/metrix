@@ -115,7 +115,7 @@ class SourcesController extends Controller
         if ($sourceId) {
             $oldSource = $sourcesService->getSourceById($sourceId);
             $storedSource = $sourcesService->getStoredSourceById($sourceId);
-            
+
             if (!$oldSource || !$storedSource) {
                 throw new BadRequestHttpException("Invalid source ID: $sourceId");
             }
@@ -181,7 +181,7 @@ class SourcesController extends Controller
         $setting = $this->request->getRequiredBodyParam('setting');
 
         $source = $sourcesService->getSourceByHandle($sourceHandle);
-        
+
         if (!$source) {
             throw new BadRequestHttpException("Invalid source: $sourceHandle");
         }

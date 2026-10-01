@@ -13,7 +13,7 @@ class Table extends Widget
     {
         return true;
     }
-    
+
     public static function getDataType(): string
     {
         return data\DimensionData::class;

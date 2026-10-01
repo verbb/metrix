@@ -102,7 +102,7 @@ class Fathom extends CredentialsSource
                 } while (($response['has_more'] ?? false) && $cursor && $cursor !== $previousCursor);
 
                 // Sort the options alphabetically by label
-                usort($options, function ($a, $b) {
+                usort($options, function($a, $b) {
                     return strcmp($a['label'], $b['label']);
                 });
 

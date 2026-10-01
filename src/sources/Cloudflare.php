@@ -100,7 +100,7 @@ class Cloudflare extends CredentialsSource
                 } while ($more);
 
                 // Sort the options alphabetically by label
-                usort($options, function ($a, $b) {
+                usort($options, function($a, $b) {
                     return strcmp($a['label'], $b['label']);
                 });
 
@@ -193,8 +193,10 @@ class Cloudflare extends CredentialsSource
                 }
 
                 $key = 'total';
+
                 if ($plot) {
                     $date = new DateTime($group['dimensions'][$timeDimension]);
+
                     if ($hourly) {
                         $date->setTimezone(new DateTimeZone(Craft::$app->getTimeZone()));
                     }

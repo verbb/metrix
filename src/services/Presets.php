@@ -173,11 +173,11 @@ class Presets extends Component
 
         if ($isNewPreset) {
             $preset->uid = StringHelper::UUID();
-            
+
             $preset->sortOrder = (new Query())
                     ->from(['{{%metrix_presets}}'])
                     ->max('[[sortOrder]]') + 1;
-        } else if (!$preset->uid) {
+        } elseif (!$preset->uid) {
             $preset->uid = Db::uidById('{{%metrix_presets}}', $preset->id);
         }
 
@@ -198,6 +198,7 @@ class Presets extends Component
         $data = $event->newValue;
 
         $transaction = Craft::$app->getDb()->beginTransaction();
+
         try {
             // Older deleted rows still reserve unique names and handles.
             $trashed = PresetRecord::findWithTrashed()

@@ -30,7 +30,7 @@ class PlotData extends WidgetData
         }
 
         // Sort rows just in case
-        usort($rows, function ($a, $b) {
+        usort($rows, function($a, $b) {
             return strcmp($a[0], $b[0]);
         });
 
