@@ -3,17 +3,20 @@
 {% import 'metrix/_macros' as customForms %}
 
 {% include 'metrix/sources/_provider-guide' %}
+{% include 'metrix/sources/_credentials' %}
 
-{{ macros.proxyField(fieldVariables, 'autosuggestField', {
-    label: 'API Key' | t('metrix'),
-    instructions: 'Enter your {name} {label} here.' | t('metrix'),
-    name: 'apiKey',
-    required: true,
-    suggestEnvVars: true,
-    value: source.apiKey,
-    warning: macros.configWarning('apiKey', 'metrix'),
-    errors: source.getErrors('apiKey'),
-}) }}
+{% if canManageSourceCredentials %}
+    {{ macros.proxyField(fieldVariables, 'autosuggestField', {
+        label: 'API Key' | t('metrix'),
+        instructions: 'Enter your {name} {label} here.' | t('metrix'),
+        name: 'apiKey',
+        required: true,
+        suggestEnvVars: true,
+        value: source.apiKey,
+        warning: macros.configWarning('apiKey', 'metrix'),
+        errors: source.getErrors('apiKey'),
+    }) }}
+{% endif %}
 
 {{ customForms.providerSettingsField(source, {
     label: '{name} Site ID' | t('metrix', { name: source.providerName }),

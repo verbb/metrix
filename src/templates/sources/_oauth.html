@@ -12,24 +12,28 @@
     value: source.getRedirectUri(),
 }) }}
 
-{{ forms.autosuggestField({
-    label: 'Client ID' | t('metrix'),
-    instructions: 'Enter your {name} Client ID key here.' | t('metrix', { name: name }),
-    name: 'clientId',
-    required: true,
-    suggestEnvVars: true,
-    value: source.clientId ?? '',
-    warning: macros.configWarning("sources.#{source.handle}.clientId", 'metrix'),
-    errors: source.getErrors('clientId'),
-}) }}
+{% if canManageSourceCredentials %}
+    {{ forms.autosuggestField({
+        label: 'Client ID' | t('metrix'),
+        instructions: 'Enter your {name} Client ID key here.' | t('metrix', { name: name }),
+        name: 'clientId',
+        required: true,
+        suggestEnvVars: true,
+        value: source.clientId ?? '',
+        warning: macros.configWarning("sources.#{source.handle}.clientId", 'metrix'),
+        errors: source.getErrors('clientId'),
+    }) }}
 
-{{ forms.autosuggestField({
-    label: 'Client Secret' | t('metrix'),
-    instructions: 'Enter your {name} Client Secret here.' | t('metrix', { name: name }),
-    name: 'clientSecret',
-    required: true,
-    suggestEnvVars: true,
-    value: source.clientSecret ?? '',
-    warning: macros.configWarning("sources.#{source.handle}.clientSecret", 'metrix'),
-    errors: source.getErrors('clientSecret'),
-}) }}
+    {{ forms.autosuggestField({
+        label: 'Client Secret' | t('metrix'),
+        instructions: 'Enter your {name} Client Secret here.' | t('metrix', { name: name }),
+        name: 'clientSecret',
+        required: true,
+        suggestEnvVars: true,
+        value: source.clientSecret ?? '',
+        warning: macros.configWarning("sources.#{source.handle}.clientSecret", 'metrix'),
+        errors: source.getErrors('clientSecret'),
+    }) }}
+{% else %}
+    {% include 'metrix/sources/_credentials' %}
+{% endif %}

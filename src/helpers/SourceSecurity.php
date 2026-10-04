@@ -4,6 +4,7 @@ namespace verbb\metrix\helpers;
 use verbb\metrix\base\CredentialSourceInterface;
 use verbb\metrix\base\CredentialsSource;
 use verbb\metrix\base\SourceInterface;
+use verbb\metrix\Metrix;
 
 use Craft;
 
@@ -11,6 +12,71 @@ class SourceSecurity
 {
     // Static Methods
     // =========================================================================
+
+    /**
+     * Build provider-template variables without exposing protected settings to
+     * users who can edit a source but cannot manage its credentials.
+     */
+    public static function settingsTemplateVariables(SourceInterface $source): array
+    {
+        $canManageSourceCredentials = Craft::$app->getUser()->checkPermission(Metrix::MANAGE_SOURCE_CREDENTIALS_PERMISSION);
+
+        return [
+            'source' => $canManageSourceCredentials ? $source : self::redactedSource($source),
+            'canManageSourceCredentials' => $canManageSourceCredentials,
+        ];
+    }
+
+    /**
+     * Return a detached source model with credentials and indirect configuration
+     * references replaced by neutral values.
+     */
+    public static function redactedSource(SourceInterface $source): SourceInterface
+    {
+        $redacted = clone $source;
+        $settings = $source->getSettings();
+
+        foreach (self::_protectedAttributes($source) as $attribute) {
+            if (array_key_exists($attribute, $settings)) {
+                $redacted->{$attribute} = self::_redactedValue($settings[$attribute]);
+            }
+        }
+
+        if (isset($redacted->cache['_settingsKey'])) {
+            $redacted->cache['_settingsKey'] = $redacted->getCacheKey();
+        }
+
+        return $redacted;
+    }
+
+    /**
+     * Restore protected values omitted by the redacted delegated-manager form.
+     * Explicit non-empty changes remain in place so validation still rejects them.
+     */
+    public static function prepareDelegatedSource(SourceInterface $source, SourceInterface $original): SourceInterface
+    {
+        if (get_class($source) !== get_class($original)) {
+            return $source;
+        }
+
+        $prepared = clone $source;
+        $settings = $source->getSettings();
+        $originalSettings = $original->getSettings();
+
+        foreach (self::_protectedAttributes($original) as $attribute) {
+            $value = $settings[$attribute] ?? null;
+
+            if (array_key_exists($attribute, $settings) && !self::_isEmptySubmission($value)) {
+                continue;
+            }
+
+            if (array_key_exists($attribute, $originalSettings)) {
+                $prepared->{$attribute} = $originalSettings[$attribute];
+            }
+        }
+
+        return $prepared;
+    }
 
     /**
      * Keep credentials and indirect configuration references behind the dedicated
@@ -46,10 +112,10 @@ class SourceSecurity
             }
         }
 
-        if ($source instanceof CredentialsSource && self::_containsReference($settings)) {
+        if ($original && $source instanceof CredentialsSource) {
             foreach ($source->getEndpointAttributes() as $attribute) {
                 if (($settings[$attribute] ?? null) !== ($originalSettings[$attribute] ?? null)) {
-                    $source->addError($attribute, Craft::t('metrix', 'You do not have permission to change a provider URL while this source uses environment-backed settings.'));
+                    $source->addError($attribute, Craft::t('metrix', 'You do not have permission to change where source credentials are sent.'));
                     $valid = false;
                 }
             }
@@ -66,8 +132,12 @@ class SourceSecurity
     {
         $settings = $source->getSettings();
         $storedSettings = $storedSource->getSettings();
+        $protectedAttributes = array_unique(array_merge(
+            self::_protectedAttributes($source),
+            self::_protectedAttributes($storedSource),
+        ));
 
-        foreach (self::_protectedAttributes($storedSource) as $attribute) {
+        foreach ($protectedAttributes as $attribute) {
             if (array_key_exists($attribute, $storedSettings)) {
                 $settings[$attribute] = $storedSettings[$attribute];
             } else {
@@ -78,9 +148,47 @@ class SourceSecurity
         return $settings;
     }
 
+    /**
+     * Whether handle-keyed configuration changes any protected effective value.
+     */
+    public static function hasProtectedConfigurationOverrides(SourceInterface $source, SourceInterface $storedSource): bool
+    {
+        $settings = $source->getSettings();
+        $storedSettings = $storedSource->getSettings();
+        $protectedAttributes = array_unique(array_merge(
+            self::_protectedAttributes($source),
+            self::_protectedAttributes($storedSource),
+        ));
+
+        foreach ($protectedAttributes as $attribute) {
+            if (self::_valuesDiffer($settings[$attribute] ?? null, $storedSettings[$attribute] ?? null)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 
     // Private Methods
     // =========================================================================
+
+    private static function _redactedValue(mixed $value): mixed
+    {
+        return match (true) {
+            is_string($value) => '',
+            is_array($value) => [],
+            is_bool($value) => false,
+            is_int($value) => 0,
+            is_float($value) => 0.0,
+            default => null,
+        };
+    }
+
+    private static function _isEmptySubmission(mixed $value): bool
+    {
+        return $value === null || $value === '' || $value === [];
+    }
 
     private static function _protectedAttributes(SourceInterface $source): array
     {
@@ -93,7 +201,7 @@ class SourceSecurity
             }
         }
 
-        if ($source instanceof CredentialsSource && self::_containsReference($settings)) {
+        if ($source instanceof CredentialsSource) {
             $attributes = array_merge($attributes, $source->getEndpointAttributes());
         }
 

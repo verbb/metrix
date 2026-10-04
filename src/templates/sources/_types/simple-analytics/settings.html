@@ -3,6 +3,7 @@
 {% import 'metrix/_macros' as customForms %}
 
 {% include 'metrix/sources/_provider-guide' %}
+{% include 'metrix/sources/_credentials' %}
 
 {{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Hostname' | t('metrix'),
@@ -15,15 +16,17 @@
     errors: source.getErrors('hostname'),
 }) }}
 
-{{ macros.proxyField(fieldVariables, 'autosuggestField', {
-    label: 'API Key' | t('metrix'),
-    instructions: 'Required for private websites. Public websites can leave this blank.' | t('metrix'),
-    name: 'apiKey',
-    suggestEnvVars: true,
-    value: source.apiKey,
-    warning: macros.configWarning('apiKey', 'metrix'),
-    errors: source.getErrors('apiKey'),
-}) }}
+{% if canManageSourceCredentials %}
+    {{ macros.proxyField(fieldVariables, 'autosuggestField', {
+        label: 'API Key' | t('metrix'),
+        instructions: 'Required for private websites. Public websites can leave this blank.' | t('metrix'),
+        name: 'apiKey',
+        suggestEnvVars: true,
+        value: source.apiKey,
+        warning: macros.configWarning('apiKey', 'metrix'),
+        errors: source.getErrors('apiKey'),
+    }) }}
+{% endif %}
 
 {{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Timezone' | t('metrix'),

@@ -93,11 +93,21 @@ class SourcesController extends Controller
             Plugin::registerSourcesAssets();
         }
 
+        $canManageSourceCredentials = Craft::$app->getUser()->checkPermission(Metrix::MANAGE_SOURCE_CREDENTIALS_PERMISSION);
+        $settingsSource = $canManageSourceCredentials ? $source : SourceSecurity::redactedSource($source);
+        $settingsSourceInstances = array_map(
+            static fn(SourceInterface $sourceInstance): SourceInterface => $canManageSourceCredentials
+                ? $sourceInstance
+                : SourceSecurity::redactedSource($sourceInstance),
+            $sourceInstances,
+        );
+
         return $this->renderTemplate('metrix/sources/_edit', [
             'title' => $title,
             'source' => $source,
             'sourceOptions' => $sourceOptions,
-            'sourceInstances' => $sourceInstances,
+            'settingsSource' => $settingsSource,
+            'settingsSourceInstances' => $settingsSourceInstances,
             'sourceTypes' => $allSourceTypes,
         ]);
     }
@@ -130,21 +140,52 @@ class SourcesController extends Controller
             'settings' => $this->request->getParam("types.$type"),
         ]);
 
-        if (!$this->_validateDelegatedSourceChange($source, $oldSource)) {
-            return $this->asModelFailure($source, Craft::t('metrix', 'Couldn’t save source.'), 'source');
+        $canManageSourceCredentials = Craft::$app->getUser()->checkPermission(Metrix::MANAGE_SOURCE_CREDENTIALS_PERMISSION);
+        $responseSource = $canManageSourceCredentials ? $source : SourceSecurity::redactedSource($source);
+        $sourceToSave = $source;
+
+        if ($oldSource && !$canManageSourceCredentials) {
+            $sourceToSave = SourceSecurity::prepareDelegatedSource($source, $oldSource);
+        }
+
+        $validDelegatedChange = $this->_validateDelegatedSourceChange($sourceToSave, $oldSource);
+
+        if (
+            $oldSource
+            && $storedSource
+            && !$canManageSourceCredentials
+            && $sourceToSave->handle !== $oldSource->handle
+            && SourceSecurity::hasProtectedConfigurationOverrides($oldSource, $storedSource)
+        ) {
+            $sourceToSave->addError('handle', Craft::t('metrix', 'You do not have permission to rename a source with protected configuration overrides.'));
+            $validDelegatedChange = false;
+        }
+
+        if (!$validDelegatedChange) {
+            if ($responseSource !== $sourceToSave) {
+                $responseSource->addErrors($sourceToSave->getErrors());
+            }
+
+            return $this->asModelFailure($responseSource, Craft::t('metrix', 'Couldn’t save source.'), 'source');
         }
 
         $settingsForPersistence = null;
 
-        if ($storedSource && !Craft::$app->getUser()->checkPermission(Metrix::MANAGE_SOURCE_CREDENTIALS_PERMISSION)) {
-            $settingsForPersistence = SourceSecurity::settingsForPersistence($source, $storedSource);
+        if ($storedSource && !$canManageSourceCredentials) {
+            $settingsForPersistence = SourceSecurity::settingsForPersistence($sourceToSave, $storedSource);
         }
 
-        if (!$sourcesService->saveSource($source, true, $settingsForPersistence)) {
-            return $this->asModelFailure($source, Craft::t('metrix', 'Couldn’t save source.'), 'source');
+        if (!$sourcesService->saveSource($sourceToSave, true, $settingsForPersistence)) {
+            if ($responseSource !== $sourceToSave) {
+                $responseSource->addErrors($sourceToSave->getErrors());
+            }
+
+            return $this->asModelFailure($responseSource, Craft::t('metrix', 'Couldn’t save source.'), 'source');
         }
 
-        return $this->asModelSuccess($source, Craft::t('metrix', 'Source saved.'), 'source');
+        $responseSource->id = $sourceToSave->id;
+
+        return $this->asModelSuccess($responseSource, Craft::t('metrix', 'Source saved.'), 'source');
     }
 
     public function actionReorder(): Response
@@ -196,6 +237,10 @@ class SourcesController extends Controller
         // A refresh may overlay only provider settings; base model state and
         // config-owned values are not transient request inputs.
         $source->setAttributes(array_intersect_key($sourceData, $allowedAttributes), false);
+
+        if (!Craft::$app->getUser()->checkPermission(Metrix::MANAGE_SOURCE_CREDENTIALS_PERMISSION)) {
+            $source = SourceSecurity::prepareDelegatedSource($source, $originalSource);
+        }
 
         if (!$this->_validateDelegatedSourceChange($source, $originalSource)) {
             return $this->asJson([

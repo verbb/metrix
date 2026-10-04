@@ -300,6 +300,94 @@ describe('Provider URL security', function() {
 });
 
 describe('Delegated Source settings', function() {
+    it('redacts credentials from every built-in provider settings form', function(string $sourceClass, array $credentials) {
+        NonAdminUser::loginWithPermissions(['metrix-sources']);
+        $settings = [
+            'name' => 'Restricted credential fixture',
+            'handle' => 'restrictedCredentialFixture',
+            'enabled' => false,
+        ];
+
+        foreach ($credentials as $attribute) {
+            $settings[$attribute] = "credential-marker-$attribute";
+        }
+
+        $source = new $sourceClass($settings);
+        $settingsHtml = $source->getSettingsHtml();
+
+        foreach ($credentials as $attribute) {
+            expect($settingsHtml)->not->toContain("credential-marker-$attribute");
+        }
+    })->with([
+        Cloudflare::class => [Cloudflare::class, ['apiToken']],
+        Fathom::class => [Fathom::class, ['apiKey']],
+        GoatCounter::class => [GoatCounter::class, ['apiKey']],
+        GoogleAnalytics::class => [GoogleAnalytics::class, ['clientId', 'clientSecret']],
+        Matomo::class => [Matomo::class, ['apiToken']],
+        MixPanel::class => [MixPanel::class, ['username', 'password']],
+        Pirsch::class => [Pirsch::class, ['clientId', 'clientSecret']],
+        Plausible::class => [Plausible::class, ['apiKey']],
+        SimpleAnalytics::class => [SimpleAnalytics::class, ['apiKey']],
+        Umami::class => [Umami::class, ['apiKey', 'username', 'password']],
+    ]);
+
+    it('still renders credential values for credential managers', function() {
+        NonAdminUser::loginWithPermissions(['metrix-sources', Metrix::MANAGE_SOURCE_CREDENTIALS_PERMISSION]);
+        $source = new Fathom([
+            'name' => 'Credential manager fixture',
+            'handle' => 'credentialManagerFixture',
+            'apiKey' => 'credential-manager-marker',
+        ]);
+
+        expect($source->getSettingsHtml())->toContain('credential-manager-marker');
+    });
+
+    it('keeps literal ordinary settings editable for delegated source managers', function() {
+        NonAdminUser::loginWithPermissions(['metrix-sources']);
+        $source = new Fathom([
+            'name' => 'Ordinary setting fixture',
+            'handle' => 'ordinarySettingFixture',
+            'apiKey' => 'hidden-key-marker',
+            'siteId' => 'editable-site-marker',
+        ]);
+        $settingsHtml = $source->getSettingsHtml();
+
+        expect($settingsHtml)->toContain('editable-site-marker')
+            ->and($settingsHtml)->not->toContain('hidden-key-marker');
+    });
+
+    it('redacts reference-backed ordinary settings from delegated source managers', function() {
+        NonAdminUser::loginWithPermissions(['metrix-sources']);
+        $source = new Matomo([
+            'name' => 'Protected reference fixture',
+            'handle' => 'protectedReferenceFixture',
+            'apiUrl' => '$METRIX_MATOMO_URL',
+            'apiToken' => 'hidden-token-marker',
+            'siteId' => 'editable-site-marker',
+        ]);
+        $settingsHtml = $source->getSettingsHtml();
+
+        expect($settingsHtml)->toContain('editable-site-marker')
+            ->and($settingsHtml)->not->toContain('$METRIX_MATOMO_URL')
+            ->and($settingsHtml)->not->toContain('hidden-token-marker');
+    });
+
+    it('restores protected values omitted by delegated forms', function() {
+        $original = new Fathom([
+            'apiKey' => 'preserved-key-marker',
+            'siteId' => 'original-site',
+        ]);
+        $submitted = new Fathom([
+            'apiKey' => null,
+            'siteId' => 'updated-site',
+        ]);
+        $prepared = SourceSecurity::prepareDelegatedSource($submitted, $original);
+
+        expect($prepared->apiKey)->toBe('preserved-key-marker')
+            ->and($prepared->siteId)->toBe('updated-site')
+            ->and(SourceSecurity::validateDelegatedChange($prepared, $original))->toBeTrue();
+    });
+
     it('classifies the credential fields for every built-in credential provider', function(string $sourceClass, array $expected) {
         $source = (new ReflectionClass($sourceClass))->newInstanceWithoutConstructor();
 
@@ -367,10 +455,10 @@ describe('Delegated Source settings', function() {
         ]);
     });
 
-    it('rejects destination changes while an environment-backed secret remains attached', function() {
+    it('rejects credential destination changes for delegated managers', function(string $apiToken) {
         $original = new Matomo([
             'apiUrl' => 'https://analytics.example.test',
-            'apiToken' => '$MATOMO_TOKEN',
+            'apiToken' => $apiToken,
             'siteId' => '1',
         ]);
         $changed = clone $original;
@@ -378,6 +466,38 @@ describe('Delegated Source settings', function() {
 
         expect(SourceSecurity::validateDelegatedChange($changed, $original))->toBeFalse()
             ->and($changed->getErrors('apiUrl'))->not->toBeEmpty();
+    })->with(['literal-token', '$MATOMO_TOKEN']);
+
+    it('preserves settings protected only by effective config overrides', function() {
+        $stored = new Matomo([
+            'apiUrl' => 'https://stored.example.test',
+            'apiToken' => 'stored-token',
+            'siteId' => 'stored-site',
+        ]);
+        $effective = new Matomo([
+            'apiUrl' => 'https://configured.example.test',
+            'apiToken' => 'configured-token',
+            'siteId' => '$MATOMO_SITE_ID',
+        ]);
+
+        expect(SourceSecurity::settingsForPersistence($effective, $stored))->toMatchArray([
+            'apiUrl' => 'https://stored.example.test',
+            'apiToken' => 'stored-token',
+            'siteId' => 'stored-site',
+        ]);
+    });
+
+    it('detects protected configuration overrides that make delegated renames unsafe', function() {
+        $stored = new Fathom([
+            'apiKey' => 'stored-key',
+            'siteId' => 'stored-site',
+        ]);
+        $effective = new Fathom([
+            'apiKey' => 'configured-key',
+            'siteId' => 'stored-site',
+        ]);
+
+        expect(SourceSecurity::hasProtectedConfigurationOverrides($effective, $stored))->toBeTrue();
     });
 
     it('rejects OAuth credential changes for ordinary source managers', function(string $value) {

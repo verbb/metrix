@@ -3,17 +3,20 @@
 {% import 'metrix/_macros' as customForms %}
 
 {% include 'metrix/sources/_provider-guide' %}
+{% include 'metrix/sources/_credentials' %}
 
-{{ macros.proxyField(fieldVariables, 'autosuggestField', {
-    label: 'API Key' | t('metrix'),
-    instructions: 'Enter your {name} {label} here.' | t('metrix'),
-    name: 'apiKey',
-    required: true,
-    suggestEnvVars: true,
-    value: source.apiKey,
-    warning: macros.configWarning('apiKey', 'metrix'),
-    errors: source.getErrors('apiKey'),
-}) }}
+{% if canManageSourceCredentials %}
+    {{ macros.proxyField(fieldVariables, 'autosuggestField', {
+        label: 'API Key' | t('metrix'),
+        instructions: 'Enter your {name} {label} here.' | t('metrix'),
+        name: 'apiKey',
+        required: true,
+        suggestEnvVars: true,
+        value: source.apiKey,
+        warning: macros.configWarning('apiKey', 'metrix'),
+        errors: source.getErrors('apiKey'),
+    }) }}
+{% endif %}
 
 {{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Site ID' | t('metrix'),
@@ -26,13 +29,15 @@
     errors: source.getErrors('siteId'),
 }) }}
 
-{{ macros.proxyField(fieldVariables, 'autosuggestField', {
-    label: 'Base URL' | t('metrix'),
-    instructions: 'Enter your {name} {label} here. Only change this when using self-hosted setups.' | t('metrix'),
-    name: 'baseUrl',
-    required: true,
-    suggestEnvVars: true,
-    value: source.baseUrl,
-    warning: macros.configWarning('baseUrl', 'metrix'),
-    errors: source.getErrors('baseUrl'),
-}) }}
+{% if canManageSourceCredentials %}
+    {{ macros.proxyField(fieldVariables, 'autosuggestField', {
+        label: 'Base URL' | t('metrix'),
+        instructions: 'Enter your {name} {label} here. Only change this when using self-hosted setups.' | t('metrix'),
+        name: 'baseUrl',
+        required: true,
+        suggestEnvVars: true,
+        value: source.baseUrl,
+        warning: macros.configWarning('baseUrl', 'metrix'),
+        errors: source.getErrors('baseUrl'),
+    }) }}
+{% endif %}

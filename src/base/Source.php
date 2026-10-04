@@ -24,6 +24,7 @@ use GuzzleHttp\Exception\RequestException;
 use verbb\auth\Auth;
 use verbb\auth\exceptions\OAuthTokenRefreshException;
 use verbb\auth\helpers\Provider as ProviderHelper;
+use verbb\metrix\helpers\SourceSecurity;
 
 abstract class Source extends SavableComponent implements SourceInterface
 {
@@ -286,13 +287,15 @@ abstract class Source extends SavableComponent implements SourceInterface
     {
         $handle = StringHelper::toKebabCase(static::$providerHandle);
 
-        return Craft::$app->getView()->renderTemplate('metrix/sources/_types/' . $handle . '/settings', [
-            'source' => $this,
-            'fieldVariables' => [
-                'plugin' => 'metrix',
-                'name' => $this::displayName(),
-            ],
-        ]);
+        return Craft::$app->getView()->renderTemplate(
+            'metrix/sources/_types/' . $handle . '/settings',
+            array_merge(SourceSecurity::settingsTemplateVariables($this), [
+                'fieldVariables' => [
+                    'plugin' => 'metrix',
+                    'name' => $this::displayName(),
+                ],
+            ]),
+        );
     }
 
     public function getSourceSettings(string $settingsKey, bool $useCache = true): ?array

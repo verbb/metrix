@@ -3,28 +3,31 @@
 {% import 'metrix/_macros' as customForms %}
 
 {% include 'metrix/sources/_provider-guide' %}
+{% include 'metrix/sources/_credentials' %}
 
-{{ macros.proxyField(fieldVariables, 'autosuggestField', {
-    label: 'API URL' | t('metrix'),
-    instructions: 'Enter your {name} {label} here.' | t('metrix'),
-    name: 'apiUrl',
-    required: true,
-    suggestEnvVars: true,
-    value: source.apiUrl,
-    warning: macros.configWarning('apiUrl', 'metrix'),
-    errors: source.getErrors('apiUrl'),
-}) }}
+{% if canManageSourceCredentials %}
+    {{ macros.proxyField(fieldVariables, 'autosuggestField', {
+        label: 'API URL' | t('metrix'),
+        instructions: 'Enter your {name} {label} here.' | t('metrix'),
+        name: 'apiUrl',
+        required: true,
+        suggestEnvVars: true,
+        value: source.apiUrl,
+        warning: macros.configWarning('apiUrl', 'metrix'),
+        errors: source.getErrors('apiUrl'),
+    }) }}
 
-{{ macros.proxyField(fieldVariables, 'autosuggestField', {
-    label: 'API Token' | t('metrix'),
-    instructions: 'Enter your {name} {label} here.' | t('metrix'),
-    name: 'apiToken',
-    required: true,
-    suggestEnvVars: true,
-    value: source.apiToken,
-    warning: macros.configWarning('apiToken', 'metrix'),
-    errors: source.getErrors('apiToken'),
-}) }}
+    {{ macros.proxyField(fieldVariables, 'autosuggestField', {
+        label: 'API Token' | t('metrix'),
+        instructions: 'Enter your {name} {label} here.' | t('metrix'),
+        name: 'apiToken',
+        required: true,
+        suggestEnvVars: true,
+        value: source.apiToken,
+        warning: macros.configWarning('apiToken', 'metrix'),
+        errors: source.getErrors('apiToken'),
+    }) }}
+{% endif %}
 
 {{ customForms.providerSettingsField(source, {
     label: '{name} Site ID' | t('metrix', { name: source.providerName }),

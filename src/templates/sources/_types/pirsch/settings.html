@@ -3,28 +3,31 @@
 {% import 'metrix/_macros' as customForms %}
 
 {% include 'metrix/sources/_provider-guide' %}
+{% include 'metrix/sources/_credentials' %}
 
-{{ macros.proxyField(fieldVariables, 'autosuggestField', {
-    label: 'Client ID' | t('metrix'),
-    instructions: 'Enter your {name} OAuth client ID here.' | t('metrix'),
-    name: 'clientId',
-    required: true,
-    suggestEnvVars: true,
-    value: source.clientId,
-    warning: macros.configWarning('clientId', 'metrix'),
-    errors: source.getErrors('clientId'),
-}) }}
+{% if canManageSourceCredentials %}
+    {{ macros.proxyField(fieldVariables, 'autosuggestField', {
+        label: 'Client ID' | t('metrix'),
+        instructions: 'Enter your {name} OAuth client ID here.' | t('metrix'),
+        name: 'clientId',
+        required: true,
+        suggestEnvVars: true,
+        value: source.clientId,
+        warning: macros.configWarning('clientId', 'metrix'),
+        errors: source.getErrors('clientId'),
+    }) }}
 
-{{ macros.proxyField(fieldVariables, 'autosuggestField', {
-    label: 'Client Secret' | t('metrix'),
-    instructions: 'Enter your {name} OAuth client secret here.' | t('metrix'),
-    name: 'clientSecret',
-    required: true,
-    suggestEnvVars: true,
-    value: source.clientSecret,
-    warning: macros.configWarning('clientSecret', 'metrix'),
-    errors: source.getErrors('clientSecret'),
-}) }}
+    {{ macros.proxyField(fieldVariables, 'autosuggestField', {
+        label: 'Client Secret' | t('metrix'),
+        instructions: 'Enter your {name} OAuth client secret here.' | t('metrix'),
+        name: 'clientSecret',
+        required: true,
+        suggestEnvVars: true,
+        value: source.clientSecret,
+        warning: macros.configWarning('clientSecret', 'metrix'),
+        errors: source.getErrors('clientSecret'),
+    }) }}
+{% endif %}
 
 {{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Domain ID' | t('metrix'),

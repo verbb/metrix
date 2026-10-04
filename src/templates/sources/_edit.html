@@ -79,9 +79,9 @@
         <div class="source-settings-{{ sourceType | id }} {% if not isCurrent %}hidden{% endif %}">
             {% namespace 'types[' ~ sourceType ~ ']' %}
                 {% if isCurrent %}
-                    {{ source.getSettingsHtml() | raw }}
+                    {{ settingsSource.getSettingsHtml() | raw }}
                 {% else %}
-                    {{ sourceInstances[sourceType].getSettingsHtml() | raw }}
+                    {{ settingsSourceInstances[sourceType].getSettingsHtml() | raw }}
                 {% endif %}
             {% endnamespace %}
         </div>
