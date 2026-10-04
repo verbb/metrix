@@ -4,6 +4,7 @@
 
 ### Fixed
 - Fixed a high-severity information disclosure vulnerability.
+- Fixed a medium-severity server-side request forgery vulnerability.
 
 ## 2.1.2 - 2026-10-02
 

@@ -9,8 +9,10 @@ use verbb\metrix\widgets\data\PlotData;
 use Craft;
 use craft\helpers\App;
 
-use Throwable;
+use yii\base\InvalidConfigException;
+
 use Exception;
+use Throwable;
 
 use GuzzleHttp\Client;
 
@@ -43,6 +45,11 @@ class SimpleAnalytics extends CredentialsSource
         $rules = parent::defineRules();
 
         $rules[] = [['hostname'], 'required', 'when' => fn($model) => $model->enabled];
+        $rules[] = [['hostname'], function($attribute) {
+            if (!$this->_isValidHostname($this->getHostname())) {
+                $this->addError($attribute, Craft::t('metrix', 'Enter a valid hostname without a scheme, path, or port.'));
+            }
+        }, 'skipOnEmpty' => true];
 
         return $rules;
     }
@@ -250,7 +257,13 @@ class SimpleAnalytics extends CredentialsSource
     {
         $hostname = $this->getHostname();
 
-        $response = $this->request('GET', $hostname . '.json', [
+        if (!$this->_isValidHostname($hostname)) {
+            throw new InvalidConfigException(Craft::t('metrix', 'Simple Analytics requires a valid hostname.'));
+        }
+
+        // Keep the configured website identifier as data beneath the fixed
+        // Simple Analytics origin rather than allowing URI resolution.
+        $response = $this->request('GET', '/' . rawurlencode($hostname) . '.json', [
             'query' => array_merge([
                 'version' => 6,
                 'timezone' => $this->getTimezone(),
@@ -262,6 +275,12 @@ class SimpleAnalytics extends CredentialsSource
         }
 
         return $response;
+    }
+
+    private function _isValidHostname(?string $hostname): bool
+    {
+        return $hostname !== null
+            && filter_var($hostname, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME) !== false;
     }
 
     private function _getBaseQuery(WidgetDataInterface $widgetData, array $extra = []): array
