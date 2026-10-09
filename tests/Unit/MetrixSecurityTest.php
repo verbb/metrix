@@ -6,6 +6,7 @@ use Tests\Support\AdminUser;
 use Tests\Support\CpRequestContext;
 use Tests\Support\NonAdminUser;
 use Tests\Support\ProviderHttp;
+use craft\helpers\App;
 use verbb\metrix\base\CredentialsSource;
 use verbb\metrix\Metrix;
 use verbb\metrix\controllers\AuthController;
@@ -411,6 +412,33 @@ describe('Delegated Source settings', function() {
         expect(SourceSecurity::validateDelegatedChange($source))->toBeFalse()
             ->and($source->getErrors('apiKey'))->not->toBeEmpty();
     })->with(['$METRIX_KEY', '${METRIX_KEY}', 'prefix/${METRIX_KEY}', '@secretAlias']);
+
+    it('matches the installed Craft environment reference parser for ordinary settings', function(string $value) {
+        putenv('METRIX_REFERENCE_TEST=resolved');
+
+        try {
+            $source = new GoatCounter(['siteUrl' => $value]);
+            $parsedAsReference = App::parseEnv($value) !== $value;
+
+            expect(SourceSecurity::validateDelegatedChange($source))->toBe(!$parsedAsReference);
+
+            if ($parsedAsReference) {
+                expect($source->getErrors('siteUrl'))->not->toBeEmpty();
+            }
+        } finally {
+            putenv('METRIX_REFERENCE_TEST');
+        }
+    })->with([
+        '$METRIX_REFERENCE_TEST.suffix',
+        'https://$METRIX_REFERENCE_TEST.suffix',
+        'https://analytics.example.test/pricing-$METRIX_REFERENCE_TEST.suffix',
+    ]);
+
+    it('allows delegated creation with a literal public endpoint and blank credentials', function() {
+        $source = new GoatCounter(['siteUrl' => 'https://analytics.example.test']);
+
+        expect(SourceSecurity::validateDelegatedChange($source))->toBeTrue();
+    });
 
     it('allows ordinary settings changes while preserving administrator-owned references', function() {
         $original = new Matomo([

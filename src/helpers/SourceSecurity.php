@@ -7,6 +7,7 @@ use verbb\metrix\base\SourceInterface;
 use verbb\metrix\Metrix;
 
 use Craft;
+use craft\helpers\App;
 
 class SourceSecurity
 {
@@ -236,6 +237,7 @@ class SourceSecurity
         return str_starts_with($value, '@')
             || preg_match('/^\$\w+$/', $value) === 1
             || preg_match('/\$\{\w+}/', $value) === 1
-            || preg_match('/(?<=^|\/)\$\w+(?=$|\/)/', $value) === 1;
+            || preg_match('/(?<=^|\/)\$\w+(?=$|\/)/', $value) === 1
+            || (preg_match('/\$(?:\{\w+}|\w+)/', $value) === 1 && App::parseEnv($value) !== $value);
     }
 }
