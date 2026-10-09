@@ -328,7 +328,11 @@ abstract class Source extends SavableComponent implements SourceInterface
             }
         });
 
-        return hash('sha256', Json::encode([static::class, $settings]));
+        return hash_hmac(
+            'sha256',
+            Json::encode([static::class, $settings]),
+            (string)Craft::$app->getConfig()->getGeneral()->securityKey,
+        );
     }
 
     public function getCapabilities(): array

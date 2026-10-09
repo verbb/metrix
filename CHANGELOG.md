@@ -4,6 +4,7 @@
 
 ### Fixed
 - Fixed provider settings being able to override a source's stored identity.
+- Improved the security of stored source cache fingerprints.
 
 ## 2.1.4 - 2026-10-07
 

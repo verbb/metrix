@@ -5,6 +5,9 @@ declare(strict_types=1);
 use verbb\metrix\Metrix;
 use verbb\metrix\sources;
 
+use craft\helpers\App;
+use craft\helpers\Json;
+
 it('requires resolved credentials before a source is configured', function(string $class, array $settings, string $credential) {
     $source = new $class($settings);
     expect($source->isConfigured())->toBeTrue();
@@ -49,4 +52,28 @@ it('excludes a persisted source whose environment credential becomes empty', fun
         Metrix::$plugin->set('sources', $previousSources);
         putenv('METRIX_AUDIT_SOURCE_KEY');
     }
+});
+
+it('keys persisted source setting fingerprints with the Craft security key', function() {
+    $source = new sources\Plausible([
+        'apiKey' => 'low-entropy-test-secret',
+        'siteId' => 'example.test',
+    ]);
+    $settings = $source->getSettings();
+    array_walk_recursive($settings, static function(&$value) {
+        if (is_string($value)) {
+            $value = App::parseEnv($value);
+        }
+    });
+    $payload = Json::encode([sources\Plausible::class, $settings]);
+    $plainFingerprint = hash('sha256', $payload);
+    $keyedFingerprint = hash_hmac(
+        'sha256',
+        $payload,
+        (string)Craft::$app->getConfig()->getGeneral()->securityKey,
+    );
+
+    expect($source->getCacheKey())
+        ->toBe($keyedFingerprint)
+        ->not->toBe($plainFingerprint);
 });
