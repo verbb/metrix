@@ -140,6 +140,9 @@ class SourcesController extends Controller
             'settings' => $this->request->getParam("types.$type"),
         ]);
 
+        // Source identity is authorised by the request's source ID, not provider settings.
+        $source->id = $sourceId ? (int)$sourceId : null;
+
         $canManageSourceCredentials = Craft::$app->getUser()->checkPermission(Metrix::MANAGE_SOURCE_CREDENTIALS_PERMISSION);
         $responseSource = $canManageSourceCredentials ? $source : SourceSecurity::redactedSource($source);
         $sourceToSave = $source;

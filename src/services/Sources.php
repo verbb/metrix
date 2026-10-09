@@ -35,6 +35,21 @@ class Sources extends Component
     public const EVENT_BEFORE_DELETE_SOURCE = 'beforeDeleteSource';
     public const EVENT_AFTER_DELETE_SOURCE = 'afterDeleteSource';
 
+    private const RESERVED_SOURCE_SETTING_KEYS = [
+        '__class',
+        'authorizationOptions',
+        'cache',
+        'enabled',
+        'handle',
+        'id',
+        'name',
+        'scopes',
+        'settings',
+        'sortOrder',
+        'type',
+        'uid',
+    ];
+
 
     // Properties
     // =========================================================================
@@ -75,17 +90,30 @@ class Sources extends Component
         $handle = $config['handle'] ?? null;
         $settings = $config['settings'] ?? [];
 
-        // Allow config settings to override source settings
-        if ($applyOverrides && $handle && $settings) {
+        if (is_string($settings)) {
+            $decodedSettings = Json::decode($settings);
+
+            if (is_array($decodedSettings)) {
+                $settings = $decodedSettings;
+            }
+        }
+
+        if (is_array($settings)) {
+            // Stored and posted provider settings cannot replace base source state.
+            $settings = array_diff_key($settings, array_flip(self::RESERVED_SOURCE_SETTING_KEYS));
+        }
+
+        // Trusted config settings can override source settings and OAuth options.
+        if ($applyOverrides && $handle && is_array($settings)) {
             $configOverrides = $this->getSourceOverrides($handle);
 
             if ($configOverrides) {
-                if (is_string($settings)) {
-                    $settings = Json::decode($settings);
-                }
-
-                $config['settings'] = array_merge($settings, $configOverrides);
+                $settings = array_merge($settings, $configOverrides);
             }
+        }
+
+        if (is_array($settings)) {
+            $config['settings'] = $settings;
         }
 
         try {

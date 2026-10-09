@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed provider settings being able to override a source's stored identity.
+
 ## 2.1.4 - 2026-10-07
 
 ### Changed
