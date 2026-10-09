@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed unregistered dashboard date ranges being able to trigger OAuth reconnect handling.
 - Fixed delegated source settings accepting environment references interpreted by supported Craft versions.
 - Fixed provider settings being able to override a source's stored identity.
 - Improved the security of stored source cache fingerprints.

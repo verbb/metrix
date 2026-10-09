@@ -75,6 +75,11 @@ class Periods extends Component
         return $this->_periods;
     }
 
+    public function isRegisteredPeriodType(?string $period): bool
+    {
+        return $period !== null && isset($this->getAllPeriodTypes()[$period]);
+    }
+
     public function getGroupedPeriodTypes(): array
     {
         $periodTypes = $this->getAllPeriodTypes();

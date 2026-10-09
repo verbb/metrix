@@ -78,6 +78,16 @@ abstract class Widget extends SavableComponent implements WidgetInterface
 
         $rules[] = [['period', 'metric', 'dimension', 'canonicalMetric', 'canonicalDimension', 'inheritPeriod', 'width', 'title', 'subtitle', 'limit'], 'safe'];
         $rules[] = [['limit'], 'number', 'integerOnly' => true, 'min' => 1, 'max' => 500];
+        $rules[] = [
+            ['period'],
+            function(string $attribute): void {
+                $period = $this->$attribute;
+
+                if ($period !== null && $period !== '' && (!is_string($period) || !Metrix::$plugin->getPeriods()->isRegisteredPeriodType($period))) {
+                    $this->addError($attribute, Craft::t('metrix', 'Select a valid date range.'));
+                }
+            },
+        ];
 
         return $rules;
     }
@@ -209,10 +219,12 @@ abstract class Widget extends SavableComponent implements WidgetInterface
     {
         // Dashboard header period applies only while this widget inherits the view range.
         if ($globalPeriod && $this->getInheritPeriod()) {
-            return $globalPeriod;
+            $period = $globalPeriod;
+        } else {
+            $period = $this->period ?? ($this->getInheritPeriod() ? Metrix::$plugin->getSettings()->getDefaultGlobalPeriod() : null);
         }
 
-        return $this->period ?? ($this->getInheritPeriod() ? Metrix::$plugin->getSettings()->getDefaultGlobalPeriod() : null);
+        return Metrix::$plugin->getPeriods()->isRegisteredPeriodType($period) ? $period : null;
     }
 
     public function getPeriodLabel(?string $globalPeriod = null): ?string

@@ -486,8 +486,18 @@ class DashboardController extends Controller
 
     private function _getGlobalPeriodFromRequest(): ?string
     {
-        return $this->request->getParam('globalPeriod')
+        $period = $this->request->getParam('globalPeriod')
             ?? $this->request->getBodyParam('globalPeriod');
+
+        if ($period === null || $period === '') {
+            return null;
+        }
+
+        if (!is_string($period) || !Metrix::$plugin->getPeriods()->isRegisteredPeriodType($period)) {
+            throw new BadRequestHttpException(Craft::t('metrix', 'Invalid dashboard date range.'));
+        }
+
+        return $period;
     }
 
     private function _getRefreshFromRequest(): bool

@@ -102,15 +102,8 @@ abstract class Source extends SavableComponent implements SourceInterface
      */
     public static function isOAuthReconnectFailure(Throwable $exception): bool
     {
-        if (class_exists(OAuthTokenRefreshException::class) && self::_findException($exception, OAuthTokenRefreshException::class)) {
-            return true;
-        }
-
-        $haystack = strtolower(self::formatExceptionMessage($exception) . ' ' . $exception->getMessage());
-
-        return str_contains($haystack, 'invalid_grant')
-            || str_contains($haystack, 'token has been expired or revoked')
-            || (str_contains($haystack, 'unauthenticated') && str_contains($haystack, 'oauth'));
+        return class_exists(OAuthTokenRefreshException::class)
+            && self::_findException($exception, OAuthTokenRefreshException::class) !== null;
     }
 
     /**
