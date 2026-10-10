@@ -2,12 +2,16 @@
 
 declare(strict_types=1);
 
+use Tests\Support\AdminUser;
 use Tests\Support\CpRequestContext;
 use Tests\Support\NonAdminUser;
 use verbb\metrix\controllers\SourcesController;
 use verbb\metrix\Metrix;
+use verbb\metrix\records\Source as SourceRecord;
 use verbb\metrix\services\Sources;
 use verbb\metrix\sources\Fathom;
+
+use craft\helpers\Json;
 
 it('preserves hidden credentials and redacts delegated save responses', function() {
     $transaction = Craft::$app->getDb()->beginTransaction();
@@ -141,6 +145,68 @@ it('rejects delegated renames that would detach protected config overrides', fun
             ->and($responseBody)->not->toContain('stored-rename-key-marker')
             ->and($responseBody)->not->toContain('configured-rename-key-marker')
             ->and($responseBody)->toContain('protected configuration overrides');
+    } finally {
+        $transaction->rollBack();
+        Metrix::$plugin->set('sources', $originalSources);
+    }
+});
+
+it('keeps configuration-owned settings out of database saves', function() {
+    $transaction = Craft::$app->getDb()->beginTransaction();
+    $originalSources = Metrix::$plugin->getSources();
+    Metrix::$plugin->set('sources', $sources = new Sources());
+
+    try {
+        $source = new Fathom([
+            'name' => 'Configured persistence fixture',
+            'handle' => 'configuredPersistenceFixture',
+            'enabled' => false,
+            'apiKey' => 'stored-key-marker',
+            'siteId' => 'stored-site-marker',
+        ]);
+        expect($sources->saveSource($source))->toBeTrue();
+
+        $overridesProperty = new ReflectionProperty($sources, '_overrides');
+        $overridesProperty->setValue($sources, [
+            'sources' => [
+                'configuredPersistenceFixture' => [
+                    'apiKey' => 'configured-key-marker',
+                    'siteId' => 'configured-site-marker',
+                ],
+                'configuredNewFixture' => [
+                    'apiKey' => '$METRIX_CONFIG_KEY',
+                    'siteId' => '$METRIX_CONFIG_SITE',
+                ],
+            ],
+        ]);
+
+        $effective = $sources->getSourceById($source->id);
+        expect($effective->apiKey)->toBe('configured-key-marker')
+            ->and($effective->siteId)->toBe('configured-site-marker');
+
+        AdminUser::login();
+        expect($effective->getSettingsHtml())->not->toContain('configured-key-marker');
+
+        $effective->handle = 'renamedPersistenceFixture';
+        expect($sources->saveSource($effective))->toBeTrue();
+
+        $stored = $sources->getStoredSourceById($source->id);
+        expect($stored->apiKey)->toBe('stored-key-marker')
+            ->and($stored->siteId)->toBe('stored-site-marker');
+
+        $newSource = $sources->createSource([
+            'type' => Fathom::class,
+            'name' => 'Configured new fixture',
+            'handle' => 'configuredNewFixture',
+            'enabled' => false,
+        ]);
+        expect($newSource->getSettingsHtml())->toContain('$METRIX_CONFIG_KEY');
+        expect($sources->saveSource($newSource))->toBeTrue();
+
+        $newRecord = SourceRecord::findOne(['id' => $newSource->id]);
+        $newSettings = Json::decodeIfJson($newRecord->settings);
+
+        expect($newSettings)->not->toHaveKeys(['apiKey', 'siteId']);
     } finally {
         $transaction->rollBack();
         Metrix::$plugin->set('sources', $originalSources);
