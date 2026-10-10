@@ -434,6 +434,28 @@ describe('Delegated Source settings', function() {
         'https://analytics.example.test/pricing-$METRIX_REFERENCE_TEST.suffix',
     ]);
 
+    it('protects legacy Craft reference forms independently of their current resolved value', function() {
+        $craftVersion = Craft::$app->getVersion();
+        putenv('METRIX_REFERENCE_TEST=$METRIX_REFERENCE_TEST');
+
+        try {
+            Craft::$app->setVersion('5.10.14');
+            $source = new Fathom([
+                'apiKey' => 'unchanged-key',
+                'siteId' => '$METRIX_REFERENCE_TEST.suffix',
+            ]);
+            $original = clone $source;
+            $original->siteId = 'site-id';
+
+            expect(SourceSecurity::validateDelegatedChange($source, $original))->toBeFalse()
+                ->and($source->getErrors('siteId'))->not->toBeEmpty()
+                ->and(SourceSecurity::redactedSource($source)->siteId)->toBe('');
+        } finally {
+            Craft::$app->setVersion($craftVersion);
+            putenv('METRIX_REFERENCE_TEST');
+        }
+    });
+
     it('allows delegated creation with a literal public endpoint and blank credentials', function() {
         $source = new GoatCounter(['siteUrl' => 'https://analytics.example.test']);
 

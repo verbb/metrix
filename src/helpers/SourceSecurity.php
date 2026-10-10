@@ -264,6 +264,7 @@ class SourceSecurity
             || preg_match('/^\$\w+$/', $value) === 1
             || preg_match('/\$\{\w+}/', $value) === 1
             || preg_match('/(?<=^|\/)\$\w+(?=$|\/)/', $value) === 1
+            || (version_compare(Craft::$app->getVersion(), '5.11.0', '<') && preg_match('/(?<=^|\/)\$\w+(?=$|\/)?/', $value) === 1)
             || (preg_match('/\$(?:\{\w+}|\w+)/', $value) === 1 && App::parseEnv($value) !== $value);
     }
 }
