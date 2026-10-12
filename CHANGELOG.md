@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Updated Craft API usage to avoid deprecated calls.
+
 ### Fixed
 - Fixed configuration-owned source settings being persisted to the database.
 - Fixed unregistered dashboard date ranges being able to trigger OAuth reconnect handling.

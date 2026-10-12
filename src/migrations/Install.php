@@ -6,7 +6,6 @@ use verbb\metrix\models\View;
 
 use Craft;
 use craft\db\Migration;
-use craft\helpers\MigrationHelper;
 
 use verbb\auth\Auth;
 
@@ -129,20 +128,9 @@ class Install extends Migration
 
     public function dropForeignKeys(): void
     {
-        if ($this->db->tableExists('{{%metrix_presets}}')) {
-            MigrationHelper::dropAllForeignKeysOnTable('{{%metrix_presets}}', $this);
-        }
-
-        if ($this->db->tableExists('{{%metrix_sources}}')) {
-            MigrationHelper::dropAllForeignKeysOnTable('{{%metrix_sources}}', $this);
-        }
-
-        if ($this->db->tableExists('{{%metrix_views}}')) {
-            MigrationHelper::dropAllForeignKeysOnTable('{{%metrix_views}}', $this);
-        }
-
         if ($this->db->tableExists('{{%metrix_widgets}}')) {
-            MigrationHelper::dropAllForeignKeysOnTable('{{%metrix_widgets}}', $this);
+            $this->dropForeignKeyIfExists('{{%metrix_widgets}}', 'sourceId');
+            $this->dropForeignKeyIfExists('{{%metrix_widgets}}', 'viewId');
         }
     }
 
