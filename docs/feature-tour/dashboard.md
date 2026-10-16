@@ -2,7 +2,7 @@
 
 The Metrix Dashboard displays analytics from your connected sources. Arrange charts, tables and counters into views for the people who need that information.
 
-Each widget presents one part of the selected analytics data. For example, a content team can use a Sessions counter to see overall traffic, a line chart to spot changes over time and a table to identify popular pages. [Creating Your First Dashboard Widget](docs:get-started/creating-your-first-dashboard-widget) takes you through the first counter. The examples below show how the other presentation styles help answer different questions.
+Each widget presents one part of the selected analytics data. For example, a content team can use a Sessions counter to see overall traffic, a line chart to spot changes over time and a table to identify popular pages. The examples below show how these presentation styles help answer different questions.
 
 ![Sessions line chart widget (two-thirds width)](../../screenshots/widget-sessions-line.png)
 
