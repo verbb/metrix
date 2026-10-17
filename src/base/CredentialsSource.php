@@ -6,6 +6,8 @@ use craft\helpers\Json;
 
 use GuzzleHttp\Client;
 
+use Throwable;
+
 abstract class CredentialsSource extends Source
 {
     // Static Methods
