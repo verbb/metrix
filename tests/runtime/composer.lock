@@ -10815,16 +10815,16 @@
         },
         {
             "name": "verbb/base",
-            "version": "3.0.18",
+            "version": "3.0.20",
             "source": {
                 "type": "git",
                 "url": "https://github.com/verbb/verbb-base.git",
-                "reference": "1d53b2b2dbb51a9dcb005bde5421b88fde620ae5"
+                "reference": "0b60c166a79e2762aa968e062dc84ca6c0a9406e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/verbb/verbb-base/zipball/1d53b2b2dbb51a9dcb005bde5421b88fde620ae5",
-                "reference": "1d53b2b2dbb51a9dcb005bde5421b88fde620ae5",
+                "url": "https://api.github.com/repos/verbb/verbb-base/zipball/0b60c166a79e2762aa968e062dc84ca6c0a9406e",
+                "reference": "0b60c166a79e2762aa968e062dc84ca6c0a9406e",
                 "shasum": ""
             },
             "require": {
@@ -10861,22 +10861,22 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-09-27T11:35:17+00:00"
+            "time": "2026-10-04T21:22:12+00:00"
         },
         {
             "name": "verbb/metrix",
-            "version": "2.1.0",
+            "version": "2.1.5",
             "dist": {
                 "type": "path",
                 "url": "../../..",
-                "reference": "7ccb95e33175181640434a1b12098f49588d8213"
+                "reference": "171dbd5929a40e345ca31dee4e7035c358e10612"
             },
             "require": {
                 "craftcms/cms": "^5.0.0",
                 "nystudio107/craft-plugin-vite": "^5.0.0",
                 "php": "^8.2",
                 "verbb/auth": "^2.0.48",
-                "verbb/base": "^3.0.18"
+                "verbb/base": "^3.0.20"
             },
             "require-dev": {
                 "craftcms/cms": "^5.9",
@@ -10922,7 +10922,7 @@
                     "homepage": "https://verbb.io"
                 }
             ],
-            "description": "Display your analytics within Craft. Supports Google Analytics, Plausible, Fathom and more.",
+            "description": "A Craft CMS plugin for analytics dashboards using Google Analytics, Plausible, Fathom and more.",
             "keywords": [
                 "cms",
                 "craft",
@@ -11881,5 +11881,5 @@
         "php": "8.2.0",
         "php-64bit": "8.2.0"
     },
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.6.0"
 }
