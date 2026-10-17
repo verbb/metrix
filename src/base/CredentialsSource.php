@@ -8,6 +8,8 @@ use craft\helpers\Json;
 use GuzzleHttp\Client;
 use GuzzleHttp\RequestOptions;
 
+use Throwable;
+
 abstract class CredentialsSource extends Source implements CredentialSourceInterface
 {
     // Static Methods

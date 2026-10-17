@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed a missing exception class reference in credential source requests.
+
 ## 2.1.5 - 2026-10-15
 
 ### Changed
