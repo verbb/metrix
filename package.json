@@ -19,7 +19,7 @@
         "@vitejs/plugin-react": "^6.1.1",
         "rollup-plugin-analyzer": "^4.0.0",
         "tailwindcss": "^4.2.4",
-        "vite": "^8.0.10",
+        "vite": "^8.3.4",
         "vite-plugin-compression": "^0.5.1",
         "vite-plugin-tailwind-shadowdom": "^1.1.1",
         "vitest": "^5.0.0"
@@ -46,7 +46,7 @@
     },
     "overrides": {
         "vitepress": {
-            "vite": "6.4.3"
+            "vite": "6.4.4"
         }
     }
 }
