@@ -15,9 +15,13 @@ beforeEach(function() {
     $this->originalMutex = Craft::$app->get('mutex');
     Metrix::$plugin->getSettings()->enableCache = true;
     Metrix::$plugin->getSettings()->cacheDuration = 'PT10M';
+    // These scenarios share a widget type and cache key. Start each without
+    // the synthetic leader envelope left by the previous scenario.
+    securityWidgetData()->clearCache();
 });
 
 afterEach(function() {
+    securityWidgetData()->clearCache();
     Craft::$app->set('mutex', $this->originalMutex);
     Metrix::$plugin->getSettings()->enableCache = $this->originalCacheEnabled;
     Metrix::$plugin->getSettings()->cacheDuration = $this->originalCacheDuration;
