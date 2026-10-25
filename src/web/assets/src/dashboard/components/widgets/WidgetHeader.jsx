@@ -159,7 +159,7 @@ export function WidgetHeader({ widget }) {
                         className="metrix-widget-period-select"
                         periodOptions={periodOptions}
                         value={periodSelectValue}
-                        size="xs"
+                        size="xxs"
                         onChange={handlePeriodChange}
                     />
                 )}

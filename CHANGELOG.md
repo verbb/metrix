@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Retained compact widget period selectors with Plugin Kit’s `xxs` size.
+
 ## 2.1.7 - 2026-10-22
 
 ### Changed
