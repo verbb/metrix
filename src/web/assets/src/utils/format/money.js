@@ -1,3 +1,5 @@
+import { numberLongFormat, numberShortFormat } from './number.js';
+
 export function moneyShortFormat(value) {
     if (typeof value == 'number') {
         return numberShortFormat(value);

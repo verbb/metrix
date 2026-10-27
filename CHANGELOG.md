@@ -5,6 +5,9 @@
 ### Changed
 - Retained compact widget period selectors with Plugin Kit’s `xxs` size.
 
+### Fixed
+- Fixed an error when formatting numeric money values in dashboard widgets.
+
 ## 2.1.7 - 2026-10-22
 
 ### Changed
