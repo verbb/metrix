@@ -1,4 +1,6 @@
 <?php
+
+require dirname(__DIR__) . '/.github/scripts/runtime-preflight.php';
 require_once __DIR__ . '/runtime/bootstrap.php';
 
 $_SERVER['HTTP_HOST'] = 'cp-test.test';

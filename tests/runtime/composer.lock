@@ -10865,11 +10865,11 @@
         },
         {
             "name": "verbb/metrix",
-            "version": "2.1.5",
+            "version": "2.1.8",
             "dist": {
                 "type": "path",
                 "url": "../../..",
-                "reference": "171dbd5929a40e345ca31dee4e7035c358e10612"
+                "reference": "8389c2382a80dd547cba978d406e93221fb0ae89"
             },
             "require": {
                 "craftcms/cms": "^5.0.0",
