@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.1.9 - 2026-11-01
 
 ### Fixed
 - Fixed the Enabled switch turning back on when a new preset failed to save.
