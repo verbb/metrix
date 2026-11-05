@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.10 - 2026-11-05
+
+### Removed
+- Remove npm audit from the test workflow.
+
 ## 2.1.9 - 2026-11-01
 
 ### Fixed
