@@ -12,7 +12,7 @@ Create dedicated views for your analytics data and tailor them to the team. Mix 
 <!-- feature-section-end -->
 
 <!-- feature-media media-size="medium" -->
-## Arrange it your way
+## Arrange widgets on the dashboard
 
 Resize and reorder widgets from the dashboard itself, or let selected widgets follow one shared date range. Each widget keeps its own source, chart type, metric and presentation settings, so the view can stay focused on the questions that matter to its audience.
 

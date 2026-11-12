@@ -45,7 +45,7 @@ Visit the [Metrix Plugin page](https://verbb.io/craft-plugins/metrix) for all do
 
 ## Support
 
-Get in touch with us via the [Metrix Support page](https://verbb.io/craft-plugins/metrix/support) or by [creating a Github issue](https://github.com/verbb/metrix/issues)
+Get in touch with us via the [Metrix Support page](https://verbb.io/craft-plugins/metrix/support) or by [creating a GitHub issue](https://github.com/verbb/metrix/issues).
 
 <h2></h2>
 
