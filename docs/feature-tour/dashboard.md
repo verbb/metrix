@@ -30,6 +30,8 @@ User groups can be limited with:
 - **Metrix → Sources** — manage Sources.
 - **Metrix → Manage views and dashboard layouts** — create and configure Views, and add, edit, reorder or remove their shared widgets.
 
+See [Permissions](permissions.md) for the full list.
+
 ### Multi-Site / Analytics Scope
 
 A View can optionally limit widget data to a **Craft site**, **path prefix**, or **hostname**. Use this when one analytics property (e.g. a single GA4 property) covers multiple Craft sites.

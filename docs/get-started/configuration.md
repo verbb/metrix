@@ -12,28 +12,7 @@ return [
 ];
 ```
 
-All other settings keep their defaults. Add any further settings you want to change to the same array. The options below explain the available settings and their defaults.
-
-Values in `config/metrix.php` override the corresponding values saved in the control panel. To manage a setting through the control panel again, remove its override from the file.
-
-## Environment Overrides
-
-Craft can apply different settings to each environment. Use `*` for shared values and a key matching `CRAFT_ENVIRONMENT` for an environment-specific override. For example:
-
-```php
-<?php
-
-return [
-    '*' => [
-        'realtimeInterval' => 20,
-    ],
-    'dev' => [
-        'realtimeInterval' => 60,
-    ],
-];
-```
-
-This replaces the simple array above. The `dev` values apply only when `CRAFT_ENVIRONMENT` is `dev`; other environments use the shared values. Merge your own overrides into the appropriate array.
+All other settings keep their defaults. Add any further settings you want to change to the same array. The options below explain the available settings and their defaults. You can also manage many of these settings in the control panel under **Metrix → Settings**.
 
 ## Configuration Options
 
@@ -176,7 +155,3 @@ return [
 
 Unlisted periods are hidden when rows are supplied. A non-empty `enabledPeriods` value takes precedence over these rows.
 :::
-
-
-## Control Panel
-You can also manage configuration settings through the Control Panel by visiting Settings → Metrix.

@@ -13,7 +13,8 @@
         "collapsable": false,
         "children": [
             "feature-tour/dashboard",
-            "feature-tour/sources"
+            "feature-tour/sources",
+            "feature-tour/permissions"
         ]
     },
     {
