@@ -1,20 +1,10 @@
-# Custom Period
-Register a custom Period when your dashboard needs a reporting window beyond the built-in date ranges. This example groups the current calendar quarter by month and provides the previous quarter for comparison.
+# Custom Periods
 
-Start with a bootstrapped [Craft module](https://craftcms.com/docs/5.x/extend/module-guide.html) using the namespace `modules\sitemodule`. Create `Quarter.php` beside `Module.php` using the class below. In `Module.php`, place the following imports at the top and the listener inside `init()`, after `parent::init()`. This is a partial module snippet:
+A Period is a date range editors can pick for a dashboard, along with the buckets its charts are grouped into. Make a custom Period when your dashboard needs a reporting window the built-in date ranges don't cover. This example groups the current calendar quarter by month and offers the previous quarter for comparison.
 
-```php
-use craft\events\RegisterComponentTypesEvent;
-use modules\sitemodule\Quarter;
-use verbb\metrix\services\Periods;
-use yii\base\Event;
+## Create the Period Class
 
-Event::on(Periods::class, Periods::EVENT_REGISTER_PERIOD_TYPES, function(RegisterComponentTypesEvent $event) {
-    $event->types[] = Quarter::class;
-});
-```
-
-## Example
+Extend `verbb\metrix\base\Period` and implement its static methods.
 
 ```php
 <?php
@@ -115,4 +105,83 @@ class Quarter extends Period
 }
 ```
 
+## Register the Period
+
+Metrix finds periods through the `registerPeriodTypes` event. Register your class from your module or plugin’s `init()` method.
+
+```php
+use craft\events\RegisterComponentTypesEvent;
+use modules\sitemodule\Quarter;
+use verbb\metrix\services\Periods;
+use yii\base\Event;
+
+Event::on(Periods::class, Periods::EVENT_REGISTER_PERIOD_TYPES, function(RegisterComponentTypesEvent $event) {
+    $event->types[] = Quarter::class;
+});
+```
+
+## Test the Period
+
 Select **This Quarter** on a test Line widget. Check the start and end dates against the calendar and compare the monthly totals with the provider. The month keys must match those returned by your Source; this example uses `YYYY-MM-DD` with the first day of each month. Verify the previous-quarter comparison across a year boundary as well. If the period is absent, check whether [configuration](docs:get-started/configuration#enabledperiods) restricts the available periods.
+
+## Methods
+
+All Period methods are static. See [Period](docs:reference/period) for calling them on registered periods.
+
+::: reference
+### `displayName()`
+
+**Returns:** `string`
+
+Returns the name shown in the period picker, such as “This Quarter”.
+:::
+
+::: reference
+### `previousDisplayName()`
+
+**Returns:** `string`
+
+Returns the name of the comparison period, such as “Previous Quarter”.
+:::
+
+::: reference
+### `getDateRange()`
+
+**Returns:** `array`
+
+Returns the `start` and `end` `DateTime` values for the period. Return an empty array for an open-ended range like All Time, and the Source decides how much history to fetch.
+:::
+
+::: reference
+### `getPreviousDateRange()`
+
+**Returns:** `array`
+
+Returns the `start` and `end` `DateTime` values for the comparison period. Return an empty array when the period has no comparison.
+:::
+
+::: reference
+### `getIntervalDimension()`
+
+**Returns:** `string`
+
+Returns how Sources group data within the period, as one of the `Period::INTERVAL_MINUTE`, `INTERVAL_HOUR`, `INTERVAL_DAY`, `INTERVAL_MONTH` or `INTERVAL_YEAR` constants.
+:::
+
+::: reference
+### `generatePlotDimensions()`
+
+**Returns:** `array`
+
+**Arguments:** `WidgetData $widgetData`, `array $rawData`
+
+Returns the ordered bucket keys a chart plots. The keys must match the ones the Source returns, so missing buckets can be filled. Use `$widgetData` and `$rawData` when the buckets depend on the widget or the provider response.
+:::
+
+::: reference
+### `getChartMetadata()`
+
+**Returns:** `array`
+
+Returns chart formatting hints, such as `xAxisLabelFormat` and `tooltipFormat`.
+:::

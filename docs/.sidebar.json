@@ -23,7 +23,7 @@
         "children": [
             "providers/cloudflare",
             "providers/fathom",
-            "providers/goat-counter",
+            "providers/goatcounter",
             "providers/google-analytics",
             "providers/matomo",
             "providers/mixpanel",
@@ -45,20 +45,20 @@
         "collapsable": false,
         "children": [
             "developers/events",
-            "developers/custom-source",
-            "developers/custom-period",
-            "developers/custom-widget"
+            "developers/custom-sources",
+            "developers/custom-periods",
+            "developers/custom-widgets"
         ]
     },
     {
         "title": "Reference",
         "collapsable": false,
         "children": [
-            "developers/source",
-            "developers/view",
-            "developers/preset",
-            "developers/period",
-            "developers/widget"
+            "reference/source",
+            "reference/view",
+            "reference/preset",
+            "reference/period",
+            "reference/widget"
         ]
     },
     {

@@ -1,23 +1,12 @@
-# Custom Widget
-Create a custom Widget when a different presentation would help your team interpret its analytics. This example displays a date range as a grid of values: darker cells indicate higher activity. Each cell includes its date and number, so colour is not the only way to read the result.
+# Custom Widgets
+
+A Widget presents a Source’s data on a dashboard. Make a custom Widget when a different presentation would help your team interpret its analytics. This example displays a date range as a grid of values, where darker cells indicate higher activity. Each cell includes its date and number, so colour is not the only way to read the result.
 
 Start with a bootstrapped [Craft module](https://craftcms.com/docs/5.x/extend/module-guide.html) using `modules\sitemodule`, a connected analytics Source and a working Line widget. Use the same Source and metric to verify this example. The JavaScript build below needs Node.js compatible with Vite.
 
-Create the three PHP files below beside your module's `Module.php`. Add these imports at the top of `Module.php`, then place the listener inside `init()`, after `parent::init()`. The registration snippet is partial module code:
+## Create the Widget Class
 
-```php
-use craft\events\RegisterComponentTypesEvent;
-use modules\sitemodule\Heatmap;
-use verbb\metrix\services\Widgets;
-use yii\base\Event;
-
-Event::on(Widgets::class, Widgets::EVENT_REGISTER_WIDGET_TYPES, function(RegisterComponentTypesEvent $event) {
-    $event->types[] = Heatmap::class;
-});
-```
-
-## Example Widget
-After registering the Widget with `Widgets::EVENT_REGISTER_WIDGET_TYPES`, create `Heatmap.php` in the module namespace. The class identifies its data transformer, settings fields and asset bundle:
+Extend `verbb\metrix\base\Widget`. Create `Heatmap.php` beside your module's `Module.php`. The class identifies its data class, settings fields and asset bundle.
 
 ```php
 <?php
@@ -63,6 +52,21 @@ class Heatmap extends Widget
 ```
 
 `getSettingsSchema()` returns the fields shown when an editor configures the Widget. The classes returned by `getDataType()` and `getAssetBundle()` are defined below in the same module namespace.
+
+## Register the Widget
+
+Metrix finds widgets through the `registerWidgetTypes` event. Register your class from your module or plugin’s `init()` method.
+
+```php
+use craft\events\RegisterComponentTypesEvent;
+use modules\sitemodule\Heatmap;
+use verbb\metrix\services\Widgets;
+use yii\base\Event;
+
+Event::on(Widgets::class, Widgets::EVENT_REGISTER_WIDGET_TYPES, function(RegisterComponentTypesEvent $event) {
+    $event->types[] = Heatmap::class;
+});
+```
 
 ## Widget Data
 Create `HeatmapData.php` to transform the provider response into the rows required by the component. Extend `PlotData` for a custom time-series presentation so Sources request dated buckets instead of aggregate totals. Override `formatData()` to supply your component’s own response shape:
@@ -264,3 +268,45 @@ Commit the built asset with your module or build it during deployment. `HeatmapA
 Reload the Metrix dashboard and add a **Heatmap** widget to a test View. Select the same Source, metric and **Last 7 Days** period as your working Line widget. Save it and compare the date buckets and values. The grid should show the same numbers, with the largest values using the darkest background.
 
 Change the period and refresh the widget. Check that a zero appears as `0`, a future bucket appears as “No data”, and a provider error appears in Metrix's error state. When updating the built script, clear Craft's published asset caches if the browser still loads an older copy.
+
+## Methods
+
+::: reference
+### `displayName()`
+
+**Returns:** `string`
+
+Returns the widget name shown when adding a widget to a View. This method is static.
+:::
+
+::: reference
+### `getDataType()`
+
+**Returns:** `string`
+
+Returns the data class that fetches and shapes the widget’s data, usually a subclass of `verbb\metrix\widgets\data\PlotData` for dated charts. This method is static.
+:::
+
+::: reference
+### `getSettingsSchema()`
+
+**Returns:** `array`
+
+Returns the settings fields shown when an editor configures the widget, built with the `verbb\metrix\helpers\Schema` helpers such as `Schema::sources()` and `Schema::metrics()`. This method is static.
+:::
+
+::: reference
+### `getAssetBundle()`
+
+**Returns:** `string|null`
+
+Returns the asset bundle that loads the widget’s JavaScript component. Defaults to `null`. This method is static.
+:::
+
+::: reference
+### `supportsCache()`
+
+**Returns:** `bool`
+
+Returns whether Metrix caches the widget’s data. Defaults to `true`. Return `false` for data that must always be fresh. This method is static.
+:::

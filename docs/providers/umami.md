@@ -6,7 +6,7 @@ Follow these steps to configure Umami for Metrix.
 
 1. Create a Source in **Metrix → Sources** and choose **Umami**.
 2. Set **Base URL**:
-   - Umami Cloud: `https://api.umami.is/v1` (or `/v1/us` or `/v1/eu` for a specific region). Existing sources using `https://api.umami.is` are resolved automatically.
+   - Umami Cloud: `https://api.umami.is/v1` (or `/v1/us` or `/v1/eu` for a specific region). `https://api.umami.is` without a version path also works.
    - Self-hosted: your instance URL (without `/api`).
 3. Enter your **Website ID**.
 4. Authenticate with either:

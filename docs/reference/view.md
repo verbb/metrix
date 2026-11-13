@@ -22,7 +22,7 @@ if (!$view) {
 
 **Type:** `int|null`
 
-The unique identifier for the view.
+The unique identifier for the view, or `null` before it’s saved.
 :::
 
 ::: reference
@@ -47,22 +47,24 @@ Views can optionally scope every widget fetch to a Craft site, path prefix, or h
 
 When a Craft site is selected, Metrix derives the filter from the site’s base URL: a different host than the primary site becomes a hostname filter; a shared root URL becomes a path-prefix filter.
 
-For separate analytics properties/domains, continue to use separate Sources — View scope is for one property covering multiple Craft sites.
+For separate analytics properties or domains, continue to use separate Sources. View scope is for one property covering multiple Craft sites.
 
 ## Methods
 
 ::: reference
-### `getAnalyticsScope(): AnalyticsScope`
+### `getAnalyticsScope()`
 
 **Returns:** `verbb\metrix\models\AnalyticsScope`
 
-Returns the resolved `AnalyticsScope` model for this view.
+Returns the resolved `AnalyticsScope` model for the view.
 :::
 
 ::: reference
-### `setAnalyticsScope(AnalyticsScope|array|null $scope): void`
+### `setAnalyticsScope()`
 
 **Returns:** `void`
+
+**Arguments:** `AnalyticsScope|array|null $scope`
 
 Stores an analytics scope in `settings`. Pass `null` to clear it.
 :::

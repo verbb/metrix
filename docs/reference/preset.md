@@ -1,6 +1,6 @@
 # Preset
 
-A Preset contains reusable Widget configurations. Obtain one from Metrix's Presets service when a module needs to inspect or assemble a dashboard preset:
+A Preset contains reusable Widget configurations. Obtain one from Metrix's Presets service when a module needs to inspect or assemble a dashboard preset.
 
 ```php
 $preset = \verbb\metrix\Metrix::$plugin->getPresets()->getPresetByHandle('websiteOverview');
@@ -19,7 +19,7 @@ if (!$preset) {
 
 **Type:** `string|int|null`
 
-The unique identifier for the preset (when stored).
+The unique identifier for the preset, or `null` before it’s saved.
 :::
 
 ::: reference
@@ -51,23 +51,25 @@ Whether the preset is enabled.
 
 **Type:** `array`
 
-Widget configs applied when the preset is used.
+The widgets the preset adds to a View when it’s applied.
 :::
 
 ## Methods
 
 ::: reference
-### `getWidgets(): array`
+### `getWidgets()`
 
 **Returns:** `array`
 
-Widget instances / configs for the preset.
+Returns the preset’s widgets as widget objects.
 :::
 
 ::: reference
-### `setWidgets(array $widgetConfigs): void`
+### `setWidgets()`
 
 **Returns:** `void`
+
+**Arguments:** `array $widgetConfigs`
 
 Normalises and assigns Widget instances or configuration arrays.
 :::

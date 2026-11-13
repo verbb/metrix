@@ -1,21 +1,12 @@
-# Custom Source
-Register a custom Source when Metrix does not include the analytics provider your project needs. Build the class in a project module or plugin, register it during module initialisation, and test connection, historical data and every capability you advertise.
+# Custom Sources
 
-```php
-namespace modules\sitemodule;
+A Source connects Metrix to an analytics provider and fetches the numbers its widgets show. Make a custom Source when Metrix doesn't include the provider your project needs. Build the class in a module or plugin, then test the connection, historical data and every capability you advertise.
 
-use craft\events\RegisterComponentTypesEvent;
-use modules\sitemodule\MySourceProvider;
-use verbb\metrix\services\Sources;
-use yii\base\Event;
+## Create the Source Class
 
-Event::on(Sources::class, Sources::EVENT_REGISTER_SOURCE_TYPES, function(RegisterComponentTypesEvent $event) {
-    $event->types[] = MySourceProvider::class;
-});
-```
+Extend `verbb\metrix\base\OAuthSource` for a provider that uses OAuth, or `verbb\metrix\base\CredentialsSource` for one that uses API keys or tokens. Set the static `$providerHandle` property to a unique handle for the provider.
 
-## OAuth Example
-If your provider requires OAuth authentication, create the following class to house your Source Provider logic.
+### OAuth Sources
 
 ```php
 namespace modules\sitemodule;
@@ -135,9 +126,7 @@ Replace `SomeProvider` with the `AbstractProvider` implementation supplied by yo
 
 Metrix OAuth source providers use [Auth](https://github.com/verbb/auth), which is built on [league/oauth2-client](https://github.com/thephpleague/oauth2-client). `getOAuthProviderClass()` must return a `League\OAuth2\Client\Provider\AbstractProvider` class supplied by an installed provider package.
 
-
-## Credentials Example
-If your provider requires non-OAuth authentication, like API keys or tokens, create the following class to house your Source Provider logic.
+### Credentials Sources
 
 ```php
 namespace modules\sitemodule;
@@ -282,3 +271,110 @@ class MySourceProvider extends CredentialsSource
 Unlike an OAuth Source, a Credentials Source defines its own HTTP client and calls `$this->request()` for provider requests. Set `METRIX_PROVIDER_TOKEN` in the environment before testing the example. For a reusable provider, expose the credential as a Source setting that accepts an environment-variable reference rather than fixing the variable name in the class.
 
 Implement `fetchConnection()` so Metrix can validate the saved credentials. Before shipping the Source, add failure tests for invalid credentials, rate limits and empty datasets, then create a widget for every supported metric and dimension.
+
+## Register the Source
+
+Metrix finds sources through the `registerSourceTypes` event. Register your class from your module or plugin’s `init()` method.
+
+```php
+use craft\events\RegisterComponentTypesEvent;
+use modules\sitemodule\MySourceProvider;
+use verbb\metrix\services\Sources;
+use yii\base\Event;
+
+Event::on(Sources::class, Sources::EVENT_REGISTER_SOURCE_TYPES, function(RegisterComponentTypesEvent $event) {
+    $event->types[] = MySourceProvider::class;
+});
+```
+
+## Methods
+
+::: reference
+### `displayName()`
+
+**Returns:** `string`
+
+Returns the provider name shown when choosing a Source type. This method is static.
+:::
+
+::: reference
+### `getOAuthProviderClass()`
+
+**Returns:** `string`
+
+Returns the `League\OAuth2\Client\Provider\AbstractProvider` class Metrix uses to connect. Every `OAuthSource` must implement this static method.
+:::
+
+::: reference
+### `getClient()`
+
+**Returns:** `GuzzleHttp\Client`
+
+Returns the HTTP client `request()` uses for provider requests, configured with the base URI and credentials. Every `CredentialsSource` must implement it.
+:::
+
+::: reference
+### `fetchConnection()`
+
+**Returns:** `bool`
+
+Returns whether the saved credentials work. Make a lightweight request to the provider here, because the default on a `CredentialsSource` returns `true` without checking.
+:::
+
+::: reference
+### `fetchData()`
+
+**Returns:** `array`
+
+**Arguments:** `WidgetDataInterface $widgetData`
+
+Returns the values for a widget. `$widgetData` holds the widget’s `metric`, `dimension` and `period`. For a dated chart, return values keyed by the bucket keys the period generates.
+:::
+
+::: reference
+### `fetchAvailableMetrics()`
+
+**Returns:** `array`
+
+Returns the metrics editors can pick, as `label` and `value` pairs. Defaults to an empty array.
+:::
+
+::: reference
+### `fetchAvailableDimensions()`
+
+**Returns:** `array`
+
+Returns the dimensions editors can break data down by, as `label` and `value` pairs. Defaults to an empty array.
+:::
+
+::: reference
+### `getSettingsHtml()`
+
+**Returns:** `string|null`
+
+Returns the settings form for the Source. The default renders a template from Metrix’s own `sources/_types` folder, so a custom Source should return its own.
+:::
+
+::: reference
+### `getPrimaryColor()`
+
+**Returns:** `string|null`
+
+Returns the brand colour Metrix uses for the Source.
+:::
+
+::: reference
+### `getIcon()`
+
+**Returns:** `string|null`
+
+Returns the Source’s icon as SVG markup, or `null` for none.
+:::
+
+::: reference
+### `supportsDimensions()`
+
+**Returns:** `bool`
+
+Returns whether the Source can answer breakdown widgets such as tables and pie charts. Defaults to `true`. Return `false` for an event-only provider.
+:::
