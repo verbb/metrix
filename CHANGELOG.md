@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.2.0 - 2026-11-24
 
 ### Added
 - Added a setup checklist to the dashboard for adding a source, connecting it and adding the first widgets or a preset. It only shows on new installs. Each step ticks itself off, and the checklist leaves once the first widget is added.
