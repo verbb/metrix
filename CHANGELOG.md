@@ -3,7 +3,7 @@
 ## Unreleased
 
 ### Added
-- Added a setup checklist to the dashboard for adding a source, connecting it and adding the first widgets or a preset. Each step ticks itself off, and the checklist leaves once the first widget is added.
+- Added a setup checklist to the dashboard for adding a source, connecting it and adding the first widgets or a preset. It only shows on new installs. Each step ticks itself off, and the checklist leaves once the first widget is added.
 - Added an empty state to the Sources index with a New source button.
 
 ### Changed

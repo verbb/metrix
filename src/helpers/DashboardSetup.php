@@ -7,17 +7,25 @@ use verbb\metrix\sources\MissingSource;
 use Craft;
 use craft\helpers\UrlHelper;
 
+use DateTime;
+use DateTimeZone;
+
 class DashboardSetup
 {
     // Static Methods
     // =========================================================================
 
     /**
-     * Returns the dashboard's setup steps, or null once the first widget has been added. That's the dashboard's
-     * first real outcome, so the checklist stays gone even if every widget is later removed.
+     * Returns the dashboard's setup steps, or null on installs from before the checklist existed and once the first
+     * widget has been added. Widgets are what the dashboard lists, and the checklist stays gone even if every widget
+     * is later removed.
      */
     public static function getSteps(): ?array
     {
+        if (!self::isNewInstall()) {
+            return null;
+        }
+
         if (Metrix::$plugin->getWidgets()->hasAddedWidgets()) {
             return null;
         }
@@ -62,5 +70,16 @@ class DashboardSetup
                 'done' => false,
             ],
         ];
+    }
+
+    /**
+     * Whether Metrix was installed on this environment on or after `Metrix::SETUP_CHECKLIST_SINCE`. Craft records the
+     * install date per environment, so this needs no storage of its own. A missing date is an existing install.
+     */
+    public static function isNewInstall(): bool
+    {
+        $installDate = Craft::$app->getPlugins()->getStoredPluginInfo(Metrix::$plugin->id)['installDate'] ?? null;
+
+        return $installDate instanceof DateTime && $installDate >= new DateTime(Metrix::SETUP_CHECKLIST_SINCE, new DateTimeZone('UTC'));
     }
 }

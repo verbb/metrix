@@ -12,8 +12,10 @@ use verbb\metrix\sources\Plausible;
 use verbb\metrix\widgets\Counter;
 
 use craft\db\Table;
+use craft\services\Plugins;
 
 beforeEach(function() {
+    $this->setupInstallDate = Craft::$app->getPlugins()->getStoredPluginInfo('metrix')['installDate'] ?? null;
     $this->setupTransaction = Craft::$app->getDb()->beginTransaction();
     $this->setupServices = [];
 
@@ -27,6 +29,9 @@ beforeEach(function() {
         Metrix::$plugin->set($key, new $class());
     }
 
+    // Setup only shows on installs made since the checklist was added.
+    dashboardSetupInstallDate(new DateTime('now', new DateTimeZone('UTC')));
+
     $suffix = bin2hex(random_bytes(5));
     $this->setupSuffix = $suffix;
     $this->setupView = new View(['name' => 'View ' . $suffix, 'handle' => 'view' . $suffix]);
@@ -35,11 +40,27 @@ beforeEach(function() {
 
 afterEach(function() {
     $this->setupTransaction->rollBack();
+    dashboardSetupInstallDate($this->setupInstallDate);
 
     foreach ($this->setupServices as $key => $service) {
         Metrix::$plugin->set($key, $service);
     }
 });
+
+// Craft keeps each plugin's stored info in memory, so this changes the install date the setup check reads without
+// writing to the plugins table.
+function dashboardSetupInstallDate(?DateTime $date): void
+{
+    $plugins = Craft::$app->getPlugins();
+    $plugins->getStoredPluginInfo('metrix');
+
+    $property = new ReflectionProperty(Plugins::class, '_storedPluginInfo');
+    $info = $property->getValue($plugins);
+
+    $info['metrix']['installDate'] = $date;
+
+    $property->setValue($plugins, $info);
+}
 
 function dashboardSetupSource(string $suffix, array $cache = []): Plausible
 {
@@ -99,4 +120,16 @@ it('ends setup at the first widget and stays ended after it is deleted', functio
 
     expect(Metrix::$plugin->getWidgets()->getAllWidgets())->toBe([])
         ->and(DashboardSetup::getSteps())->toBeNull();
+});
+
+it('never shows on installs from before the checklist was added', function() {
+    dashboardSetupInstallDate(new DateTime('2026-11-22 23:59:59', new DateTimeZone('UTC')));
+
+    expect(DashboardSetup::getSteps())->toBeNull();
+});
+
+it('treats an install with no recorded date as an existing install', function() {
+    dashboardSetupInstallDate(null);
+
+    expect(DashboardSetup::getSteps())->toBeNull();
 });
