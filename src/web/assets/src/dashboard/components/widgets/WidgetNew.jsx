@@ -10,9 +10,33 @@ const WidgetSettings = lazy(() => import('./WidgetSettings.jsx').then((module) =
     default: module.WidgetSettings,
 })));
 
+export function WidgetNewDialog({ open, onOpenChange }) {
+    const newWidget = useAppStore((state) => state.newWidget);
+
+    return (
+        <Dialog
+            className="metrix-widget-settings-dialog"
+            open={open}
+            label={Craft.t('metrix', 'Add New Widget')}
+            onPkOpenChange={(event) => {
+                onOpenChange(Boolean(event.detail?.open));
+            }}
+        >
+            {open ? (
+                <Suspense fallback={<div role="status">{Craft.t('metrix', 'Loading…')}</div>}>
+                    <WidgetSettings
+                        isNew
+                        newWidget={newWidget}
+                        onClose={() => onOpenChange(false)}
+                    />
+                </Suspense>
+            ) : null}
+        </Dialog>
+    );
+}
+
 export function WidgetNew({ buttonSize }) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const newWidget = useAppStore((state) => state.newWidget);
     const canManageViewLayouts = useAppStore((state) => state.canManageViewLayouts);
 
     if (!canManageViewLayouts) {
@@ -31,24 +55,7 @@ export function WidgetNew({ buttonSize }) {
                 {Craft.t('metrix', 'New widget')}
             </Button>
 
-            <Dialog
-                className="metrix-widget-settings-dialog"
-                open={isDialogOpen}
-                label={Craft.t('metrix', 'Add New Widget')}
-                onPkOpenChange={(event) => {
-                    setIsDialogOpen(Boolean(event.detail?.open));
-                }}
-            >
-                {isDialogOpen ? (
-                    <Suspense fallback={<div role="status">{Craft.t('metrix', 'Loading…')}</div>}>
-                        <WidgetSettings
-                            isNew
-                            newWidget={newWidget}
-                            onClose={() => setIsDialogOpen(false)}
-                        />
-                    </Suspense>
-                ) : null}
-            </Dialog>
+            <WidgetNewDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
         </>
     );
 }

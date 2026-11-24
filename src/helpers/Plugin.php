@@ -43,6 +43,12 @@ class Plugin
         self::registerCpAsset('src/sources/metrix-sources.js');
     }
 
+    /** The Sources index's empty state. */
+    public static function registerSourcesIndexAssets(): void
+    {
+        self::registerCpAsset('src/sources/metrix-sources-index.js', MetrixCpAsset::class);
+    }
+
     /** Source edit dynamic settings refresh. Must load via Vite (ES module + kit chunk). */
     public static function registerSourcesCpJs(): void
     {

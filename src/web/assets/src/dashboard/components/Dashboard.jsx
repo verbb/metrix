@@ -4,7 +4,9 @@ import { Spinner } from '@verbb/plugin-kit-react/components/Spinner';
 
 import { DashboardHeader } from '@dashboard/components/DashboardHeader';
 import { DashboardWidgets } from '@dashboard/components/DashboardWidgets';
-import { DashboardEmptyState } from '@dashboard/components/DashboardEmptyState';
+import { DashboardEmptyState, PresetError } from '@dashboard/components/DashboardEmptyState';
+import { DashboardSetup } from '@dashboard/components/DashboardSetup';
+import { WidgetNewDialog } from '@dashboard/components/widgets/WidgetNew';
 
 import useAppStore from '@dashboard/hooks/useAppStore';
 import useWidgetStore from '@dashboard/hooks/useWidgetStore';
@@ -33,12 +35,16 @@ export const Dashboard = () => {
     const periodOptions = useAppStore((state) => { return state.periodOptions; });
 
     const sources = useAppStore((state) => { return state.sources; });
+    const setup = useAppStore((state) => { return state.setup; });
+    const setSetup = useAppStore((state) => { return state.setSetup; });
+    const canManageViewLayouts = useAppStore((state) => { return state.canManageViewLayouts; });
     const fetchAllWidgetData = useWidgetStore((state) => { return state.fetchAllWidgetData; });
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [loadingPresets, setLoadingPresets] = useState(false);
     const [errorPresets, setErrorPresets] = useState(null);
+    const [isNewWidgetOpen, setIsNewWidgetOpen] = useState(false);
     const viewRequestId = useRef(0);
 
     // Load currentView from query string on initial mount
@@ -154,28 +160,33 @@ export const Dashboard = () => {
     const hasViewOptions = viewOptions.length > 0;
     const hasSources = sources.length > 0;
 
-    const showHeader = () => {
-        if (!hasSources || !hasViewOptions) {
-            return false;
+    // The first widget ends setup for good, so removing it again shows the empty view rather than the checklist.
+    useEffect(() => {
+        if (hasWidgets && setup) {
+            setSetup(null);
         }
+    }, [hasWidgets, setup, setSetup]);
 
-        // If we have multiple views, but no widgets, we should be able to switch
-        if (viewOptions.length === 0 && !hasWidgets) {
-            return false;
-        }
-
-        return true;
-    };
-
-    const showHeaderActions = () => {
-        if (!showHeader() || !hasWidgets) {
-            return false;
-        }
-
-        return true;
-    };
+    const showSetup = Boolean(setup) && !hasWidgets && (hasViewOptions || canManageViewLayouts);
+    const showViewSelect = hasSources && hasViewOptions;
+    const showHeaderActions = showViewSelect && hasWidgets;
 
     const renderContent = () => {
+        if (showSetup) {
+            return (
+                <>
+                    <DashboardSetup
+                        setup={setup}
+                        loadingPresets={loadingPresets}
+                        onPresetSelect={handleLoadPresets}
+                        onNewWidget={() => setIsNewWidgetOpen(true)}
+                    />
+
+                    <PresetError errorPresets={errorPresets} />
+                </>
+            );
+        }
+
         if (!hasSources) {
             return <DashboardEmptyState type="noSources" />;
         }
@@ -217,6 +228,7 @@ export const Dashboard = () => {
             <DashboardEmptyState
                 type="noWidgets"
                 onPresetSelect={handleLoadPresets}
+                onNewWidget={() => setIsNewWidgetOpen(true)}
                 loadingPresets={loadingPresets}
                 errorPresets={errorPresets}
             />
@@ -232,12 +244,16 @@ export const Dashboard = () => {
                 periodOptions={periodOptions}
                 globalPeriod={globalPeriod}
                 onGlobalPeriodChange={handleGlobalPeriodChange}
-                showHeader={showHeader()}
-                showHeaderActions={showHeaderActions()}
+                showViewSelect={showViewSelect}
+                showHeaderActions={showHeaderActions}
                 showGlobalPeriod={hasWidgets}
             />
 
             {renderContent()}
+
+            {canManageViewLayouts ? (
+                <WidgetNewDialog open={isNewWidgetOpen} onOpenChange={setIsNewWidgetOpen} />
+            ) : null}
         </div>
     );
 };

@@ -16,6 +16,7 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Component as ComponentHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
+use craft\helpers\Sequence;
 
 use yii\base\Component;
 use yii\base\InvalidConfigException;
@@ -34,11 +35,15 @@ class Widgets extends Component
     public const EVENT_BEFORE_DELETE_WIDGET = 'beforeDeleteWidget';
     public const EVENT_AFTER_DELETE_WIDGET = 'afterDeleteWidget';
 
+    // Widgets are deleted outright, so this records that one was ever added.
+    public const WIDGETS_ADDED_SEQUENCE = 'metrix:widgetsAdded';
+
 
     // Properties
     // =========================================================================
 
     private ?MemoizableArray $_widgets = null;
+    private bool $_widgetsAdded = false;
 
 
     // Public Methods
@@ -90,6 +95,7 @@ class Widgets extends Component
             $config['errorMessage'] = $e->getMessage();
             $config['expectedType'] = $config['type'];
             unset($config['type']);
+
             return new widgetTypes\MissingWidget($config);
         }
     }
@@ -141,6 +147,15 @@ class Widgets extends Component
         return $widgets;
     }
 
+    public function hasAddedWidgets(): bool
+    {
+        if ($this->getAllWidgets()) {
+            return true;
+        }
+
+        return Sequence::current(self::WIDGETS_ADDED_SEQUENCE) > 0;
+    }
+
     public function saveWidget(WidgetInterface $widget, bool $runValidation = true): bool
     {
         $isNewWidget = !$widget->id;
@@ -155,6 +170,7 @@ class Widgets extends Component
 
         if ($runValidation && !$widget->validate()) {
             Craft::info('Widget not saved due to validation error.', __METHOD__);
+
             return false;
         }
 
@@ -176,6 +192,10 @@ class Widgets extends Component
 
         if (!$widget->id) {
             $widget->id = $widgetRecord->id;
+        }
+
+        if ($isNewWidget) {
+            $this->_recordWidgetAdded();
         }
 
         $this->_widgets = null;
@@ -297,6 +317,19 @@ class Widgets extends Component
         }
 
         return $widgetRecord;
+    }
+
+    private function _recordWidgetAdded(): void
+    {
+        if ($this->_widgetsAdded) {
+            return;
+        }
+
+        if (Sequence::current(self::WIDGETS_ADDED_SEQUENCE) === 0) {
+            Sequence::next(self::WIDGETS_ADDED_SEQUENCE);
+        }
+
+        $this->_widgetsAdded = true;
     }
 
 }

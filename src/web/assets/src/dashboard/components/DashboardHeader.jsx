@@ -13,21 +13,21 @@ export const DashboardHeader = ({
     periodOptions,
     globalPeriod,
     onGlobalPeriodChange,
-    showHeader,
+    showViewSelect,
     showHeaderActions,
     showGlobalPeriod,
 }) => {
     const canManageViewLayouts = useAppStore((state) => state.canManageViewLayouts);
     const periodGroups = normalizePeriodOptionGroups(periodOptions);
 
-    return showHeader && (
+    return (
         <header className="flex items-center justify-between mb-4 gap-4">
             <div className="flex items-center gap-4 min-w-0">
                 <h1 className="font-bold text-lg shrink-0" title={Craft.t('metrix', 'Dashboard')}>
                     {Craft.t('metrix', 'Dashboard')}
                 </h1>
 
-                {viewOptions.length > 1 && (
+                {showViewSelect && viewOptions.length > 1 && (
                     <SelectInput
                         className="shrink-0"
                         options={viewOptions}

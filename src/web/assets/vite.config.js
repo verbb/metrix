@@ -16,6 +16,7 @@ const cpBundleDirectories = {
     'metrix-dashboard': 'src/dashboard',
     'metrix-presets': 'src/presets',
     'metrix-sources': 'src/sources',
+    'metrix-sources-index': 'src/sources',
     'metrix-cp': 'src/cp',
     'metrix-cp-styles': 'src/cp',
 };
@@ -79,6 +80,7 @@ export default defineConfig({
                 'metrix-dashboard': path.resolve(srcRoot, './dashboard/metrix-dashboard.js'),
                 'metrix-presets': path.resolve(srcRoot, './presets/metrix-presets.js'),
                 'metrix-sources': path.resolve(srcRoot, './sources/metrix-sources.js'),
+                'metrix-sources-index': path.resolve(srcRoot, './sources/metrix-sources-index.js'),
             },
             output: {
                 entryFileNames: (chunkInfo) => {

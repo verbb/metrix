@@ -5,6 +5,7 @@ use verbb\metrix\Metrix;
 use verbb\metrix\base\Source;
 use verbb\metrix\base\Widget;
 use verbb\metrix\helpers\DashboardPermissions;
+use verbb\metrix\helpers\DashboardSetup;
 use verbb\metrix\helpers\Options;
 use verbb\metrix\helpers\Plugin;
 
@@ -81,6 +82,8 @@ class DashboardController extends Controller
             'periodOptions' => $periodOptions,
             'viewOptions' => $viewOptions,
             'canManageViewLayouts' => DashboardPermissions::canManageViewLayouts(),
+            'canManageSources' => Craft::$app->getUser()->checkPermission('metrix-sources'),
+            'setup' => DashboardSetup::getSteps(),
         ];
 
         $view->registerJs('new Craft.Metrix.Dashboard(' . Json::encode($data) . ');');
@@ -105,6 +108,7 @@ class DashboardController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
+
         DashboardPermissions::requireViewLayoutManagement();
 
         $viewHandle = $this->request->getRequiredParam('view');
@@ -180,6 +184,7 @@ class DashboardController extends Controller
     public function actionPropertyOptions(): Response
     {
         $this->requireAcceptsJson();
+
         DashboardPermissions::requireViewLayoutManagement();
 
         $sourceHandle = $this->request->getParam('source');
@@ -227,6 +232,7 @@ class DashboardController extends Controller
 
         if ($refreshCache) {
             $this->requirePostRequest();
+
             $this->_requireRefreshBudget($widget->id);
         }
 
@@ -250,6 +256,7 @@ class DashboardController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
+
         DashboardPermissions::requireDashboardAccess();
 
         $ids = $this->request->getBodyParam('ids', []);
@@ -285,6 +292,7 @@ class DashboardController extends Controller
                     'success' => false,
                     'error' => Craft::t('metrix', 'Unable to find widget {id}.', ['id' => $widgetId]),
                 ];
+
                 continue;
             }
 
@@ -326,6 +334,7 @@ class DashboardController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
+
         DashboardPermissions::requireViewLayoutManagement();
 
         $id = $this->request->getParam('id');
@@ -412,6 +421,7 @@ class DashboardController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
+
         DashboardPermissions::requireViewLayoutManagement();
 
         $widgetIds = $this->request->getRequiredBodyParam('ids');
@@ -433,6 +443,7 @@ class DashboardController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
+
         DashboardPermissions::requireViewLayoutManagement();
 
         $widgetId = (int)$this->request->getRequiredBodyParam('id');
@@ -452,6 +463,7 @@ class DashboardController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
+
         DashboardPermissions::requireViewLayoutManagement();
 
         $widgetId = (int)$this->request->getRequiredBodyParam('id');

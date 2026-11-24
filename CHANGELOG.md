@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Added a setup checklist to the dashboard for adding a source, connecting it and adding the first widgets or a preset. Each step ticks itself off, and the checklist leaves once the first widget is added.
+- Added an empty state to the Sources index with a New source button.
+
+### Changed
+- Updated the dashboard's empty views to Plugin Kit empty states, with one Add widgets menu holding the presets and a new widget.
+
 ## 2.1.10 - 2026-11-05
 
 ### Removed

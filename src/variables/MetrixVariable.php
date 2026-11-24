@@ -40,6 +40,11 @@ class MetrixVariable
         Plugin::registerSourcesAssets();
     }
 
+    public function registerSourcesIndexAssets(): void
+    {
+        Plugin::registerSourcesIndexAssets();
+    }
+
     public function registerSourcesCpJs(): void
     {
         Plugin::registerSourcesCpJs();

@@ -10,13 +10,26 @@
 {% set title = 'Sources' | t('metrix') %}
 {% set selectedSubnavItem = 'sources' %}
 
+{# The empty state carries the New source button until the first source exists. #}
 {% block actionButton %}
-    <a class="btn submit add icon" href="{{ url('metrix/sources/new') }}">{{ 'New source' | t('metrix') }}</a>
+    {% if sources %}
+        <a class="btn submit add icon" href="{{ url('metrix/sources/new') }}">{{ 'New source' | t('metrix') }}</a>
+    {% endif %}
 {% endblock %}
 
 {% block blockContent %}
 
-<div id="sources-vue-admin-table"></div>
+{% if sources %}
+    <div id="sources-vue-admin-table"></div>
+{% else %}
+    {% do craft.metrix.registerSourcesIndexAssets() %}
+
+    {# Craft.VueAdminTable can't hold a state panel, so an empty list gets its own branch. #}
+    <pk-state-panel heading="{{ 'No sources yet' | t('metrix') }}">
+        {{ 'Add a source to bring its analytics into your Metrix dashboard.' | t('metrix') }}
+        <a slot="actions" class="btn submit add icon" href="{{ url('metrix/sources/new') }}">{{ 'New source' | t('metrix') }}</a>
+    </pk-state-panel>
+{% endif %}
 
 {% endblock %}
 
@@ -34,6 +47,7 @@
     }]) %}
 {% endfor %}
 
+{% if sources %}
 {% js %}
     var columns = [
         { name: '__slot:title', title: Craft.t('app', 'Name') },
@@ -79,3 +93,4 @@
         tableData: {{ tableData | json_encode | raw }},
     });
 {% endjs %}
+{% endif %}

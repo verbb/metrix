@@ -1,0 +1,2 @@
+var e=`plugin-handle`,t,n=t=>{e=t.trim()||`plugin-handle`},r=e=>{t=e},i=(n,r)=>{if(t)return t(e,n,r);if(typeof window<`u`){let t=window.Craft;if(t?.t)return t.t(e,n,r)}return n};export{n,i as r,r as t};
+//# sourceMappingURL=translate-Bxe4lWga.js.map

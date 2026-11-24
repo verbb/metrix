@@ -91,13 +91,6 @@
     transition: opacity 100ms ease-in;
 }
 
-/* Craft CP empty-state typography — vanilla CP applies this via `.zilch`; shadow DOM needs it locally */
-.zilch {
-    color: var(--color-gray-500);
-    font-size: 20px;
-    line-height: 24px;
-}
-
 .pane {
     /* Craft `.pane` chrome — CP global styles don't pierce Metrix shadow roots */
     background-color: var(--pane-bg, var(--color-white));
@@ -445,4 +438,14 @@
 .metrix-widget-menu-width-row__label {
     flex: 1 1 auto;
     min-width: 0;
+}
+
+/* Tailwind's preflight resets every element's padding in this shadow root, and a rule here outranks a Plugin Kit
+   component's own `:host` padding. Give back the padding the setup checklist's steps and the state panels set. */
+pk-setup-step {
+    padding-inline: var(--pk-setup-checklist-padding, 1.5rem);
+}
+
+pk-state-panel {
+    padding: var(--pk-state-panel-padding, var(--_pk-state-panel-padding));
 }
