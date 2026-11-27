@@ -10815,16 +10815,16 @@
         },
         {
             "name": "verbb/base",
-            "version": "3.0.20",
+            "version": "3.0.23",
             "source": {
                 "type": "git",
                 "url": "https://github.com/verbb/verbb-base.git",
-                "reference": "0b60c166a79e2762aa968e062dc84ca6c0a9406e"
+                "reference": "7d4dbb3eb3e380cc3576ab8932dcc8daab12b67c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/verbb/verbb-base/zipball/0b60c166a79e2762aa968e062dc84ca6c0a9406e",
-                "reference": "0b60c166a79e2762aa968e062dc84ca6c0a9406e",
+                "url": "https://api.github.com/repos/verbb/verbb-base/zipball/7d4dbb3eb3e380cc3576ab8932dcc8daab12b67c",
+                "reference": "7d4dbb3eb3e380cc3576ab8932dcc8daab12b67c",
                 "shasum": ""
             },
             "require": {
@@ -10861,22 +10861,22 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-04T21:22:12+00:00"
+            "time": "2026-11-27T12:37:31+00:00"
         },
         {
             "name": "verbb/metrix",
-            "version": "2.1.8",
+            "version": "2.2.0",
             "dist": {
                 "type": "path",
                 "url": "../../..",
-                "reference": "8389c2382a80dd547cba978d406e93221fb0ae89"
+                "reference": "8d5d580ddb368c7bb5f0948d85d35c0d5a96a436"
             },
             "require": {
                 "craftcms/cms": "^5.0.0",
                 "nystudio107/craft-plugin-vite": "^5.0.0",
                 "php": "^8.2",
                 "verbb/auth": "^2.0.48",
-                "verbb/base": "^3.0.20"
+                "verbb/base": "^3.0.23"
             },
             "require-dev": {
                 "craftcms/cms": "^5.9",
@@ -11881,5 +11881,5 @@
         "php": "8.2.0",
         "php-64bit": "8.2.0"
     },
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }
