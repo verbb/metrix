@@ -572,8 +572,8 @@ describe('Delegated Source settings', function() {
         expect(SourceSecurity::validateDelegatedChange($changed, $original))->toBeTrue();
     });
 
-    it('allows credential managers to use environment-backed OAuth credentials', function() {
-        NonAdminUser::loginWithPermissions(['metrix-sources', Metrix::MANAGE_SOURCE_CREDENTIALS_PERMISSION]);
+    it('allows only admins to use environment-backed OAuth credentials', function() {
+        CpRequestContext::activate('actions/metrix/sources/save');
         $source = new GoogleAnalytics([
             'clientId' => '$METRIX_CLIENT_ID',
             'clientSecret' => '$METRIX_CLIENT_SECRET',
@@ -581,7 +581,12 @@ describe('Delegated Source settings', function() {
         $controller = (new ReflectionClass(SourcesController::class))->newInstanceWithoutConstructor();
         $method = new ReflectionMethod($controller, '_validateDelegatedSourceChange');
 
-        expect($method->invoke($controller, $source, null))->toBeTrue();
+        AdminUser::login();
+        expect($method->invoke($controller, clone $source, null))->toBeTrue();
+
+        NonAdminUser::loginWithPermissions(['metrix-sources', Metrix::MANAGE_SOURCE_CREDENTIALS_PERMISSION]);
+        expect($method->invoke($controller, $source, null))->toBeFalse()
+            ->and($source->getErrors('clientId'))->not->toBeEmpty();
     });
 
     it('rejects provider type changes without the credential permission', function() {

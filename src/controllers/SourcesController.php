@@ -2,6 +2,8 @@
 namespace verbb\metrix\controllers;
 
 use verbb\metrix\Metrix;
+use verbb\metrix\base\CredentialSourceInterface;
+use verbb\metrix\base\CredentialsSource;
 use verbb\metrix\base\SourceInterface;
 use verbb\metrix\helpers\Plugin;
 use verbb\metrix\helpers\SourceSecurity;
@@ -16,6 +18,9 @@ use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 use Exception;
+
+use verbb\base\helpers\EnvironmentSettings;
+use verbb\base\models\EnvironmentSettingsViolation;
 
 class SourcesController extends Controller
 {
@@ -294,9 +299,48 @@ class SourcesController extends Controller
     private function _validateDelegatedSourceChange(SourceInterface $source, ?SourceInterface $original): bool
     {
         if (Craft::$app->getUser()->checkPermission(Metrix::MANAGE_SOURCE_CREDENTIALS_PERMISSION)) {
-            return true;
+            return $this->_validateCredentialSourceChange($source, $original);
         }
 
         return SourceSecurity::validateDelegatedChange($source, $original);
+    }
+
+    /**
+     * Credential managers who aren't admins can enter credentials, but can't add environment variable references or
+     * send credentials they can't see to a new endpoint or provider. Both sides are compared as the source runs,
+     * including config overrides, because config wins over posted values and its credentials are hidden in the form.
+     */
+    private function _validateCredentialSourceChange(SourceInterface $source, ?SourceInterface $original): bool
+    {
+        $settings = $source->getSettings();
+        $overrides = $source->handle ? Metrix::$plugin->getSources()->getSourceOverrides($source->handle) : [];
+        $stored = array_merge($original?->getSettings() ?? [], $overrides);
+
+        // Any saved reference counts as a credential, as ordinary settings such as a site ID are sent along with it.
+        $credentials = array_keys(array_filter($stored, fn($value) => EnvironmentSettings::containsReference($value)));
+
+        // Config credentials that aren't references are masked in the form, so they're hidden from this user too.
+        if ($source instanceof CredentialSourceInterface) {
+            $credentials = array_merge($credentials, array_intersect($source->getCredentialAttributes(), array_keys($overrides)));
+        }
+
+        // A setting the new provider doesn't have can't carry a saved credential over.
+        $credentials = array_values(array_intersect(array_unique($credentials), array_keys($settings)));
+        $destinations = $source instanceof CredentialsSource ? $source->getEndpointAttributes() : [];
+        $providerChanged = $original && get_class($source) !== get_class($original);
+
+        $violation = EnvironmentSettings::violation($settings, $stored, $credentials, true, $providerChanged, $destinations);
+
+        if (!$violation) {
+            return true;
+        }
+
+        $message = $violation->reason === EnvironmentSettingsViolation::REFERENCE
+            ? Craft::t('metrix', 'Only admins can use environment variables here.')
+            : Craft::t('metrix', 'Enter the credentials again after changing where this connects.');
+
+        $source->addError($violation->getAttribute() ?? 'type', $message);
+
+        return false;
     }
 }
